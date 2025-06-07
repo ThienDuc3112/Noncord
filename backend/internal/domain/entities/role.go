@@ -24,5 +24,6 @@ type Role struct {
 type UserRole struct {
 	UserId    UserId
 	RoleId    RoleId
+	ServerId  ServerId
 	CreatedAt time.Time
 }

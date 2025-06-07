@@ -25,7 +25,15 @@ type Attachment struct {
 	Id        AttachmentId
 	Filetype  Filetype
 	Url       string
+	Filename  string
 	MessageId MessageId
+}
+
+func (a *Attachment) Validate() error {
+	if a.Url != "" && !emailReg.MatchString(a.Url) {
+		return NewError(ErrCodeValidationError, "invalid attachment url", nil)
+	}
+	return nil
 }
 
 type EmoteId uuid.UUID
@@ -35,6 +43,13 @@ type Emote struct {
 	Name     string
 	ServerId ServerId
 	IconUrl  string
+}
+
+func (e *Emote) Validate() error {
+	if e.IconUrl != "" && !emailReg.MatchString(e.IconUrl) {
+		return NewError(ErrCodeValidationError, "invalid icon url", nil)
+	}
+	return nil
 }
 
 type Reaction struct {
@@ -53,4 +68,14 @@ type Message struct {
 	Message     string
 	Attachments []Attachment
 	Reactions   []Reaction
+}
+
+func (m *Message) Validate() error {
+	if m.Message == "" && len(m.Attachments) == 0 {
+		return NewError(ErrCodeValidationError, "cannot send empty message", nil)
+	}
+	if len(m.Attachments) > 10 {
+		return NewError(ErrCodeValidationError, "attachments limit exceed", nil)
+	}
+	return nil
 }
