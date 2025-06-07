@@ -13,8 +13,9 @@ type Filetype string
 const (
 	FiletypePNG   Filetype = "image/png"
 	FiletypeJPG   Filetype = "image/jpg"
+	FiletypeGIF   Filetype = "image/gif"
+	FiletypeWEBP  Filetype = "image/webp"
 	FiletypeMP4   Filetype = "video/mp4"
-	FiletypeMPEG  Filetype = "video/mpeg"
 	FiletypeTXT   Filetype = "text"
 	FiletypeOTHER Filetype = "other"
 )
@@ -27,6 +28,8 @@ type Attachment struct {
 	Url       string
 	Filename  string
 	MessageId MessageId
+	UserId    UserId
+	Size      uint32
 }
 
 func (a *Attachment) Validate() error {
@@ -56,6 +59,7 @@ type Reaction struct {
 	MessageId MessageId
 	UserId    UserId
 	Emote     EmoteId
+	ReactedAt time.Time
 }
 
 type Message struct {
@@ -63,11 +67,11 @@ type Message struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time
-	ChannelId   ChannelId
+	ChannelId   *ChannelId
+	GroupId     *DMGroupId
 	Author      UserId
 	Message     string
 	Attachments []Attachment
-	Reactions   []Reaction
 }
 
 func (m *Message) Validate() error {
@@ -76,6 +80,11 @@ func (m *Message) Validate() error {
 	}
 	if len(m.Attachments) > 10 {
 		return NewError(ErrCodeValidationError, "attachments limit exceed", nil)
+	}
+	noChannel := m.ChannelId == nil
+	noGroup := m.GroupId == nil
+	if noGroup && noChannel {
+		return NewError(ErrCodeValidationError, "cannot have orphan message", nil)
 	}
 	return nil
 }
