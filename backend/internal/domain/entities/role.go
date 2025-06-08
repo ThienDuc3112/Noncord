@@ -15,7 +15,7 @@ type Role struct {
 	DeletedAt    *time.Time
 	Name         string
 	Color        uint32
-	Priority     uint8
+	Priority     uint16
 	AllowMention bool
 	Permissions  ServerPermissionBits
 	ServerId     ServerId
@@ -24,6 +24,9 @@ type Role struct {
 func (r *Role) Validate() error {
 	if r.Name == "" {
 		return NewError(ErrCodeValidationError, "name cannot be empty", nil)
+	}
+	if len(r.Name) > 64 {
+		return NewError(ErrCodeValidationError, "name cannot exceed 64 characters", nil)
 	}
 	return nil
 }

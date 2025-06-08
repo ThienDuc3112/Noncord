@@ -62,6 +62,12 @@ func (s *Server) Validate() error {
 	if s.Name == "" {
 		return NewError(ErrCodeValidationError, "cannot have empty server name", nil)
 	}
+	if len(s.Name) > 256 {
+		return NewError(ErrCodeValidationError, "server name cannot exceed 256 characters", nil)
+	}
+	if len(s.Description) > 512 {
+		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
+	}
 	if len(s.Categories) > 255 {
 		return NewError(ErrCodeValidationError, "cannot have more than 255 categories", nil)
 	}
@@ -71,8 +77,14 @@ func (s *Server) Validate() error {
 	if s.IconUrl != "" && !emailReg.MatchString(s.IconUrl) {
 		return NewError(ErrCodeValidationError, "icon invalid url", nil)
 	}
+	if len(s.IconUrl) > 2048 {
+		return NewError(ErrCodeValidationError, "icon url too long", nil)
+	}
 	if s.BannerUrl != "" && !emailReg.MatchString(s.BannerUrl) {
 		return NewError(ErrCodeValidationError, "banner invalid url", nil)
+	}
+	if len(s.BannerUrl) > 2048 {
+		return NewError(ErrCodeValidationError, "banner url too long", nil)
 	}
 
 	return nil
@@ -86,7 +98,7 @@ type Category struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time
 	Name      string
-	Order     uint8
+	Order     uint16
 }
 
 type InvititationId uuid.UUID

@@ -9,9 +9,10 @@ import (
 
 type UserId uuid.UUID
 
-type UserFlags uint8
+type UserFlags uint16
 
 const (
+	UserFlagUser      UserFlags = 0
 	UserFlagBot       UserFlags = 1
 	UserFlagVerified  UserFlags = 2
 	UserFlagModerator UserFlags = 3
@@ -50,17 +51,29 @@ func (u *User) Validate() error {
 	if len(u.DisplayName) > 128 {
 		return NewError(ErrCodeValidationError, "display name cannot be longer than 128 characters", nil)
 	}
+	if len(u.AboutMe) > 1024 {
+		return NewError(ErrCodeValidationError, "about me cannot be longer than 512 characters", nil)
+	}
 	if !usernameReg.MatchString(u.Username) {
 		return NewError(ErrCodeValidationError, "username must only contain alphanumeric character '_' or '-' and cannot start or end with '_' or '-' ", nil)
 	}
 	if !emailReg.MatchString(u.Email) {
 		return NewError(ErrCodeValidationError, "invalid email", nil)
 	}
+	if len(u.Email) > 256 {
+		return NewError(ErrCodeValidationError, "email too long, likely not valid, please use another one", nil)
+	}
 	if u.AvatarUrl != "" && !urlReg.MatchString(u.AvatarUrl) {
 		return NewError(ErrCodeValidationError, "avatar invalid url", nil)
 	}
+	if len(u.AvatarUrl) > 2048 {
+		return NewError(ErrCodeValidationError, "avatar url too long", nil)
+	}
 	if u.BannerUrl != "" && !urlReg.MatchString(u.BannerUrl) {
 		return NewError(ErrCodeValidationError, "banner invalid url", nil)
+	}
+	if len(u.BannerUrl) > 2048 {
+		return NewError(ErrCodeValidationError, "banner url too long", nil)
 	}
 
 	return nil
@@ -73,7 +86,7 @@ const (
 	DarkTheme  Theme = "DARK"
 )
 
-type DMAllowOption uint8
+type DMAllowOption uint16
 
 const (
 	DMAllowFriend DMAllowOption = 0
@@ -81,7 +94,7 @@ const (
 	DMAllowAll    DMAllowOption = 2
 )
 
-type DMFilterOption uint8
+type DMFilterOption uint16
 
 const (
 	DMFilterNone      DMFilterOption = 0
@@ -89,7 +102,7 @@ const (
 	DMFilterAll       DMFilterOption = 2
 )
 
-type FriendRequestPermissionBits uint8
+type FriendRequestPermissionBits uint16
 
 const (
 	FriendRequest2ndFriend FriendRequestPermissionBits = 1 << 1
@@ -111,7 +124,7 @@ const (
 	NotifyOnDM                NotificationBits = 1 << 9
 )
 
-type ReactionNotificationOption uint8
+type ReactionNotificationOption uint16
 
 const (
 	ReactionNotificationAll  = 0

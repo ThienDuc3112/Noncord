@@ -36,6 +36,13 @@ func (a *Attachment) Validate() error {
 	if a.Url != "" && !emailReg.MatchString(a.Url) {
 		return NewError(ErrCodeValidationError, "invalid attachment url", nil)
 	}
+	if len(a.Url) > 2048 {
+		return NewError(ErrCodeValidationError, "url too long", nil)
+	}
+	if len(a.Filename) > 128 {
+		return NewError(ErrCodeValidationError, "file name too long", nil)
+	}
+
 	return nil
 }
 
@@ -43,7 +50,6 @@ type Reaction struct {
 	MessageId MessageId
 	UserId    UserId
 	Emote     EmoteId
-	ReactedAt time.Time
 }
 
 type Message struct {
@@ -62,6 +68,9 @@ func (m *Message) Validate() error {
 	if m.Message == "" && len(m.Attachments) == 0 {
 		return NewError(ErrCodeValidationError, "cannot send empty message", nil)
 	}
+	if len(m.Message) > 4096 {
+		return NewError(ErrCodeValidationError, "message cannot be longer than 4096", nil)
+	}
 	if len(m.Attachments) > 10 {
 		return NewError(ErrCodeValidationError, "attachments limit exceed", nil)
 	}
@@ -70,5 +79,6 @@ func (m *Message) Validate() error {
 	if noGroup && noChannel {
 		return NewError(ErrCodeValidationError, "cannot have orphan message", nil)
 	}
+
 	return nil
 }

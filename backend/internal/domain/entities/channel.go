@@ -16,16 +16,19 @@ type Channel struct {
 	Name           string
 	Description    string
 	ServerId       ServerId
-	Order          uint8
+	Order          uint16
 	ParentCategory *CategoryId
 }
 
 func (c *Channel) Validate() error {
 	if len(c.Name) > 64 {
-		return NewError(ErrCodeValidationError, "name exceed 64 character", nil)
+		return NewError(ErrCodeValidationError, "name cannot exceed 64 characters", nil)
 	}
 	if len(c.Name) == 0 {
 		return NewError(ErrCodeValidationError, "name cannot be empty", nil)
+	}
+	if len(c.Description) > 256 {
+		return NewError(ErrCodeValidationError, "description cannot exceed 256 characters", nil)
 	}
 	return nil
 }
