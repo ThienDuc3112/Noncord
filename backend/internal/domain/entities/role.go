@@ -21,9 +21,9 @@ type Role struct {
 	ServerId     ServerId
 }
 
-type UserRole struct {
-	UserId    UserId
-	RoleId    RoleId
-	ServerId  ServerId
-	CreatedAt time.Time
+func (r *Role) Validate() error {
+	if r.Name == "" {
+		return NewError(ErrCodeValidationError, "name cannot be empty", nil)
+	}
+	return nil
 }

@@ -31,9 +31,9 @@ func (c *Channel) Validate() error {
 }
 
 type ChannelRolePermissionOverride struct {
-	UpdatedAt time.Time
-	RoleId    RoleId
 	ChannelId ChannelId
+	RoleId    RoleId
+	UpdatedAt time.Time
 	Allow     ServerPermissionBits
 	Deny      ServerPermissionBits
 }
@@ -45,42 +45,17 @@ func (p *ChannelRolePermissionOverride) Validate() error {
 	return nil
 }
 
-type ChannelUserWhitelist struct {
+type ChannelUserPermissionOverride struct {
 	ChannelId ChannelId
 	UserId    UserId
 	CreatedAt time.Time
+	Allow     ServerPermissionBits
+	Deny      ServerPermissionBits
 }
 
-type ChannelRoleWhitelist struct {
-	ChannelId ChannelId
-	RoleId    RoleId
-	CreatedAt time.Time
-}
-
-type DMGroupId uuid.UUID
-
-type DMGroup struct {
-	Id        DMGroupId
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-	Name      string
-	IconUrl   string
-	IsGroup   bool
-}
-
-func (g *DMGroup) Validate() error {
-	if !g.IsGroup && g.IconUrl != "" {
-		return NewError(ErrCodeValidationError, "direct message cannot set icon url", nil)
-	}
-	if g.IconUrl != "" && !emailReg.MatchString(g.IconUrl) {
-		return NewError(ErrCodeValidationError, "invalid icon url", nil)
+func (p *ChannelUserPermissionOverride) Validate() error {
+	if (p.Allow & p.Deny) != 0 {
+		return NewError(ErrCodeValidationError, "cannot allow and deny the same permission", nil)
 	}
 	return nil
-}
-
-type DMGroupMember struct {
-	DMGroupId DMGroupId
-	Member    UserId
-	CreatedAt time.Time
 }

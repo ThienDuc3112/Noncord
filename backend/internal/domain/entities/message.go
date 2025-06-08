@@ -39,22 +39,6 @@ func (a *Attachment) Validate() error {
 	return nil
 }
 
-type EmoteId uuid.UUID
-
-type Emote struct {
-	Id       EmoteId
-	Name     string
-	ServerId ServerId
-	IconUrl  string
-}
-
-func (e *Emote) Validate() error {
-	if e.IconUrl != "" && !emailReg.MatchString(e.IconUrl) {
-		return NewError(ErrCodeValidationError, "invalid icon url", nil)
-	}
-	return nil
-}
-
 type Reaction struct {
 	MessageId MessageId
 	UserId    UserId

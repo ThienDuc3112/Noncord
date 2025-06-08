@@ -142,35 +142,15 @@ type UserSettings struct {
 	AFKTimeout           time.Duration
 }
 
-type UserServerSettingsOverride struct {
-	UserId               UserId
-	ServerId             ServerId
-	UpdatedAt            time.Time
-	NotificationSettings NotificationBits
-}
-
-type UserChannelSettingsOverride struct {
-	UserId               UserId
-	ChannelId            ChannelId
-	UpdatedAt            time.Time
-	NotificationSettings NotificationBits
-}
-
-type UserDMSettingsOverride struct {
-	UserId               UserId
-	DMGroupId            DMGroupId
-	UpdatedAt            time.Time
-	NotificationSettings NotificationBits
-}
-
-type Friendship struct {
-	User1Id   UserId
-	User2Id   UserId
-	CreatedAt time.Time
-}
+// type Friendship struct {
+// 	User1Id   UserId
+// 	User2Id   UserId
+// 	CreatedAt time.Time
+// }
 
 type FriendRequest struct {
 	RequesterId  UserId
 	TargetUserId UserId
+	Message      string
 	CreatedAt    time.Time
 }
