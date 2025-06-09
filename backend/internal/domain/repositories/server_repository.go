@@ -7,13 +7,7 @@ import (
 
 type ServerRepo interface {
 	Find(ctx context.Context, id e.ServerId) (*e.Server, error)
-	FindByInvite(ctx context.Context, id e.InvititationId) (*e.Server, error)
 	FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.Server, error)
-
-	FindInvites(ctx context.Context, id e.ServerId) ([]*e.Invititation, error)
-
 	Save(ctx context.Context, server *e.Server) (*e.Server, error)
-	SaveInvite(ctx context.Context, invite *e.Invititation) (*e.Invititation, error)
-
 	Delete(ctx context.Context, id e.ServerId) error
 }

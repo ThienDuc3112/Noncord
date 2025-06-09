@@ -12,11 +12,8 @@ type PGServerRepo struct {
 }
 
 func (r *PGServerRepo) Find(ctx context.Context, id e.ServerId) (*e.Server, error)
-func (r *PGServerRepo) FindByInvite(ctx context.Context, id e.InvititationId) (*e.Server, error)
 func (r *PGServerRepo) FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.Server, error)
-func (r *PGServerRepo) FindInvites(ctx context.Context, id e.ServerId) ([]*e.Invititation, error)
 func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, error)
-func (r *PGServerRepo) SaveInvite(ctx context.Context, invite *e.Invititation) (*e.Invititation, error)
 func (r *PGServerRepo) Delete(ctx context.Context, id e.ServerId) error
 
 var _ repositories.ServerRepo = &PGServerRepo{}

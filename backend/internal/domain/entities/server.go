@@ -52,7 +52,7 @@ type Server struct {
 	BannerUrl    string
 	NeedApproval bool
 
-	Categories []Category
+	// Categories []Category
 
 	DefaultRole         *RoleId
 	AnnouncementChannel *ChannelId
@@ -68,9 +68,9 @@ func (s *Server) Validate() error {
 	if len(s.Description) > 512 {
 		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
 	}
-	if len(s.Categories) > 255 {
-		return NewError(ErrCodeValidationError, "cannot have more than 255 categories", nil)
-	}
+	// if len(s.Categories) > 255 {
+	// 	return NewError(ErrCodeValidationError, "cannot have more than 255 categories", nil)
+	// }
 	if s.DefaultRole == nil {
 		return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
 	}
@@ -97,19 +97,9 @@ type Category struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+	ServerId  ServerId
 	Name      string
 	Order     uint16
-}
-
-type InvititationId uuid.UUID
-
-type Invititation struct {
-	Id             InvititationId
-	ServerId       ServerId
-	CreatedAt      time.Time
-	ExpiredAt      *time.Time
-	BypassApproval bool
-	JoinLimit      int32
 }
 
 type JoinRequestId uuid.UUID

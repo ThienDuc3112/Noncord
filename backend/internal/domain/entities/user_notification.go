@@ -2,23 +2,18 @@ package entities
 
 import "time"
 
-type UserServerSettingsOverride struct {
+type Scope string
+
+const (
+	ScopeServer  Scope = "SERVER"
+	ScopeChannel Scope = "CHANNEL"
+	ScopeDM      Scope = "DM"
+)
+
+type UserNotification struct {
 	UserId               UserId
 	ServerId             ServerId
 	UpdatedAt            time.Time
-	NotificationSettings NotificationBits
-}
-
-type UserChannelSettingsOverride struct {
-	UserId               UserId
-	ChannelId            ChannelId
-	UpdatedAt            time.Time
-	NotificationSettings NotificationBits
-}
-
-type UserDMSettingsOverride struct {
-	UserId               UserId
-	DMGroupId            DMGroupId
-	UpdatedAt            time.Time
+	Scope                Scope
 	NotificationSettings NotificationBits
 }
