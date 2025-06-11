@@ -5,6 +5,7 @@ import "time"
 type Membership struct {
 	ServerId  ServerId
 	UserId    UserId
+	Nickname  string
 	CreatedAt time.Time
 }
 

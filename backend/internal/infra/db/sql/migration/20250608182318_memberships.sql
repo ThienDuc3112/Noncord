@@ -4,6 +4,7 @@ CREATE TABLE memberships (
   server_id UUID NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  nickname VARCHAR(128) NOT NULL,
   PRIMARY KEY(server_id, user_id)
 );
 CREATE INDEX idx_memberships_user_id_server_id ON memberships(user_id, server_id);
