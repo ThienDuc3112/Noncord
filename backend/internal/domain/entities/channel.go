@@ -33,6 +33,20 @@ func (c *Channel) Validate() error {
 	return nil
 }
 
+func NewChannel(name, desc string, serverId ServerId, order uint16, parent *CategoryId) *Channel {
+	return &Channel{
+		Id:             ChannelId(uuid.New()),
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		DeletedAt:      nil,
+		Name:           name,
+		Description:    desc,
+		ServerId:       serverId,
+		Order:          order,
+		ParentCategory: parent,
+	}
+}
+
 type ChannelRolePermissionOverride struct {
 	ChannelId ChannelId
 	RoleId    RoleId
@@ -48,10 +62,20 @@ func (p *ChannelRolePermissionOverride) Validate() error {
 	return nil
 }
 
+func NewChannelRolePermissionOverride(channelId ChannelId, roleId RoleId, allow, deny ServerPermissionBits) *ChannelRolePermissionOverride {
+	return &ChannelRolePermissionOverride{
+		ChannelId: channelId,
+		RoleId:    roleId,
+		UpdatedAt: time.Now(),
+		Allow:     allow,
+		Deny:      deny,
+	}
+}
+
 type ChannelUserPermissionOverride struct {
 	ChannelId ChannelId
 	UserId    UserId
-	CreatedAt time.Time
+	UpdatedAt time.Time
 	Allow     ServerPermissionBits
 	Deny      ServerPermissionBits
 }
@@ -61,4 +85,14 @@ func (p *ChannelUserPermissionOverride) Validate() error {
 		return NewError(ErrCodeValidationError, "cannot allow and deny the same permission", nil)
 	}
 	return nil
+}
+
+func NewChannelUserPermissionOverride(channelId ChannelId, userId UserId, allow, deny ServerPermissionBits) *ChannelUserPermissionOverride {
+	return &ChannelUserPermissionOverride{
+		ChannelId: channelId,
+		UserId:    userId,
+		UpdatedAt: time.Now(),
+		Allow:     allow,
+		Deny:      deny,
+	}
 }

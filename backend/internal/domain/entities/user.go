@@ -32,6 +32,7 @@ type User struct {
 	Email       string
 	Password    string
 	Disabled    bool
+	Verified    bool
 	AvatarUrl   string
 	BannerUrl   string
 	Flags       UserFlags
@@ -77,6 +78,25 @@ func (u *User) Validate() error {
 	}
 
 	return nil
+}
+
+func NewUser(username, displayName, aboutMe, email, password, avatarUrl, bannerUrl string, flags UserFlags) *User {
+	return &User{
+		Id:          UserId(uuid.New()),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		DeletedAt:   nil,
+		Username:    username,
+		DisplayName: displayName,
+		AboutMe:     aboutMe,
+		Email:       email,
+		Password:    password,
+		Disabled:    false,
+		Verified:    false,
+		AvatarUrl:   avatarUrl,
+		BannerUrl:   bannerUrl,
+		Flags:       flags,
+	}
 }
 
 type Theme string
@@ -155,15 +175,33 @@ type UserSettings struct {
 	AFKTimeout           time.Duration
 }
 
-// type Friendship struct {
-// 	User1Id   UserId
-// 	User2Id   UserId
-// 	CreatedAt time.Time
-// }
+func NewUserSettings(uid UserId, lang string, dmOption DMAllowOption, dmFilter DMFilterOption, friendReqPerm FriendRequestPermissionBits, colAnaPerm bool, theme Theme, showEmote bool, notiSetting NotificationBits, afkDur time.Duration) *UserSettings {
+	return &UserSettings{
+		UserId:                     uid,
+		Language:                   lang,
+		DMAllowOption:              dmOption,
+		DMFilterOption:             dmFilter,
+		FriendRequestPermission:    friendReqPerm,
+		CollectAnalyticsPermission: colAnaPerm,
+		Theme:                      theme,
+		ShowEmote:                  showEmote,
+		NotificationSettings:       notiSetting,
+		AFKTimeout:                 afkDur,
+	}
+}
 
 type FriendRequest struct {
 	RequesterId  UserId
 	TargetUserId UserId
 	Message      string
 	CreatedAt    time.Time
+}
+
+func NewFriendRequest(requester, target UserId, msg string) *FriendRequest {
+	return &FriendRequest{
+		RequesterId:  requester,
+		TargetUserId: target,
+		Message:      msg,
+		CreatedAt:    time.Now(),
+	}
 }

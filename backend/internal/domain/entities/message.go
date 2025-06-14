@@ -46,10 +46,30 @@ func (a *Attachment) Validate() error {
 	return nil
 }
 
+func NewAttachment(filetype Filetype, url, name string, mid MessageId, uid UserId, size uint32) *Attachment {
+	return &Attachment{
+		Id:        AttachmentId(uuid.New()),
+		Filetype:  filetype,
+		Url:       url,
+		Filename:  name,
+		MessageId: mid,
+		UserId:    uid,
+		Size:      size,
+	}
+}
+
 type Reaction struct {
 	MessageId MessageId
 	UserId    UserId
-	Emote     EmoteId
+	EmoteId   EmoteId
+}
+
+func NewReaction(mid MessageId, uid UserId, eid EmoteId) *Reaction {
+	return &Reaction{
+		MessageId: mid,
+		UserId:    uid,
+		EmoteId:   eid,
+	}
 }
 
 type Message struct {
@@ -81,4 +101,18 @@ func (m *Message) Validate() error {
 	}
 
 	return nil
+}
+
+func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg string, attachments []Attachment) *Message {
+	return &Message{
+		Id:          MessageId(uuid.New()),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		DeletedAt:   nil,
+		ChannelId:   channelId,
+		GroupId:     groupId,
+		Author:      authId,
+		Message:     msg,
+		Attachments: attachments,
+	}
 }

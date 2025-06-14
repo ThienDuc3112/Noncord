@@ -45,3 +45,16 @@ func (g *DMGroup) Validate() error {
 	}
 	return nil
 }
+
+func NewDMGroup(name, iconUrl string, isGroup bool) *DMGroup {
+	return &DMGroup{
+		Id:        DMGroupId(uuid.New()),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: nil,
+		Name:      name,
+		IconUrl:   iconUrl,
+		IsGroup:   isGroup,
+		Members:   make([]DMGroupMember, 0),
+	}
+}

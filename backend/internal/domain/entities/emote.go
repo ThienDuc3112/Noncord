@@ -31,3 +31,15 @@ func (e *Emote) Validate() error {
 
 	return nil
 }
+
+func NewEmote(serverId ServerId, name, iconUrl string) *Emote {
+	return &Emote{
+		Id:        EmoteId(uuid.New()),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: nil,
+		ServerId:  serverId,
+		Name:      name,
+		IconUrl:   iconUrl,
+	}
+}

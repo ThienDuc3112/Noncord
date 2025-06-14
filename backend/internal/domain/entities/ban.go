@@ -7,3 +7,11 @@ type BanEntry struct {
 	UserId    UserId
 	CreatedAt time.Time
 }
+
+func NewBanEntry(serverId ServerId, userId UserId) *BanEntry {
+	return &BanEntry{
+		ServerId:  serverId,
+		UserId:    userId,
+		CreatedAt: time.Now(),
+	}
+}

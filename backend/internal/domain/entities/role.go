@@ -30,3 +30,18 @@ func (r *Role) Validate() error {
 	}
 	return nil
 }
+
+func NewRole(name string, color uint32, priority uint16, allowMention bool, perm ServerPermissionBits, sid ServerId) *Role {
+	return &Role{
+		Id:           RoleId(uuid.New()),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		DeletedAt:    nil,
+		Name:         name,
+		Color:        color,
+		Priority:     priority,
+		AllowMention: allowMention,
+		Permissions:  perm,
+		ServerId:     sid,
+	}
+}

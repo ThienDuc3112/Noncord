@@ -52,8 +52,6 @@ type Server struct {
 	BannerUrl    string
 	NeedApproval bool
 
-	// Categories []Category
-
 	DefaultRole         *RoleId
 	AnnouncementChannel *ChannelId
 }
@@ -68,9 +66,6 @@ func (s *Server) Validate() error {
 	if len(s.Description) > 512 {
 		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
 	}
-	// if len(s.Categories) > 255 {
-	// 	return NewError(ErrCodeValidationError, "cannot have more than 255 categories", nil)
-	// }
 	if s.DefaultRole == nil {
 		return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
 	}
@@ -90,6 +85,22 @@ func (s *Server) Validate() error {
 	return nil
 }
 
+func NewServer(name, description, iconUrl, bannerUrl string, needApproval bool) *Server {
+	return &Server{
+		Id:                  ServerId(uuid.New()),
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
+		DeletedAt:           nil,
+		Name:                name,
+		Description:         description,
+		IconUrl:             iconUrl,
+		BannerUrl:           bannerUrl,
+		NeedApproval:        needApproval,
+		DefaultRole:         nil,
+		AnnouncementChannel: nil,
+	}
+}
+
 type CategoryId uuid.UUID
 
 type Category struct {
@@ -102,15 +113,32 @@ type Category struct {
 	Order     uint16
 }
 
+func NewCategory(sid ServerId, name string, order uint16) *Category {
+	return &Category{
+		Id:        CategoryId(uuid.New()),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: nil,
+		ServerId:  sid,
+		Name:      name,
+		Order:     order,
+	}
+}
+
 type JoinRequestId uuid.UUID
 
 type JoinRequest struct {
-	Id            JoinRequestId
-	CreatedAt     time.Time
-	ApprovedAt    *time.Time
-	RevokedAt     *time.Time
-	ServerId      ServerId
-	UserId        UserId
-	ApproverId    *UserId
-	ApprovedState bool
+	Id        JoinRequestId
+	CreatedAt time.Time
+	ServerId  ServerId
+	UserId    UserId
+}
+
+func NewJoinRequest(sid ServerId, uid UserId) *JoinRequest {
+	return &JoinRequest{
+		Id:        JoinRequestId(uuid.New()),
+		CreatedAt: time.Now(),
+		ServerId:  sid,
+		UserId:    uid,
+	}
 }
