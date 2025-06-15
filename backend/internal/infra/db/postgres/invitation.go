@@ -3,12 +3,12 @@ package postgres
 import (
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 )
 
 type PGInviteRepo struct {
-	db *sql.DB
+	db gen.DBTX
 }
 
 func (r *PGInviteRepo) Find(ctx context.Context, id e.InvititationId) (*e.Invititation, error)

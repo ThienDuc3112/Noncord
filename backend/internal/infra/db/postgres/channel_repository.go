@@ -3,12 +3,12 @@ package postgres
 import (
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 )
 
 type PGChannelRepo struct {
-	db *sql.DB
+	db gen.DBTX
 }
 
 func (r *PGChannelRepo) Find(ctx context.Context, id e.ChannelId) (*e.Channel, error)

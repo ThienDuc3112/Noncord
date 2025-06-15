@@ -3,12 +3,12 @@ package postgres
 import (
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 )
 
 type PGRoleRepo struct {
-	db *sql.DB
+	db gen.DBTX
 }
 
 func (r *PGRoleRepo) Find(ctx context.Context, id e.RoleId) (*e.Role, error)

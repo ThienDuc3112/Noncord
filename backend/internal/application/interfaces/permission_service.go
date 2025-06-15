@@ -1,7 +1,4 @@
-package services
-
-import "backend/internal/domain/entities"
+package interfaces
 
 type PermissionService interface {
-	EffectivePermissions(channelId entities.ChannelId, userId entities.UserId) entities.ServerPermissionBits
 }

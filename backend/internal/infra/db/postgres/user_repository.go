@@ -3,12 +3,20 @@ package postgres
 import (
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 )
 
 type PGUserRepo struct {
-	db *sql.DB
+	db gen.DBTX
+	q  *gen.Queries
+}
+
+func NewPGUserRepo(conn gen.DBTX) *PGUserRepo {
+	return &PGUserRepo{
+		db: conn,
+		q:  gen.New(conn),
+	}
 }
 
 func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error)

@@ -1,8 +1,4 @@
-package services
-
-import "backend/internal/domain/entities"
+package interfaces
 
 type ModerationServices interface {
-	BanUser(serverId entities.ServerId, userId entities.UserId) error
-	UnbanUser(serverId entities.ServerId, userId entities.UserId) error
 }

@@ -3,12 +3,12 @@ package postgres
 import (
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 )
 
 type PGMemberRepo struct {
-	db *sql.DB
+	db gen.DBTX
 }
 
 func (r *PGMemberRepo) Find(ctx context.Context, userId e.UserId, serverId e.ServerId) (*e.Membership, error)

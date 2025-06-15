@@ -3,13 +3,13 @@ package postgres
 import (
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 	"time"
 )
 
 type PGMessageRepo struct {
-	db *sql.DB
+	db gen.DBTX
 }
 
 func (r *PGMessageRepo) Find(ctx context.Context, id e.MessageId) (*e.Message, error)
