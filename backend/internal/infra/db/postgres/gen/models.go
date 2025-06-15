@@ -6,10 +6,55 @@ package gen
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type ScopeType string
+
+const (
+	ScopeTypeSERVER  ScopeType = "SERVER"
+	ScopeTypeCHANNEL ScopeType = "CHANNEL"
+	ScopeTypeDM      ScopeType = "DM"
+)
+
+func (e *ScopeType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ScopeType(s)
+	case string:
+		*e = ScopeType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ScopeType: %T", src)
+	}
+	return nil
+}
+
+type NullScopeType struct {
+	ScopeType ScopeType
+	Valid     bool // Valid is true if ScopeType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullScopeType) Scan(value interface{}) error {
+	if value == nil {
+		ns.ScopeType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ScopeType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullScopeType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ScopeType), nil
+}
 
 type Attachment struct {
 	ID        uuid.UUID
@@ -128,6 +173,7 @@ type Membership struct {
 	ServerID  uuid.UUID
 	UserID    uuid.UUID
 	CreatedAt time.Time
+	Nickname  string
 }
 
 type Message struct {
@@ -181,6 +227,16 @@ type Server struct {
 	AnnouncementChannel uuid.NullUUID
 }
 
+type Session struct {
+	ID            uuid.UUID
+	RotationCount int32
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	RevokedAt     sql.NullTime
+	UserID        uuid.UUID
+	UserAgent     string
+}
+
 type User struct {
 	ID          uuid.UUID
 	CreatedAt   time.Time
@@ -197,25 +253,12 @@ type User struct {
 	Flags       int16
 }
 
-type UserChannelSettingsOverride struct {
-	ChannelID            uuid.UUID
+type UserNotificationOverride struct {
+	ReferenceID          uuid.UUID
 	UserID               uuid.UUID
 	UpdatedAt            time.Time
 	NotificationSettings int16
-}
-
-type UserDmGroupSettingsOverride struct {
-	DmGroupID            uuid.UUID
-	UserID               uuid.UUID
-	UpdatedAt            time.Time
-	NotificationSettings int16
-}
-
-type UserServerSettingsOverride struct {
-	ServerID             uuid.UUID
-	UserID               uuid.UUID
-	UpdatedAt            time.Time
-	NotificationSettings int16
+	Scope                ScopeType
 }
 
 type UserSetting struct {
