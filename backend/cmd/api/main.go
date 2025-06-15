@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
