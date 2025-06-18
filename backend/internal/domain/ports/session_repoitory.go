@@ -3,10 +3,26 @@ package ports
 import (
 	"backend/internal/domain/entities"
 	"context"
+	"crypto/rand"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func MustRandomString(n int) string {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		// You can choose to panic(err) or log.Fatal(err)
+		log.Panicf("token: could not generate random bytes: %v", err)
+	}
+	for i := range b {
+		b[i] = letters[int(b[i])%len(letters)]
+	}
+	return string(b)
+}
 
 type Session struct {
 	Id            uuid.UUID
@@ -17,6 +33,19 @@ type Session struct {
 	UserId        entities.UserId
 	UserAgent     string
 	Token         string
+}
+
+func NewSession(uid entities.UserId, expiresAt time.Time, userAgent string) *Session {
+	return &Session{
+		Id:            uuid.New(),
+		RotationCount: 1,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+		ExpiresAt:     expiresAt,
+		UserId:        uid,
+		UserAgent:     userAgent,
+		Token:         MustRandomString(32),
+	}
 }
 
 type SessionRepository interface {
