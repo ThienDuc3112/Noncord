@@ -20,8 +20,9 @@ func main() {
 	}
 
 	userRepo := postgres.NewPGUserRepo(conn)
+	sessionRepo := postgres.NewPGSessionRepo(conn)
 
-	authService := services.NewAuthService(userRepo, conn)
+	authService := services.NewAuthService(userRepo, sessionRepo, conn)
 
 	r := chi.NewRouter()
 	rest.NewAuthController(authService).RegisterRoute(r)

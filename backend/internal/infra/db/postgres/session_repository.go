@@ -15,7 +15,7 @@ type PGSessionRepo struct {
 	repo *gen.Queries
 }
 
-func NewPGSessionRepo(db gen.DBTX) *PGSessionRepo {
+func NewPGSessionRepo(db gen.DBTX) ports.SessionRepository {
 	return &PGSessionRepo{
 		repo: gen.New(db),
 	}
