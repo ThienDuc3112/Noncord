@@ -35,6 +35,20 @@ type Session struct {
 	Token         string
 }
 
+func (s *Session) Validate() error {
+	if s.ExpiresAt.Compare(time.Now()) <= 0 {
+		return entities.NewError(entities.ErrCodeValidationError, "expired token", nil)
+	}
+	if len(s.Token) != 32 {
+		return entities.NewError(entities.ErrCodeValidationError, "invalid token form", nil)
+	}
+	if s.RotationCount <= 0 {
+		return entities.NewError(entities.ErrCodeValidationError, "invalid rotation count", nil)
+	}
+
+	return nil
+}
+
 func NewSession(uid entities.UserId, expiresAt time.Time, userAgent string) *Session {
 	return &Session{
 		Id:            uuid.New(),
