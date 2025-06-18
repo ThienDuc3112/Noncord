@@ -16,8 +16,10 @@ type UserRepo interface {
 
 	FindFriendRequest(ctx context.Context, userId e.UserId) ([]*e.FriendRequest, error)
 
-	Save(ctx context.Context, user *e.User) (*e.User, error)
+	Save(ctx context.Context, user *e.User) error
 	SaveSettings(ctx context.Context, settings *e.UserSettings) (*e.UserSettings, error)
 
 	Delete(ctx context.Context, id e.UserId) error
+
+	WithTx(DBTX) UserRepo
 }

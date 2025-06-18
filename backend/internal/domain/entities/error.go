@@ -6,6 +6,7 @@ type ChatErrorCode string
 
 const (
 	ErrCodeValidationError = "validation_error"
+	ErrCodeNoObject        = "object_none_existance"
 )
 
 type ChatError struct {

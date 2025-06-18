@@ -31,3 +31,9 @@ RETURNING *;
 
 -- name: FindSessionById :one
 SELECT * FROM sessions WHERE id = $1;
+
+-- name: FindSessionByToken :one
+SELECT * FROM sessions WHERE refresh_token = $1;
+
+-- name: FindSessionsByUserId :many
+SELECT * FROM sessions WHERE user_id = $1;

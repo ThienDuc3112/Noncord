@@ -2,6 +2,7 @@ package ports
 
 import (
 	"backend/internal/domain/entities"
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,11 +16,12 @@ type Session struct {
 	ExpiresAt     time.Time
 	UserId        entities.UserId
 	UserAgent     string
+	Token         string
 }
 
 type SessionRepository interface {
-	Save(*Session) error
-	FindById(uuid.UUID) (*Session, error)
-	FindByToken(string) (*Session, error)
-	FindByUserId(entities.UserId) ([]*Session, error)
+	Save(context.Context, *Session) error
+	FindById(context.Context, uuid.UUID) (*Session, error)
+	FindByToken(context.Context, string) (*Session, error)
+	FindByUserId(context.Context, entities.UserId) ([]*Session, error)
 }

@@ -5,18 +5,55 @@ import (
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
+	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 type PGUserRepo struct {
-	db gen.DBTX
-	q  *gen.Queries
+	q *gen.Queries
 }
 
-func NewPGUserRepo(conn gen.DBTX) *PGUserRepo {
+func NewPGUserRepo(conn gen.DBTX) repositories.UserRepo {
 	return &PGUserRepo{
-		db: conn,
-		q:  gen.New(conn),
+		q: gen.New(conn),
 	}
+}
+
+func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
+	deletedAt := sql.NullTime{}
+	if user.DeletedAt == nil {
+		deletedAt.Valid = false
+	} else {
+		deletedAt.Time = *user.DeletedAt
+		deletedAt.Valid = true
+	}
+
+	password := sql.NullString{}
+	if len(user.Password) == 0 {
+		password.Valid = false
+	} else {
+		password.String = user.Password
+		password.Valid = true
+	}
+
+	_, err := r.q.CreateUser(ctx, gen.CreateUserParams{
+		ID:          uuid.UUID(user.Id),
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		DeletedAt:   deletedAt,
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		AboutMe:     user.AboutMe,
+		Email:       user.Email,
+		Password:    password,
+		Disabled:    user.Disabled,
+		AvatarUrl:   user.AvatarUrl,
+		BannerUrl:   user.BannerUrl,
+		Flags:       int16(user.Flags),
+	})
+
+	return err
 }
 
 func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error)
@@ -26,8 +63,13 @@ func (r *PGUserRepo) FindByUsername(ctx context.Context, username string) (*e.Us
 func (r *PGUserRepo) FindManyByUsername(ctx context.Context, username string) ([]*e.User, error)
 func (r *PGUserRepo) FindSettings(ctx context.Context, userId e.UserId) (*e.UserSettings, error)
 func (r *PGUserRepo) FindFriendRequest(ctx context.Context, userId e.UserId) ([]*e.FriendRequest, error)
-func (r *PGUserRepo) Save(ctx context.Context, user *e.User) (*e.User, error)
 func (r *PGUserRepo) SaveSettings(ctx context.Context, settings *e.UserSettings) (*e.UserSettings, error)
 func (r *PGUserRepo) Delete(ctx context.Context, id e.UserId) error
+
+func (r *PGUserRepo) WithTx(tx repositories.DBTX) repositories.UserRepo {
+	return &PGUserRepo{
+		q: gen.New(tx),
+	}
+}
 
 var _ repositories.UserRepo = &PGUserRepo{}

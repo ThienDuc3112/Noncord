@@ -232,9 +232,10 @@ type Session struct {
 	RotationCount int32
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	RevokedAt     sql.NullTime
+	ExpiresAt     time.Time
 	UserID        uuid.UUID
 	UserAgent     string
+	RefreshToken  string
 }
 
 type User struct {
