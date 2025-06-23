@@ -3,7 +3,7 @@ package command
 import "backend/internal/application/common"
 
 type RegisterCommand struct {
-	Name     string
+	Username string
 	Email    string
 	Password string
 }

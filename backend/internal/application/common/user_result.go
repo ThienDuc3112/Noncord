@@ -15,7 +15,6 @@ type UserResult struct {
 	DisplayName string
 	AboutMe     string
 	Email       string
-	Password    string
 	Disabled    bool
 	Verified    bool
 	AvatarUrl   string

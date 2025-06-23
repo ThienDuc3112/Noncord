@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,10 +37,6 @@ type User struct {
 	Flags       UserFlags
 }
 
-var emailReg = regexp.MustCompile(`^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$`)
-var usernameReg = regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,30}[a-zA-Z0-9])$`)
-var urlReg = regexp.MustCompile(`(?:http[s]?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)`)
-
 func (u *User) Validate() error {
 	if len(u.Username) < 3 {
 		return NewError(ErrCodeValidationError, "username must be longer than 3 characters", nil)
@@ -55,22 +50,22 @@ func (u *User) Validate() error {
 	if len(u.AboutMe) > 1024 {
 		return NewError(ErrCodeValidationError, "about me cannot be longer than 512 characters", nil)
 	}
-	if !usernameReg.MatchString(u.Username) {
+	if !IsValidUsername(u.Username) {
 		return NewError(ErrCodeValidationError, "username must only contain alphanumeric character '_' or '-' and cannot start or end with '_' or '-' ", nil)
 	}
-	if !emailReg.MatchString(u.Email) {
+	if !IsValidEmail(u.Email) {
 		return NewError(ErrCodeValidationError, "invalid email", nil)
 	}
 	if len(u.Email) > 256 {
 		return NewError(ErrCodeValidationError, "email too long, likely not valid, please use another one", nil)
 	}
-	if u.AvatarUrl != "" && !urlReg.MatchString(u.AvatarUrl) {
+	if u.AvatarUrl != "" && !IsValidUrl(u.AvatarUrl) {
 		return NewError(ErrCodeValidationError, "avatar invalid url", nil)
 	}
 	if len(u.AvatarUrl) > 2048 {
 		return NewError(ErrCodeValidationError, "avatar url too long", nil)
 	}
-	if u.BannerUrl != "" && !urlReg.MatchString(u.BannerUrl) {
+	if u.BannerUrl != "" && !IsValidUrl(u.BannerUrl) {
 		return NewError(ErrCodeValidationError, "banner invalid url", nil)
 	}
 	if len(u.BannerUrl) > 2048 {
@@ -80,22 +75,34 @@ func (u *User) Validate() error {
 	return nil
 }
 
-func NewUser(username, displayName, aboutMe, email, password, avatarUrl, bannerUrl string, flags UserFlags) *User {
+type NewUserParam struct {
+	Username    string
+	DisplayName string
+	AboutMe     string
+	Email       string
+	Password    string
+	AvatarUrl   string
+	BannerUrl   string
+	Flags       UserFlags
+}
+
+// func NewUser(username, displayName, aboutMe, email, password, avatarUrl, bannerUrl string, flags UserFlags) *User {
+func NewUser(param NewUserParam) *User {
 	return &User{
 		Id:          UserId(uuid.New()),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		DeletedAt:   nil,
-		Username:    username,
-		DisplayName: displayName,
-		AboutMe:     aboutMe,
-		Email:       email,
-		Password:    password,
+		Username:    param.Username,
+		DisplayName: param.DisplayName,
+		AboutMe:     param.AboutMe,
+		Email:       param.Email,
+		Password:    param.Password,
 		Disabled:    false,
 		Verified:    false,
-		AvatarUrl:   avatarUrl,
-		BannerUrl:   bannerUrl,
-		Flags:       flags,
+		AvatarUrl:   param.AvatarUrl,
+		BannerUrl:   param.BannerUrl,
+		Flags:       param.Flags,
 	}
 }
 

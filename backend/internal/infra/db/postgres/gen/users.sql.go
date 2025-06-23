@@ -190,3 +190,78 @@ func (q *Queries) CreateUserSetting(ctx context.Context, arg CreateUserSettingPa
 	)
 	return i, err
 }
+
+const findUserByEmail = `-- name: FindUserByEmail :one
+SELECT id, created_at, updated_at, deleted_at, username, display_name, about_me, email, password, disabled, avatar_url, banner_url, flags FROM users WHERE email = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, findUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Username,
+		&i.DisplayName,
+		&i.AboutMe,
+		&i.Email,
+		&i.Password,
+		&i.Disabled,
+		&i.AvatarUrl,
+		&i.BannerUrl,
+		&i.Flags,
+	)
+	return i, err
+}
+
+const findUserById = `-- name: FindUserById :one
+SELECT id, created_at, updated_at, deleted_at, username, display_name, about_me, email, password, disabled, avatar_url, banner_url, flags FROM users WHERE id = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) FindUserById(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, findUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Username,
+		&i.DisplayName,
+		&i.AboutMe,
+		&i.Email,
+		&i.Password,
+		&i.Disabled,
+		&i.AvatarUrl,
+		&i.BannerUrl,
+		&i.Flags,
+	)
+	return i, err
+}
+
+const findUserByUsername = `-- name: FindUserByUsername :one
+SELECT id, created_at, updated_at, deleted_at, username, display_name, about_me, email, password, disabled, avatar_url, banner_url, flags FROM users WHERE username = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, findUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Username,
+		&i.DisplayName,
+		&i.AboutMe,
+		&i.Email,
+		&i.Password,
+		&i.Disabled,
+		&i.AvatarUrl,
+		&i.BannerUrl,
+		&i.Flags,
+	)
+	return i, err
+}

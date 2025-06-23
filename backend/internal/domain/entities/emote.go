@@ -19,7 +19,7 @@ type Emote struct {
 }
 
 func (e *Emote) Validate() error {
-	if e.IconUrl != "" && !emailReg.MatchString(e.IconUrl) {
+	if e.IconUrl != "" && !IsValidUrl(e.IconUrl) {
 		return NewError(ErrCodeValidationError, "invalid icon url", nil)
 	}
 	if len(e.IconUrl) > 2048 {

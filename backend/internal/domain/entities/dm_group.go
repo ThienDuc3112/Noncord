@@ -31,7 +31,7 @@ func (g *DMGroup) Validate() error {
 	if !g.IsGroup && g.IconUrl != "" {
 		return NewError(ErrCodeValidationError, "direct message cannot set icon url", nil)
 	}
-	if g.IconUrl != "" && !emailReg.MatchString(g.IconUrl) {
+	if g.IconUrl != "" && !IsValidUrl(g.IconUrl) {
 		return NewError(ErrCodeValidationError, "invalid icon url", nil)
 	}
 	if len(g.IconUrl) > 2048 {

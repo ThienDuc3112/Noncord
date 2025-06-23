@@ -33,7 +33,7 @@ type Attachment struct {
 }
 
 func (a *Attachment) Validate() error {
-	if a.Url != "" && !emailReg.MatchString(a.Url) {
+	if a.Url != "" && !IsValidUrl(a.Url) {
 		return NewError(ErrCodeValidationError, "invalid attachment url", nil)
 	}
 	if len(a.Url) > 2048 {

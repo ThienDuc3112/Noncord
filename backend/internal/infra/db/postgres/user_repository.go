@@ -1,11 +1,13 @@
 package postgres
 
 import (
+	"backend/internal/domain/entities"
 	e "backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -56,10 +58,42 @@ func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
 	return err
 }
 
-func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error)
+func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error) {
+	u, err := r.q.FindUserById(ctx, uuid.UUID(id))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, entities.NewError(entities.ErrCodeNoObject, "no user found", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	return fromDbUser(&u), nil
+}
+
 func (r *PGUserRepo) FindByIds(ctx context.Context, ids []e.UserId) ([]*e.User, error)
 func (r *PGUserRepo) FindFriends(ctx context.Context, userId e.UserId) ([]*e.User, error)
-func (r *PGUserRepo) FindByUsername(ctx context.Context, username string) (*e.User, error)
+
+func (r *PGUserRepo) FindByEmail(ctx context.Context, email string) (*e.User, error) {
+	u, err := r.q.FindUserByEmail(ctx, email)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, entities.NewError(entities.ErrCodeNoObject, "no user found", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	return fromDbUser(&u), nil
+}
+
+func (r *PGUserRepo) FindByUsername(ctx context.Context, username string) (*e.User, error) {
+	u, err := r.q.FindUserByUsername(ctx, username)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, entities.NewError(entities.ErrCodeNoObject, "no user found", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	return fromDbUser(&u), nil
+}
+
 func (r *PGUserRepo) FindManyByUsername(ctx context.Context, username string) ([]*e.User, error)
 func (r *PGUserRepo) FindSettings(ctx context.Context, userId e.UserId) (*e.UserSettings, error)
 func (r *PGUserRepo) FindFriendRequest(ctx context.Context, userId e.UserId) ([]*e.FriendRequest, error)

@@ -81,4 +81,11 @@ DO UPDATE SET
 	afk_timeout = $10
 RETURNING *;
 
+-- name: FindUserById :one
+SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL;
 
+-- name: FindUserByUsername :one
+SELECT * FROM users WHERE username = $1 AND deleted_at IS NULL;
+
+-- name: FindUserByEmail :one
+SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL;

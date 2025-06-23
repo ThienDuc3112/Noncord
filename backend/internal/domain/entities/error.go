@@ -5,8 +5,13 @@ import "fmt"
 type ChatErrorCode string
 
 const (
-	ErrCodeValidationError = "validation_error"
-	ErrCodeNoObject        = "object_none_existance"
+	ErrCodeDepFail          = "service_fail" // Dependency failure (db, 3rd party packages)
+	ErrCodeInvalidAssertion = "assert_fail"  // Assertion that should've never been false is false
+
+	ErrCodeValidationError = "validation_error"      // Validation error
+	ErrCodeNoObject        = "object_none_existance" // Specified resource don't exist
+	ErrCodeInvalidAction   = "invalid_action"        // Action prohibited by the service
+	ErrCodeLogicFailure    = "logic_fail"            // Explicitly defined failure case (invalid password, unauthorized access, etc...)
 )
 
 type ChatError struct {

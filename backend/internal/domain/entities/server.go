@@ -69,13 +69,13 @@ func (s *Server) Validate() error {
 	if s.DefaultRole == nil {
 		return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
 	}
-	if s.IconUrl != "" && !emailReg.MatchString(s.IconUrl) {
+	if s.IconUrl != "" && !IsValidUrl(s.IconUrl) {
 		return NewError(ErrCodeValidationError, "icon invalid url", nil)
 	}
 	if len(s.IconUrl) > 2048 {
 		return NewError(ErrCodeValidationError, "icon url too long", nil)
 	}
-	if s.BannerUrl != "" && !emailReg.MatchString(s.BannerUrl) {
+	if s.BannerUrl != "" && !IsValidUrl(s.BannerUrl) {
 		return NewError(ErrCodeValidationError, "banner invalid url", nil)
 	}
 	if len(s.BannerUrl) > 2048 {
