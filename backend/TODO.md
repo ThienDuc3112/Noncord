@@ -4,7 +4,7 @@
     - [x] Implement relevant method for UserRepo
     - [ ] Implement service for AuthService
         - [x] Register
-        - [ ] Login
+        - [x] Login
         - [ ] Logout
         - [ ] Refresh
     - [ ] Implement controller for AuthController

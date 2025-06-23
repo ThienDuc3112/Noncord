@@ -11,7 +11,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,13 +22,15 @@ type AuthService struct {
 	userRepo repositories.UserRepo
 	sessRepo ports.SessionRepository
 	connPool *sql.DB
+	secret   string
 }
 
-func NewAuthService(ur repositories.UserRepo, sr ports.SessionRepository, connPool *sql.DB) interfaces.AuthService {
+func NewAuthService(ur repositories.UserRepo, sr ports.SessionRepository, connPool *sql.DB, secret string) interfaces.AuthService {
 	return &AuthService{
 		userRepo: ur,
 		sessRepo: sr,
 		connPool: connPool,
+		secret:   secret,
 	}
 }
 
@@ -67,6 +72,15 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 	}, nil
 }
 
+type AccessTokenClaim struct {
+	UserId      string             `json:"userId"`
+	Username    string             `json:"username"`
+	DisplayName string             `json:"displayName"`
+	UserFlags   entities.UserFlags `json:"userFlags"`
+
+	jwt.RegisteredClaims
+}
+
 func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (command.LoginCommandResult, error) {
 	var user *entities.User
 	var err error
@@ -79,7 +93,7 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 	if errors.As(err, &domainErr) {
 		return command.LoginCommandResult{}, domainErr
 	} else if err != nil {
-		return command.LoginCommandResult{}, err
+		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot get user", err)
 	}
 
 	if user == nil {
@@ -96,8 +110,33 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 	}
 
 	// TODO: generate tokens here
+	session := ports.NewSession(user.Id, time.Now().Add(time.Hour*24*30), param.UserAgent)
+	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
+		UserId:      uuid.UUID(user.Id).String(),
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		UserFlags:   user.Flags,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "Noncord",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	})
+	accessToken, err := accessTokenClaim.SignedString(s.secret)
+	if err != nil {
+		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
+	}
+	err = s.sessRepo.Save(ctx, session)
+	if errors.As(err, &domainErr) {
+		return command.LoginCommandResult{}, domainErr
+	} else if err != nil {
+		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot save session", err)
+	}
 
-	return command.LoginCommandResult{}, fmt.Errorf("not implemented")
+	return command.LoginCommandResult{
+		AccessToken:  accessToken,
+		RefreshToken: session.Token,
+	}, nil
 }
 
 func (s *AuthService) Logout(ctx context.Context, param command.LogoutCommand) error {
