@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -69,8 +70,13 @@ func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error) {
 	return fromDbUser(&u), nil
 }
 
-func (r *PGUserRepo) FindByIds(ctx context.Context, ids []e.UserId) ([]*e.User, error)
-func (r *PGUserRepo) FindFriends(ctx context.Context, userId e.UserId) ([]*e.User, error)
+func (r *PGUserRepo) FindByIds(ctx context.Context, ids []e.UserId) ([]*e.User, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (r *PGUserRepo) FindFriends(ctx context.Context, userId e.UserId) ([]*e.User, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
 
 func (r *PGUserRepo) FindByEmail(ctx context.Context, email string) (*e.User, error) {
 	u, err := r.q.FindUserByEmail(ctx, email)
@@ -94,11 +100,25 @@ func (r *PGUserRepo) FindByUsername(ctx context.Context, username string) (*e.Us
 	return fromDbUser(&u), nil
 }
 
-func (r *PGUserRepo) FindManyByUsername(ctx context.Context, username string) ([]*e.User, error)
-func (r *PGUserRepo) FindSettings(ctx context.Context, userId e.UserId) (*e.UserSettings, error)
-func (r *PGUserRepo) FindFriendRequest(ctx context.Context, userId e.UserId) ([]*e.FriendRequest, error)
-func (r *PGUserRepo) SaveSettings(ctx context.Context, settings *e.UserSettings) (*e.UserSettings, error)
-func (r *PGUserRepo) Delete(ctx context.Context, id e.UserId) error
+func (r *PGUserRepo) FindManyByUsername(ctx context.Context, username string) ([]*e.User, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (r *PGUserRepo) FindSettings(ctx context.Context, userId e.UserId) (*e.UserSettings, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (r *PGUserRepo) FindFriendRequest(ctx context.Context, userId e.UserId) ([]*e.FriendRequest, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (r *PGUserRepo) SaveSettings(ctx context.Context, settings *e.UserSettings) (*e.UserSettings, error) {
+	return nil, fmt.Errorf("Not implemented")
+}
+
+func (r *PGUserRepo) Delete(ctx context.Context, id e.UserId) error {
+	return fmt.Errorf("Not implemented")
+}
 
 func (r *PGUserRepo) WithTx(tx repositories.DBTX) repositories.UserRepo {
 	return &PGUserRepo{

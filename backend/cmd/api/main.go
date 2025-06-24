@@ -5,6 +5,7 @@ import (
 	"backend/internal/infra/db/postgres"
 	"backend/internal/interface/api/rest"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,10 +23,16 @@ func main() {
 	userRepo := postgres.NewPGUserRepo(conn)
 	sessionRepo := postgres.NewPGSessionRepo(conn)
 
-	authService := services.NewAuthService(userRepo, sessionRepo, conn)
+	authService := services.NewAuthService(userRepo, sessionRepo, conn, os.Getenv("SECRET"))
 
 	r := chi.NewRouter()
 	rest.NewAuthController(authService).RegisterRoute(r)
 
-	http.ListenAndServe(":3210", r)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3210"
+	}
+
+	log.Printf("listening on port %v", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), r))
 }

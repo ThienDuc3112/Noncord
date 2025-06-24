@@ -25,7 +25,7 @@ services:
     ports: 
       - "9999:9999"
     environment:
-      DB_URL: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
+      DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
       PORT: "8888"
       SECRET: "d2bbb0d95eba5eef4a5127dbaf7ab9fb4ab75d4cc0677962fcbb7f740e6d067d"
       FRONTEND_URL: "localhost:6789"
