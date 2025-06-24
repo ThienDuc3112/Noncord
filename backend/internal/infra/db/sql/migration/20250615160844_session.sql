@@ -11,6 +11,7 @@ CREATE TABLE sessions (
   refresh_token VARCHAR(32) NOT NULL UNIQUE
 );
 CREATE INDEX sessions_user_id ON sessions(user_id);
+CREATE INDEX sessions_expires_at ON sessions(expires_at);
 -- +goose StatementEnd
 
 -- +goose Down

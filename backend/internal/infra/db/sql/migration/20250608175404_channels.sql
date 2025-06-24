@@ -12,6 +12,7 @@ CREATE TABLE channels (
 	parent_category UUID REFERENCES categories(id) ON DELETE SET NULL
 );
 CREATE INDEX idx_channels_server_id ON channels(server_id);
+CREATE INDEX idx_channels_deleted_at ON channels(deleted_at);
 ALTER TABLE servers 
   ADD CONSTRAINT fk_servers_announcement_channel 
   FOREIGN KEY(announcement_channel) REFERENCES channels(id) ON DELETE SET NULL;

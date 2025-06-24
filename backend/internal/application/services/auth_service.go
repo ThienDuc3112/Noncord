@@ -109,7 +109,6 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeLogicFailure, "invalid password", err)
 	}
 
-	// TODO: generate tokens here
 	session := ports.NewSession(user.Id, time.Now().Add(time.Hour*24*30), param.UserAgent)
 	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
 		UserId:      uuid.UUID(user.Id).String(),
@@ -140,6 +139,7 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 }
 
 func (s *AuthService) Logout(ctx context.Context, param command.LogoutCommand) error {
+
 	return fmt.Errorf("not implemented")
 }
 

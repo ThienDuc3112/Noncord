@@ -10,6 +10,7 @@ CREATE TABLE emotes (
 	icon_url VARCHAR(2048) NOT NULL
 );
 CREATE INDEX idx_emotes_server_id ON emotes(server_id);
+CREATE INDEX idx_emotes_deleted_at ON emotes(deleted_at);
 -- +goose StatementEnd
 
 -- +goose Down

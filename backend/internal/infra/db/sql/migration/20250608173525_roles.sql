@@ -13,6 +13,7 @@ CREATE TABLE roles (
 	server_id UUID NOT NULL REFERENCES servers(id) ON DELETE CASCADE
 );
 CREATE INDEX idx_roles_server_id ON roles(server_id);
+CREATE INDEX idx_roles_deleted_at ON roles(deleted_at);
 ALTER TABLE servers ADD CONSTRAINT fk_servers_default_role FOREIGN KEY(default_role) REFERENCES roles(id) ON DELETE SET NULL;
 -- +goose StatementEnd
 

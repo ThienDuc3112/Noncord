@@ -1,5 +1,5 @@
 package command
 
 type LogoutCommand struct {
-	AccessToken string
+	RefreshToken string
 }

@@ -9,6 +9,7 @@ CREATE TABLE dm_groups (
 	icon_url VARCHAR(2048) NOT NULL,
   is_group BOOLEAN NOT NULL
 );
+CREATE INDEX idx_dm_groups_deleted_at ON dm_groups(deleted_at);
 
 CREATE TABLE dm_groups_member (
   member_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

@@ -11,7 +11,8 @@ CREATE TABLE messages (
   message VARCHAR(4096) NOT NULL
 );
 CREATE INDEX idx_messages_channel_id ON messages(channel_id, created_at DESC);
-CREATE INDEX idx_messages_group_id ON messages(group_id, create_at DESC);
+CREATE INDEX idx_messages_group_id ON messages(group_id, created_at DESC);
+CREATE INDEX idx_messages_deleted_at ON messages(deleted_at);
 
 CREATE TABLE attachments (
 	id UUID NOT NULL PRIMARY KEY,
