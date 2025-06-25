@@ -34,7 +34,8 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL(fmt.Sprintf("http://localhost:%v/api/v1/docs/doc.json", port))))
+		docsHandler := httpSwagger.Handler(httpSwagger.URL(fmt.Sprintf("http://localhost:%v/api/v1/docs/doc.json", port)))
+		r.Get("/docs/*", docsHandler)
 
 		rest.NewAuthController(authService).RegisterRoute(r)
 	})
