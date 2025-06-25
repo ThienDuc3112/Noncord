@@ -24,6 +24,10 @@ func MustRandomString(n int) string {
 	return string(b)
 }
 
+func RandomToken() string {
+	return MustRandomString(32)
+}
+
 type Session struct {
 	Id            uuid.UUID
 	RotationCount int32
@@ -58,7 +62,7 @@ func NewSession(uid entities.UserId, expiresAt time.Time, userAgent string) *Ses
 		ExpiresAt:     expiresAt,
 		UserId:        uid,
 		UserAgent:     userAgent,
-		Token:         MustRandomString(32),
+		Token:         RandomToken(),
 	}
 }
 

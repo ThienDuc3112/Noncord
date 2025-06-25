@@ -81,7 +81,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 }
 
 const findSessionById = `-- name: FindSessionById :one
-SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_agent, refresh_token FROM sessions WHERE id = $1
+SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_agent, refresh_token FROM sessions WHERE id = $1 AND expires_at > NOW()
 `
 
 func (q *Queries) FindSessionById(ctx context.Context, id uuid.UUID) (Session, error) {
@@ -101,7 +101,7 @@ func (q *Queries) FindSessionById(ctx context.Context, id uuid.UUID) (Session, e
 }
 
 const findSessionByToken = `-- name: FindSessionByToken :one
-SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_agent, refresh_token FROM sessions WHERE refresh_token = $1
+SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_agent, refresh_token FROM sessions WHERE refresh_token = $1 AND expires_at > NOW()
 `
 
 func (q *Queries) FindSessionByToken(ctx context.Context, refreshToken string) (Session, error) {
@@ -121,7 +121,7 @@ func (q *Queries) FindSessionByToken(ctx context.Context, refreshToken string) (
 }
 
 const findSessionsByUserId = `-- name: FindSessionsByUserId :many
-SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_agent, refresh_token FROM sessions WHERE user_id = $1
+SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_agent, refresh_token FROM sessions WHERE user_id = $1 AND expires_at > NOW()
 `
 
 func (q *Queries) FindSessionsByUserId(ctx context.Context, userID uuid.UUID) ([]Session, error) {

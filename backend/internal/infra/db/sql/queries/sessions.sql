@@ -30,10 +30,10 @@ DO UPDATE SET
 RETURNING *;
 
 -- name: FindSessionById :one
-SELECT * FROM sessions WHERE id = $1;
+SELECT * FROM sessions WHERE id = $1 AND expires_at > NOW();
 
 -- name: FindSessionByToken :one
-SELECT * FROM sessions WHERE refresh_token = $1;
+SELECT * FROM sessions WHERE refresh_token = $1 AND expires_at > NOW();
 
 -- name: FindSessionsByUserId :many
-SELECT * FROM sessions WHERE user_id = $1;
+SELECT * FROM sessions WHERE user_id = $1 AND expires_at > NOW();

@@ -2,9 +2,9 @@
 - [ ] Auth service
     - [x] Implement repo for SessionRepo
     - [x] Implement relevant method for UserRepo
-    - [ ] Implement service for AuthService
+    - [x] Implement service for AuthService
         - [x] Register
         - [x] Login
-        - [ ] Logout
-        - [ ] Refresh
+        - [x] Logout
+        - [x] Refresh
     - [ ] Implement controller for AuthController

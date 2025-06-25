@@ -60,11 +60,8 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 	}
 
 	err = s.userRepo.Save(ctx, user)
-	var domainErr *entities.ChatError
-	if errors.As(err, &domainErr) {
-		return command.RegisterCommandResult{}, domainErr
-	} else if err != nil {
-		return command.RegisterCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot save user", err)
+	if err != nil {
+		return command.RegisterCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save user")
 	}
 
 	return command.RegisterCommandResult{
@@ -89,11 +86,8 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 	} else {
 		user, err = s.userRepo.FindByUsername(ctx, param.Username)
 	}
-	var domainErr *entities.ChatError
-	if errors.As(err, &domainErr) {
-		return command.LoginCommandResult{}, domainErr
-	} else if err != nil {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot get user", err)
+	if err != nil {
+		return command.LoginCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save user")
 	}
 
 	if user == nil {
@@ -126,10 +120,8 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
 	}
 	err = s.sessRepo.Save(ctx, session)
-	if errors.As(err, &domainErr) {
-		return command.LoginCommandResult{}, domainErr
-	} else if err != nil {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot save session", err)
+	if err != nil {
+		return command.LoginCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save session")
 	}
 
 	return command.LoginCommandResult{
@@ -139,11 +131,53 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 }
 
 func (s *AuthService) Logout(ctx context.Context, param command.LogoutCommand) error {
+	session, err := s.sessRepo.FindByToken(ctx, param.RefreshToken)
+	if err != nil {
+		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get session")
+	}
 
-	return fmt.Errorf("not implemented")
+	session.ExpiresAt = time.Now()
+
+	return entities.GetErrOrDefault(s.sessRepo.Save(ctx, session), entities.ErrCodeDepFail, "cannot set session")
 }
 
 func (s *AuthService) Refresh(ctx context.Context, param command.RefreshCommand) (command.RefreshCommandResult, error) {
-	return command.RefreshCommandResult{}, fmt.Errorf("not implemented")
+	session, err := s.sessRepo.FindByToken(ctx, param.RefreshToken)
+	if err != nil {
+		return command.RefreshCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get session")
+	}
 
+	user, err := s.userRepo.Find(ctx, session.UserId)
+	if err != nil {
+		return command.RefreshCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user")
+	}
+
+	session.Token = ports.RandomToken()
+	session.RotationCount += 1
+	session.ExpiresAt = time.Now().Add(30 * 24 * time.Hour)
+
+	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
+		UserId:      uuid.UUID(user.Id).String(),
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		UserFlags:   user.Flags,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "Noncord",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	})
+	accessToken, err := accessTokenClaim.SignedString(s.secret)
+	if err != nil {
+		return command.RefreshCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
+	}
+	err = s.sessRepo.Save(ctx, session)
+	if err != nil {
+		return command.RefreshCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save session")
+	}
+
+	return command.RefreshCommandResult{
+		AccessToken:  accessToken,
+		RefreshToken: session.Token,
+	}, nil
 }

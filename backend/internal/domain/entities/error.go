@@ -1,6 +1,9 @@
 package entities
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type ChatErrorCode string
 
@@ -36,6 +39,19 @@ func NewError(code ChatErrorCode, message string, err error) *ChatError {
 		Code:    code,
 		Message: message,
 		Err:     err,
+	}
+}
+
+// Get underlying ChatError or if not exist, wrap the err and return it
+func GetErrOrDefault(err error, code ChatErrorCode, message string) *ChatError {
+	if err == nil {
+		return nil
+	}
+	var derr *ChatError
+	if errors.As(err, &derr) {
+		return derr
+	} else {
+		return NewError(code, message, err)
 	}
 }
 
