@@ -8,7 +8,7 @@ func IsValidEmail(email string) bool {
 	return emailReg.MatchString(email)
 }
 
-var usernameReg = regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{1,30}[a-zA-Z0-9])$`)
+var usernameReg = regexp.MustCompile(`^[a-zA-Z0-9_-](?:[a-zA-Z0-9_-]{1,30}[a-zA-Z0-9_-])$`)
 
 func IsValidUsername(username string) bool {
 	return usernameReg.MatchString(username)

@@ -9,8 +9,6 @@ import (
 	"backend/internal/domain/repositories"
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

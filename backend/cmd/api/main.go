@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "backend/docs"
 	"backend/internal/application/services"
 	"backend/internal/infra/db/postgres"
 	"backend/internal/interface/api/rest"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
@@ -25,13 +27,17 @@ func main() {
 
 	authService := services.NewAuthService(userRepo, sessionRepo, conn, os.Getenv("SECRET"))
 
-	r := chi.NewRouter()
-	rest.NewAuthController(authService).RegisterRoute(r)
-
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3210"
+		port = "8888"
 	}
+
+	r := chi.NewRouter()
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL(fmt.Sprintf("http://localhost:%v/api/v1/docs/doc.json", port))))
+
+		rest.NewAuthController(authService).RegisterRoute(r)
+	})
 
 	log.Printf("listening on port %v", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), r))
