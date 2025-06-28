@@ -8,3 +8,4 @@
         - [x] Logout
         - [x] Refresh
     - [ ] Implement controller for AuthController
+    - [x] Document Auth routes
