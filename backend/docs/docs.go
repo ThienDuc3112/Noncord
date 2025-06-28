@@ -15,6 +15,158 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/auth/login": {
+            "post": {
+                "description": "Logging in an account without sso",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "New account data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Login"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Access token",
+                        "schema": {
+                            "$ref": "#/definitions/response.LoginResponse"
+                        },
+                        "headers": {
+                            "Cookie": {
+                                "type": "string",
+                                "description": "refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Missing field",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Wrong credential",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "SSO enabled account",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "description": "Invalidate the current session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "refreshToken=\\\u003cRefresh token here\\\u003e",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "headers": {
+                            "Cookie": {
+                                "type": "string",
+                                "description": "refreshToken=; HttpOnly; Path=/api/v1/auth/refresh"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unknown session",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "description": "Rotate current refresh token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "refreshToken=\\\u003cRefresh token here\\\u003e",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "headers": {
+                            "Cookie": {
+                                "type": "string",
+                                "description": "refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unknown session",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/register": {
             "post": {
                 "description": "Register an account",
@@ -60,6 +212,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "request.Login": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "Password1@"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "tungsten_kitty"
+                }
+            }
+        },
         "request.Register": {
             "type": "object",
             "required": [
@@ -88,6 +257,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
                     "type": "string"
                 }
             }

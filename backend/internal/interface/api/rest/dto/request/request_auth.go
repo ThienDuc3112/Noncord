@@ -11,3 +11,12 @@ type Register struct {
 func (r *Register) Bind(_ *http.Request) error {
 	return validate.Struct(r)
 }
+
+type Login struct {
+	Username string `json:"username" example:"tungsten_kitty" validate:"required"`
+	Password string `json:"password" example:"Password1@" validate:"required"`
+}
+
+func (r *Login) Bind(_ *http.Request) error {
+	return validate.Struct(r)
+}

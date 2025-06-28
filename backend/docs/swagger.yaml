@@ -1,4 +1,16 @@
 definitions:
+  request.Login:
+    properties:
+      password:
+        example: Password1@
+        type: string
+      username:
+        example: tungsten_kitty
+        type: string
+    required:
+    - password
+    - username
+    type: object
   request.Register:
     properties:
       email:
@@ -22,9 +34,114 @@ definitions:
       error:
         type: string
     type: object
+  response.LoginResponse:
+    properties:
+      accessToken:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Logging in an account without sso
+      parameters:
+      - description: New account data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access token
+          headers:
+            Cookie:
+              description: refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh
+              type: string
+          schema:
+            $ref: '#/definitions/response.LoginResponse'
+        "400":
+          description: Missing field
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Wrong credential
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: SSO enabled account
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Login
+      tags:
+      - Auth
+  /api/v1/auth/logout:
+    post:
+      description: Invalidate the current session
+      parameters:
+      - description: refreshToken=\<Refresh token here\>
+        in: header
+        name: Cookie
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          headers:
+            Cookie:
+              description: refreshToken=; HttpOnly; Path=/api/v1/auth/refresh
+              type: string
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Logout
+      tags:
+      - Auth
+  /api/v1/auth/refresh:
+    post:
+      description: Rotate current refresh token
+      parameters:
+      - description: refreshToken=\<Refresh token here\>
+        in: header
+        name: Cookie
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          headers:
+            Cookie:
+              description: refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh
+              type: string
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Refresh
+      tags:
+      - Auth
   /api/v1/auth/register:
     post:
       consumes:
