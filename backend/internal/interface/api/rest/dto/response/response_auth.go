@@ -1,5 +1,6 @@
 package response
 
 type LoginResponse struct {
-	AccessToken string
+	AccessToken  string
+	RefreshToken string
 }

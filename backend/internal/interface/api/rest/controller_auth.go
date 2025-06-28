@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"backend/internal/application/command"
 	"backend/internal/application/interfaces"
 	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
@@ -39,11 +40,23 @@ func (ac *AuthController) RegisterRoute(r chi.Router) {
 // @Failure 		500 {object} response.ErrorResponse
 // @Router			/api/v1/auth/register [post]
 func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Request) {
-	_ = request.Register{}
-	render.Status(r, http.StatusNotImplemented)
-	render.JSON(w, r, response.ErrorResponse{
-		Error: "Unimplmented",
+	body := request.Register{}
+	if err := render.Bind(r, &body); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
+	}
+
+	_, err := ac.authService.Register(r.Context(), command.RegisterCommand{
+		Username: body.Username,
+		Email:    body.Email,
+		Password: body.Password,
 	})
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Who knows", http.StatusInternalServerError, err))
+		return
+	}
+
+	render.NoContent(w, r)
 }
 
 // register     godoc
@@ -61,12 +74,30 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/login [post]
 func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request) {
-	_ = response.LoginResponse{}
-	_ = request.Register{}
-	render.Status(r, http.StatusNotImplemented)
-	render.JSON(w, r, response.ErrorResponse{
-		Error: "Unimplmented",
+	body := request.Login{}
+	if err := render.Bind(r, &body); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
+	}
+
+	tokens, err := ac.authService.Login(r.Context(), command.LoginCommand{
+		Username:  body.Username,
+		Password:  body.Password,
+		UserAgent: r.UserAgent(),
 	})
+
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("I haven't update this yet", http.StatusInternalServerError, err))
+		return
+	}
+
+	res := response.LoginResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }
 
 // register     godoc
@@ -81,10 +112,7 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/logout [post]
 func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusNotImplemented)
-	render.JSON(w, r, response.ErrorResponse{
-		Error: "Unimplmented",
-	})
+	render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusNotImplemented, nil))
 }
 
 // register     godoc
@@ -99,8 +127,5 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/refresh [post]
 func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusNotImplemented)
-	render.JSON(w, r, response.ErrorResponse{
-		Error: "Unimplmented",
-	})
+	render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusNotImplemented, nil))
 }

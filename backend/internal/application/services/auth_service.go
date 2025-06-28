@@ -113,7 +113,7 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	})
-	accessToken, err := accessTokenClaim.SignedString(s.secret)
+	accessToken, err := accessTokenClaim.SignedString([]byte(s.secret))
 	if err != nil {
 		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
 	}

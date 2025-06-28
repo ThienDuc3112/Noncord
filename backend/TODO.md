@@ -8,4 +8,6 @@
         - [x] Logout
         - [x] Refresh
     - [ ] Implement controller for AuthController
-    - [x] Document Auth routes
+        - [x] Document Auth routes
+        - [ ] Green path implemented
+        - [ ] Error path implemented
