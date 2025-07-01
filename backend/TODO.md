@@ -9,5 +9,5 @@
         - [x] Refresh
     - [ ] Implement controller for AuthController
         - [x] Document Auth routes
-        - [ ] Green path implemented
-        - [ ] Error path implemented
+        - [x] Green path implemented
+        - [ ] Proper parsing of validator error

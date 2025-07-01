@@ -191,5 +191,37 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/refresh [post]
 func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Request) {
-	render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusNotImplemented, nil))
+	payload := request.Refresh{}
+	if err := render.Bind(r, &payload); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+	}
+
+	tokens, err := ac.authService.Refresh(r.Context(), command.RefreshCommand{
+		RefreshToken: payload.RefreshToken,
+	})
+
+	if err != nil {
+		var e *entities.ChatError
+		if errors.As(err, &e) {
+			switch e.Code {
+			case entities.ErrCodeNoObject:
+				render.Render(w, r, response.NewErrorResponse("Token not found", http.StatusUnauthorized, e))
+			default:
+				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+			}
+			return
+		} else {
+			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+		}
+
+		return
+	}
+
+	res := response.TokensResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, res)
 }
