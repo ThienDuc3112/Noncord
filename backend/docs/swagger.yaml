@@ -11,6 +11,14 @@ definitions:
     - password
     - username
     type: object
+  request.Refresh:
+    properties:
+      refreshToken:
+        example: 9Vz6ayzM0scQSIXHtYVbKcDeF1aa0aLs
+        type: string
+    required:
+    - refreshToken
+    type: object
   request.Register:
     properties:
       email:
@@ -34,9 +42,11 @@ definitions:
       error:
         type: string
     type: object
-  response.LoginResponse:
+  response.TokensResponse:
     properties:
       accessToken:
+        type: string
+      refreshToken:
         type: string
     type: object
 info:
@@ -58,13 +68,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Access token
-          headers:
-            Cookie:
-              description: refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh
-              type: string
+          description: Access and refresh tokens
           schema:
-            $ref: '#/definitions/response.LoginResponse'
+            $ref: '#/definitions/response.TokensResponse'
         "400":
           description: Missing field
           schema:
@@ -86,13 +92,16 @@ paths:
       - Auth
   /api/v1/auth/logout:
     post:
+      consumes:
+      - application/json
       description: Invalidate the current session
       parameters:
-      - description: refreshToken=\<Refresh token here\>
-        in: header
-        name: Cookie
+      - description: New account data
+        in: body
+        name: payload
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.Refresh'
       produces:
       - application/json
       responses:
@@ -115,22 +124,27 @@ paths:
       - Auth
   /api/v1/auth/refresh:
     post:
+      consumes:
+      - application/json
       description: Rotate current refresh token
       parameters:
-      - description: refreshToken=\<Refresh token here\>
-        in: header
-        name: Cookie
+      - description: New account data
+        in: body
+        name: payload
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.Refresh'
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
-          headers:
-            Cookie:
-              description: refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh
-              type: string
+        "200":
+          description: Access and refresh tokens
+          schema:
+            $ref: '#/definitions/response.TokensResponse'
+        "400":
+          description: Missing field
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unknown session
           schema:

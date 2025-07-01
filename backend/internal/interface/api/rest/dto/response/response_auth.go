@@ -1,6 +1,6 @@
 package response
 
-type LoginResponse struct {
+type TokensResponse struct {
 	AccessToken  string
 	RefreshToken string
 }

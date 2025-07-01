@@ -41,15 +41,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Access token",
+                        "description": "Access and refresh tokens",
                         "schema": {
-                            "$ref": "#/definitions/response.LoginResponse"
-                        },
-                        "headers": {
-                            "Cookie": {
-                                "type": "string",
-                                "description": "refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh"
-                            }
+                            "$ref": "#/definitions/response.TokensResponse"
                         }
                     },
                     "400": {
@@ -82,6 +76,9 @@ const docTemplate = `{
         "/api/v1/auth/logout": {
             "post": {
                 "description": "Invalidate the current session",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -91,11 +88,13 @@ const docTemplate = `{
                 "summary": "Logout",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "refreshToken=\\\u003cRefresh token here\\\u003e",
-                        "name": "Cookie",
-                        "in": "header",
-                        "required": true
+                        "description": "New account data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Refresh"
+                        }
                     }
                 ],
                 "responses": {
@@ -126,6 +125,9 @@ const docTemplate = `{
         "/api/v1/auth/refresh": {
             "post": {
                 "description": "Rotate current refresh token",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -135,21 +137,26 @@ const docTemplate = `{
                 "summary": "Refresh",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "refreshToken=\\\u003cRefresh token here\\\u003e",
-                        "name": "Cookie",
-                        "in": "header",
-                        "required": true
+                        "description": "New account data",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Refresh"
+                        }
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No Content",
-                        "headers": {
-                            "Cookie": {
-                                "type": "string",
-                                "description": "refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh"
-                            }
+                    "200": {
+                        "description": "Access and refresh tokens",
+                        "schema": {
+                            "$ref": "#/definitions/response.TokensResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing field",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
@@ -229,6 +236,18 @@ const docTemplate = `{
                 }
             }
         },
+        "request.Refresh": {
+            "type": "object",
+            "required": [
+                "refreshToken"
+            ],
+            "properties": {
+                "refreshToken": {
+                    "type": "string",
+                    "example": "9Vz6ayzM0scQSIXHtYVbKcDeF1aa0aLs"
+                }
+            }
+        },
         "request.Register": {
             "type": "object",
             "required": [
@@ -261,10 +280,13 @@ const docTemplate = `{
                 }
             }
         },
-        "response.LoginResponse": {
+        "response.TokensResponse": {
             "type": "object",
             "properties": {
                 "accessToken": {
+                    "type": "string"
+                },
+                "refreshToken": {
                     "type": "string"
                 }
             }

@@ -21,10 +21,10 @@ func (r *Login) Bind(_ *http.Request) error {
 	return validate.Struct(r)
 }
 
-type Logout struct {
+type Refresh struct {
 	RefreshToken string `json:"refreshToken" example:"9Vz6ayzM0scQSIXHtYVbKcDeF1aa0aLs" validate:"required,len=32"`
 }
 
-func (r *Logout) Bind(_ *http.Request) error {
+func (r *Refresh) Bind(_ *http.Request) error {
 	return validate.Struct(r)
 }

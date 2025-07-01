@@ -84,7 +84,7 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 // @Accept      json
 // @Produce     json
 // @Param       payload body request.Login true "New account data"
-// @Success 		200 {object} response.LoginResponse "Access and refresh tokens"
+// @Success 		200 {object} response.TokensResponse "Access and refresh tokens"
 // @Failure     400 {object} response.ErrorResponse "Missing field"
 // @Failure     401 {object} response.ErrorResponse "Wrong credential"
 // @Failure     403 {object} response.ErrorResponse "SSO enabled account"
@@ -124,7 +124,7 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	res := response.LoginResponse{
+	res := response.TokensResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}
@@ -139,14 +139,14 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 // @Tags        Auth
 // @Accept      json
 // @Produce     json
-// @Param       payload body request.Login true "New account data"
+// @Param       payload body request.Refresh true "New account data"
 // @Success 		204 {object} nil "No Content"
 // @Header      204 {string} Cookie "refreshToken=; HttpOnly; Path=/api/v1/auth/refresh"
 // @Failure     401 {object} response.ErrorResponse "Unknown session"
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/logout [post]
 func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Request) {
-	body := request.Logout{}
+	body := request.Refresh{}
 	if err := render.Bind(r, &body); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
@@ -182,10 +182,11 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 // @Summary     Refresh
 // @Description Rotate current refresh token
 // @Tags        Auth
+// @Accept      json
 // @Produce     json
-// @Param       Cookie header string true "refreshToken=\<Refresh token here\>"
-// @Success 		204 {object} nil "No Content"
-// @Header      204 {string} Cookie "refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh"
+// @Param       payload body request.Refresh true "New account data"
+// @Success 		200 {object} response.TokensResponse "Access and refresh tokens"
+// @Failure     400 {object} response.ErrorResponse "Missing field"
 // @Failure     401 {object} response.ErrorResponse "Unknown session"
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/refresh [post]
