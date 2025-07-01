@@ -13,8 +13,8 @@ const (
 
 	ErrCodeValidationError = "validation_error"      // Validation error
 	ErrCodeNoObject        = "object_none_existance" // Specified resource don't exist
-	ErrCodeInvalidAction   = "invalid_action"        // Action prohibited by the service
-	ErrCodeLogicFailure    = "logic_fail"            // Explicitly defined failure case (invalid password, unauthorized access, etc...)
+	ErrCodeForbidden       = "forbidden"             // Action prohibited by the service
+	ErrCodeUnauth          = "unauth"                // Explicitly defined failure case (invalid password, unauthorized access, etc...)
 )
 
 type ChatError struct {

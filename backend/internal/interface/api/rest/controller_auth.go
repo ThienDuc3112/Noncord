@@ -3,8 +3,10 @@ package rest
 import (
 	"backend/internal/application/command"
 	"backend/internal/application/interfaces"
+	"backend/internal/domain/entities"
 	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -52,7 +54,23 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 		Password: body.Password,
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Who knows", http.StatusInternalServerError, err))
+		var e *entities.ChatError
+		if errors.As(err, &e) {
+			switch e.Code {
+			case entities.ErrCodeValidationError, entities.ErrCodeNoObject:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
+			case entities.ErrCodeForbidden:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusForbidden, e))
+			case entities.ErrCodeUnauth:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusUnauthorized, e))
+			default:
+				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+			}
+			return
+		} else {
+			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+		}
+
 		return
 	}
 
@@ -87,7 +105,23 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 	})
 
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("I haven't update this yet", http.StatusInternalServerError, err))
+		var e *entities.ChatError
+		if errors.As(err, &e) {
+			switch e.Code {
+			case entities.ErrCodeValidationError, entities.ErrCodeNoObject:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
+			case entities.ErrCodeForbidden:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusForbidden, e))
+			case entities.ErrCodeUnauth:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusUnauthorized, e))
+			default:
+				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+			}
+			return
+		} else {
+			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+		}
+
 		return
 	}
 

@@ -54,7 +54,7 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 	})
 	err = user.Validate()
 	if err != nil {
-		return command.RegisterCommandResult{}, err
+		return command.RegisterCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeValidationError, "validation failed")
 	}
 
 	err = s.userRepo.Save(ctx, user)
@@ -93,12 +93,12 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 	}
 
 	if user.Password == "" {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeInvalidAction, "sso user cannot sign in with password", nil)
+		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeForbidden, "sso user cannot sign in with password", nil)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
 	if err != nil {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeLogicFailure, "invalid password", err)
+		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeUnauth, "invalid password", err)
 	}
 
 	session := ports.NewSession(user.Id, time.Now().Add(time.Hour*24*30), param.UserAgent)
