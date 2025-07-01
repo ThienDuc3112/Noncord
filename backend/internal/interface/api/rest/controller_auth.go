@@ -84,8 +84,7 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 // @Accept      json
 // @Produce     json
 // @Param       payload body request.Login true "New account data"
-// @Success 		200 {object} response.LoginResponse "Access token"
-// @Header      200 {string} Cookie "refreshToken=abcd1234; HttpOnly; Path=/api/v1/auth/refresh"
+// @Success 		200 {object} response.LoginResponse "Access and refresh tokens"
 // @Failure     400 {object} response.ErrorResponse "Missing field"
 // @Failure     401 {object} response.ErrorResponse "Wrong credential"
 // @Failure     403 {object} response.ErrorResponse "SSO enabled account"
@@ -138,15 +137,45 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 // @Summary     Logout
 // @Description Invalidate the current session
 // @Tags        Auth
+// @Accept      json
 // @Produce     json
-// @Param       Cookie header string true "refreshToken=\<Refresh token here\>"
+// @Param       payload body request.Login true "New account data"
 // @Success 		204 {object} nil "No Content"
 // @Header      204 {string} Cookie "refreshToken=; HttpOnly; Path=/api/v1/auth/refresh"
 // @Failure     401 {object} response.ErrorResponse "Unknown session"
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/logout [post]
 func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Request) {
-	render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusNotImplemented, nil))
+	body := request.Logout{}
+	if err := render.Bind(r, &body); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
+	}
+
+	err := ac.authService.Logout(r.Context(), command.LogoutCommand{
+		RefreshToken: body.RefreshToken,
+	})
+
+	if err != nil {
+		var e *entities.ChatError
+		if errors.As(err, &e) {
+			switch e.Code {
+			case entities.ErrCodeValidationError:
+				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
+			case entities.ErrCodeNoObject:
+				render.Render(w, r, response.NewErrorResponse("session not found", http.StatusNotFound, e))
+			default:
+				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+			}
+			return
+		} else {
+			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+		}
+
+		return
+	}
+
+	render.NoContent(w, r)
 }
 
 // register     godoc
