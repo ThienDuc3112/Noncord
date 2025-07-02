@@ -107,10 +107,10 @@ paths:
       responses:
         "204":
           description: No Content
-          headers:
-            Cookie:
-              description: refreshToken=; HttpOnly; Path=/api/v1/auth/refresh
-              type: string
+        "400":
+          description: Invalid payload
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unknown session
           schema:

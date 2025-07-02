@@ -88,12 +88,12 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content",
-                        "headers": {
-                            "Cookie": {
-                                "type": "string",
-                                "description": "refreshToken=; HttpOnly; Path=/api/v1/auth/refresh"
-                            }
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid payload",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {

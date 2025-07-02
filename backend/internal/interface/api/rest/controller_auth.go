@@ -107,12 +107,12 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 		var e *entities.ChatError
 		if errors.As(err, &e) {
 			switch e.Code {
-			case entities.ErrCodeValidationError, entities.ErrCodeNoObject:
+			case entities.ErrCodeValidationError:
 				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
 			case entities.ErrCodeForbidden:
 				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusForbidden, e))
-			case entities.ErrCodeUnauth:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusUnauthorized, e))
+			case entities.ErrCodeUnauth, entities.ErrCodeNoObject:
+				render.Render(w, r, response.NewErrorResponse("Wrong credential", http.StatusUnauthorized, e))
 			default:
 				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
@@ -141,7 +141,7 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 // @Produce     json
 // @Param       payload body request.Refresh true "New account data"
 // @Success 		204 {object} nil "No Content"
-// @Header      204 {string} Cookie "refreshToken=; HttpOnly; Path=/api/v1/auth/refresh"
+// @Failure     400 {object} response.ErrorResponse "Invalid payload"
 // @Failure     401 {object} response.ErrorResponse "Unknown session"
 // @Failure     500 {object} response.ErrorResponse "Internal server error"
 // @Router      /api/v1/auth/logout [post]
@@ -160,10 +160,8 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 		var e *entities.ChatError
 		if errors.As(err, &e) {
 			switch e.Code {
-			case entities.ErrCodeValidationError:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
 			case entities.ErrCodeNoObject:
-				render.Render(w, r, response.NewErrorResponse("session not found", http.StatusNotFound, e))
+				render.Render(w, r, response.NewErrorResponse("unknown session", http.StatusUnauthorized, e))
 			default:
 				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
@@ -194,6 +192,7 @@ func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Reque
 	payload := request.Refresh{}
 	if err := render.Bind(r, &payload); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
 	}
 
 	tokens, err := ac.authService.Refresh(r.Context(), command.RefreshCommand{

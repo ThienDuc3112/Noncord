@@ -165,7 +165,7 @@ func (s *AuthService) Refresh(ctx context.Context, param command.RefreshCommand)
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	})
-	accessToken, err := accessTokenClaim.SignedString(s.secret)
+	accessToken, err := accessTokenClaim.SignedString([]byte(s.secret))
 	if err != nil {
 		return command.RefreshCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
 	}

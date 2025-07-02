@@ -24,11 +24,12 @@ services:
       - /app/tmp
     ports: 
       - "8888:8888"
+    command: air
     environment:
       DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
       PORT: "8888"
       SECRET: "d2bbb0d95eba5eef4a5127dbaf7ab9fb4ab75d4cc0677962fcbb7f740e6d067d"
-      FRONTEND_URL: "localhost:6789"
+      FRONTEND_URL: "localhost:6969"
       ENVIRONMENT: "DEVELOPMENT"
       AIR_ENV: "dev"
     restart: on-failure
@@ -45,7 +46,8 @@ services:
     volumes:
       - ./frontend:/app
     command: sh -c "cp -r /cache_modules/node_modules /app/node_modules && npm run dev"
-    # environment:
+    environment:
+      API_URL: "http://api:8888/api/v1"
     restart: on-failure
 
 volumes:
