@@ -9,6 +9,7 @@ import (
 	"backend/internal/domain/repositories"
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -43,8 +44,8 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 	}
 
 	user := entities.NewUser(entities.NewUserParam{
-		Username:    cmd.Username,
-		Email:       cmd.Email,
+		Username:    strings.ToLower(cmd.Username),
+		Email:       strings.ToLower(cmd.Email),
 		DisplayName: "",
 		AboutMe:     "",
 		Password:    string(password),

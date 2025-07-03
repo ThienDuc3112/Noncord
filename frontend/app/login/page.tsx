@@ -29,7 +29,7 @@ export default function LoginPage() {
     e.preventDefault();
     console.log("Login submitted:", formData);
     // Simulate successful login
-    router.push("/app");
+    // router.push("/app");
   };
 
   return (
@@ -46,12 +46,12 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email" className={theme.classes.label}>
-            Email or Phone Number{" "}
+            Email or Username{" "}
             <span className={theme.colors.states.error}>*</span>
           </Label>
           <Input
             id="email"
-            type="email"
+            type="text"
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
             className={theme.classes.input}

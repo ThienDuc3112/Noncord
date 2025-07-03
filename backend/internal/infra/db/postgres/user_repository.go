@@ -9,8 +9,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type PGUserRepo struct {
@@ -55,6 +57,13 @@ func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
 		BannerUrl:   user.BannerUrl,
 		Flags:       int16(user.Flags),
 	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			log.Printf("[ERROR] PGSessionRepo.Save pg error: %v\n", pgErr.Detail)
+			return entities.NewError(entities.ErrCodeValidationError, "username or email already in used", pgErr)
+		}
+	}
 
 	return err
 }

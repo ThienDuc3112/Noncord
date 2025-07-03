@@ -50,6 +50,9 @@ export const theme = {
     label: "text-[#b9bbbe] text-xs font-bold uppercase tracking-wide",
     card: "bg-gray-900/95 border-none shadow-2xl",
     background: "min-h-screen bg-gradient-to-br from-pink-900 to-rose-900",
+    formMessage: "text-red-400 text-xs mt-1 font-medium",
+    inputError:
+      "bg-[#202225] border border-red-500 text-white placeholder:text-[#72767d] focus:ring-0 focus:ring-offset-0 focus-visible:ring-1 focus-visible:ring-red-500",
   },
 } as const;
 

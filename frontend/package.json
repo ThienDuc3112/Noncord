@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-scroll-area": "^1.2.9",
@@ -23,7 +24,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.59.0",
     "tailwind-merge": "^3.3.0",
-    "zod": "^3.25.67"
+    "zod": "^3.25.71"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
