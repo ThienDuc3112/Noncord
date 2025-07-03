@@ -41,12 +41,13 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 30 * 24 * 3600,
-      path: "/auth/refresh",
+      path: "/auth",
     });
 
     return res;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
+      console.error(error.response);
       return NextResponse.json(error.response.data, {
         status: error.response.status,
       });

@@ -37,7 +37,7 @@ func (ac *AuthController) RegisterRoute(r chi.Router) {
 // @Accept 			json
 // @Produce 		json
 // @Param       payload body request.Register true "New account data"
-// @Success 		204 {object} nil "No Content"
+// @Success 		201 {object} nil "Account created"
 // @Failure 		400 {object} response.ErrorResponse
 // @Failure 		500 {object} response.ErrorResponse
 // @Router			/api/v1/auth/register [post]
@@ -74,7 +74,7 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	render.NoContent(w, r)
+	w.WriteHeader(201)
 }
 
 // register     godoc

@@ -3,7 +3,7 @@
     - [ ] Implement backend routes
         - [x] Login route
         - [x] Refresh route
-        - [ ] Logout route
+        - [x] Logout route
     - [ ] Implement auth pages
         - [ ] Register
             - [x] UI design
