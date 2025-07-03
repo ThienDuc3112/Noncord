@@ -2,12 +2,20 @@
 - [ ] Auth pages
     - [ ] Implement backend routes
         - [x] Login route
-        - [x] Refresh route
+        - [ ] Refresh route
+            - [x] Refresh on correct
+            - [ ] Remove token on incorrect session and redirect
         - [x] Logout route
     - [ ] Implement auth pages
         - [ ] Register
             - [x] UI design
             - [ ] Logic implementation
+                - [x] Validate frontend input
+                - [x] Send login request and handle error
+                - [ ] Auto redirect on active session
         - [ ] Login
             - [x] UI design
             - [ ] Logic implementation
+                - [x] Validate frontend input
+                - [x] Send login request and handle error
+                - [ ] Auto redirect on active session

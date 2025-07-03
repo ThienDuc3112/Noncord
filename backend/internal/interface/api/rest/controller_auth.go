@@ -59,18 +59,12 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 			switch e.Code {
 			case entities.ErrCodeValidationError, entities.ErrCodeNoObject:
 				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
-			case entities.ErrCodeForbidden:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusForbidden, e))
-			case entities.ErrCodeUnauth:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusUnauthorized, e))
 			default:
 				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
-			return
 		} else {
 			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
 		}
-
 		return
 	}
 

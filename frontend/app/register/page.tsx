@@ -50,7 +50,7 @@ const RegisterSchema = z
 type RegisterData = z.infer<typeof RegisterSchema>;
 
 export default function RegisterPage() {
-  const navigate = useRouter();
+  const router = useRouter();
   const form = useForm<RegisterData>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
@@ -66,7 +66,7 @@ export default function RegisterPage() {
   const handleSubmit = async (data: RegisterData) => {
     try {
       await apiClient.post("/auth/register", data);
-      navigate.push("/login");
+      router.push("/login");
     } catch (error) {
       console.error(error);
       if (
