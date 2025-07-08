@@ -13,9 +13,9 @@
                 - [x] Validate frontend input
                 - [x] Send login request and handle error
                 - [ ] Auto redirect on active session
-        - [ ] Login
+        - [x] Login
             - [x] UI design
-            - [ ] Logic implementation
+            - [x] Logic implementation
                 - [x] Validate frontend input
                 - [x] Send login request and handle error
-                - [ ] Auto redirect on active session
+                - [x] Auto redirect on active session
