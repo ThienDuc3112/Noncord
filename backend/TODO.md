@@ -12,5 +12,30 @@
         - [x] Green path implemented
         - [ ] Proper parsing of validator error
 - [ ] Server service
+    - [ ] Create new server
+    - [ ] Update server
+    - [ ] Delete server
 - [ ] Channel service
+    - [ ] Create channel
+    - [ ] Update channel
+    - [ ] Delete channel
+    - [ ] Create category
+- [ ] Role service
+    - [ ] Create role
+    - [ ] Update role
+    - [ ] Delete role
+    - [ ] Update channel role permission
+- [ ] Membership service
+    - [ ] Join server
+    - [ ] Leave server
+    - [ ] Kick member
+    - [ ] Ban member
+    - [ ] Assign role
+    - [ ] Update channel user permission
+    - [ ] Set nickname
 - [ ] Message service
+    - [ ] Send message
+    - [ ] Edit message
+    - [ ] Delete message
+- [ ] User service
+- [ ] User settings service
