@@ -1,18 +1,18 @@
 # Todo
-- [ ] Auth pages
-    - [ ] Implement backend routes
+- [x] Auth pages
+    - [x] Implement backend routes
         - [x] Login route
-        - [ ] Refresh route
+        - [x] Refresh route
             - [x] Refresh on correct
-            - [ ] Remove token on incorrect session and redirect
+            - [x] Remove token on incorrect session and redirect
         - [x] Logout route
-    - [ ] Implement auth pages
-        - [ ] Register
+    - [x] Implement auth pages
+        - [x] Register
             - [x] UI design
-            - [ ] Logic implementation
+            - [x] Logic implementation
                 - [x] Validate frontend input
                 - [x] Send login request and handle error
-                - [ ] Auto redirect on active session
+                - [x] Auto redirect on active session
         - [x] Login
             - [x] UI design
             - [x] Logic implementation

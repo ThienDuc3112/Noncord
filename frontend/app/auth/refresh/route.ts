@@ -31,17 +31,27 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (error) {
+    let res: NextResponse;
     if (axios.isAxiosError(error) && error.response) {
       console.error(error.response);
-      return NextResponse.json(error.response.data, {
+      res = NextResponse.json(error.response.data, {
         status: error.response.status,
       });
+      res.cookies.set("refreshToken", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 0,
+        path: "/auth",
+      });
+    } else {
+      console.error("Auth service error", error);
+      res = NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 },
+      );
     }
 
-    console.error("Auth service error", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return res;
   }
 }

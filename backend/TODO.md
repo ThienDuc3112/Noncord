@@ -11,3 +11,6 @@
         - [x] Document Auth routes
         - [x] Green path implemented
         - [ ] Proper parsing of validator error
+- [ ] Server service
+- [ ] Channel service
+- [ ] Message service
