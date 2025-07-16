@@ -69,10 +69,9 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 }
 
 type AccessTokenClaim struct {
-	UserId      string             `json:"userId"`
-	Username    string             `json:"username"`
-	DisplayName string             `json:"displayName"`
-	UserFlags   entities.UserFlags `json:"userFlags"`
+	UserId    string             `json:"userId"`
+	Username  string             `json:"username"`
+	UserFlags entities.UserFlags `json:"userFlags"`
 
 	jwt.RegisteredClaims
 }
@@ -104,10 +103,9 @@ func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (co
 
 	session := ports.NewSession(user.Id, time.Now().Add(time.Hour*24*30), param.UserAgent)
 	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
-		UserId:      uuid.UUID(user.Id).String(),
-		Username:    user.Username,
-		DisplayName: user.DisplayName,
-		UserFlags:   user.Flags,
+		UserId:    uuid.UUID(user.Id).String(),
+		Username:  user.Username,
+		UserFlags: user.Flags,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "Noncord",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
@@ -156,10 +154,9 @@ func (s *AuthService) Refresh(ctx context.Context, param command.RefreshCommand)
 	session.ExpiresAt = time.Now().Add(30 * 24 * time.Hour)
 
 	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
-		UserId:      uuid.UUID(user.Id).String(),
-		Username:    user.Username,
-		DisplayName: user.DisplayName,
-		UserFlags:   user.Flags,
+		UserId:    uuid.UUID(user.Id).String(),
+		Username:  user.Username,
+		UserFlags: user.Flags,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "Noncord",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),

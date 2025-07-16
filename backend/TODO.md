@@ -13,6 +13,7 @@
         - [ ] Proper parsing of validator error
 - [ ] Server service
     - [ ] Create new server
+    - [ ] Get server by ID
     - [ ] Update server
     - [ ] Delete server
 - [ ] Channel service
@@ -25,6 +26,8 @@
     - [ ] Update role
     - [ ] Delete role
     - [ ] Update channel role permission
+- [ ] Invite service
+    - [ ] ?
 - [ ] Membership service
     - [ ] Join server
     - [ ] Leave server
@@ -32,6 +35,7 @@
     - [ ] Ban member
     - [ ] Assign role
     - [ ] Update channel user permission
+    - [ ] Get server by user in
     - [ ] Set nickname
 - [ ] Message service
     - [ ] Send message
