@@ -56,7 +56,7 @@ type CreateSessionParams struct {
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
-	row := q.db.QueryRowContext(ctx, createSession,
+	row := q.db.QueryRow(ctx, createSession,
 		arg.ID,
 		arg.RotationCount,
 		arg.CreatedAt,
@@ -85,7 +85,7 @@ SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_age
 `
 
 func (q *Queries) FindSessionById(ctx context.Context, id uuid.UUID) (Session, error) {
-	row := q.db.QueryRowContext(ctx, findSessionById, id)
+	row := q.db.QueryRow(ctx, findSessionById, id)
 	var i Session
 	err := row.Scan(
 		&i.ID,
@@ -105,7 +105,7 @@ SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_age
 `
 
 func (q *Queries) FindSessionByToken(ctx context.Context, refreshToken string) (Session, error) {
-	row := q.db.QueryRowContext(ctx, findSessionByToken, refreshToken)
+	row := q.db.QueryRow(ctx, findSessionByToken, refreshToken)
 	var i Session
 	err := row.Scan(
 		&i.ID,
@@ -125,7 +125,7 @@ SELECT id, rotation_count, created_at, updated_at, expires_at, user_id, user_age
 `
 
 func (q *Queries) FindSessionsByUserId(ctx context.Context, userID uuid.UUID) ([]Session, error) {
-	rows, err := q.db.QueryContext(ctx, findSessionsByUserId, userID)
+	rows, err := q.db.Query(ctx, findSessionsByUserId, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -146,9 +146,6 @@ func (q *Queries) FindSessionsByUserId(ctx context.Context, userID uuid.UUID) ([
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

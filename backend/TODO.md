@@ -12,10 +12,20 @@
         - [x] Green path implemented
         - [ ] Proper parsing of validator error
 - [ ] Server service
-    - [ ] Create new server
-    - [ ] Get server by ID
-    - [ ] Update server
-    - [ ] Delete server
+    - [x] Implement repo
+        - [x] Save server
+        - [x] Find server by id
+        - [x] Find servers by ids
+        - [x] Delete servers
+    - [ ] Implement service
+        - [ ] Create new server
+        - [ ] Get server by ID
+        - [ ] Update server
+        - [ ] Delete server
+    - [ ] Implement controller
+        - [ ] Document server routes
+        - [ ] Green path
+        - [ ] Error parsing route
 - [ ] Channel service
     - [ ] Create channel
     - [ ] Update channel

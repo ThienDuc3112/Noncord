@@ -5,7 +5,7 @@ import (
 	"backend/internal/application/services"
 	"backend/internal/infra/db/postgres"
 	"backend/internal/interface/api/rest"
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,12 +13,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/swaggo/http-swagger/v2"
 )
 
 func main() {
-	conn, err := sql.Open("pgx", os.Getenv("DB_URI"))
+	conn, err := pgxpool.New(context.Background(), os.Getenv("DB_URI"))
+
 	if err != nil {
 		log.Fatalf("Cannot connect to db: %v", err)
 	}

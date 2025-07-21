@@ -14,7 +14,7 @@ func fromDbUser(user *gen.User) *entities.User {
 		Id:          entities.UserId(user.ID),
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
-		DeletedAt:   nil,
+		DeletedAt:   user.DeletedAt,
 		Username:    user.Username,
 		DisplayName: user.DisplayName,
 		AboutMe:     user.AboutMe,
@@ -28,9 +28,6 @@ func fromDbUser(user *gen.User) *entities.User {
 	}
 	if user.Password.Valid {
 		res.Password = user.Password.String
-	}
-	if user.DeletedAt.Valid {
-		res.DeletedAt = &user.DeletedAt.Time
 	}
 
 	return res

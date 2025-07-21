@@ -8,23 +8,23 @@ import (
 	"backend/internal/domain/ports"
 	"backend/internal/domain/repositories"
 	"context"
-	"database/sql"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
 	userRepo repositories.UserRepo
 	sessRepo ports.SessionRepository
-	connPool *sql.DB
+	connPool *pgxpool.Pool
 	secret   string
 }
 
-func NewAuthService(ur repositories.UserRepo, sr ports.SessionRepository, connPool *sql.DB, secret string) interfaces.AuthService {
+func NewAuthService(ur repositories.UserRepo, sr ports.SessionRepository, connPool *pgxpool.Pool, secret string) interfaces.AuthService {
 	return &AuthService{
 		userRepo: ur,
 		sessRepo: sr,

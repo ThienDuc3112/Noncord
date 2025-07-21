@@ -5,11 +5,11 @@ import (
 	"backend/internal/domain/ports"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/google/uuid"
 	"github.com/gookit/goutil/arrutil"
+	"github.com/jackc/pgx/v5"
 )
 
 type PGSessionRepo struct {
@@ -38,7 +38,7 @@ func (r *PGSessionRepo) Save(ctx context.Context, session *ports.Session) error 
 
 func (r *PGSessionRepo) FindById(ctx context.Context, id uuid.UUID) (*ports.Session, error) {
 	session, err := r.repo.FindSessionById(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no session by this id", err)
 	} else if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (r *PGSessionRepo) FindById(ctx context.Context, id uuid.UUID) (*ports.Sess
 
 func (r *PGSessionRepo) FindByToken(ctx context.Context, token string) (*ports.Session, error) {
 	session, err := r.repo.FindSessionByToken(ctx, token)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no session by this id", err)
 	} else if err != nil {
 		return nil, err

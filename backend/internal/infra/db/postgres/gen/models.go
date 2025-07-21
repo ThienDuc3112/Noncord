@@ -5,12 +5,12 @@
 package gen
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type ScopeType string
@@ -61,7 +61,7 @@ type Attachment struct {
 	Filetype  string
 	Url       string
 	Filename  string
-	MessageID uuid.NullUUID
+	MessageID *uuid.UUID
 	UserID    uuid.UUID
 	Size      int32
 }
@@ -76,7 +76,7 @@ type Category struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt sql.NullTime
+	DeletedAt *time.Time
 	ServerID  uuid.UUID
 	Name      string
 	Ordering  int16
@@ -86,12 +86,12 @@ type Channel struct {
 	ID             uuid.UUID
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	DeletedAt      sql.NullTime
+	DeletedAt      *time.Time
 	Name           string
 	Description    string
 	ServerID       uuid.UUID
 	Ordering       int16
-	ParentCategory uuid.NullUUID
+	ParentCategory *uuid.UUID
 }
 
 type ChannelRolePermissionOverride struct {
@@ -114,7 +114,7 @@ type DmGroup struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt sql.NullTime
+	DeletedAt *time.Time
 	Name      string
 	IconUrl   string
 	IsGroup   bool
@@ -130,7 +130,7 @@ type Emote struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt sql.NullTime
+	DeletedAt *time.Time
 	ServerID  uuid.UUID
 	Name      string
 	IconUrl   string
@@ -153,7 +153,7 @@ type Invitation struct {
 	ID             uuid.UUID
 	ServerID       uuid.UUID
 	CreatedAt      time.Time
-	ExpiredAt      sql.NullTime
+	ExpiredAt      *time.Time
 	BypassApproval bool
 	JoinLimit      int32
 }
@@ -161,11 +161,11 @@ type Invitation struct {
 type JoinRequest struct {
 	ID            uuid.UUID
 	CreatedAt     time.Time
-	ApprovedAt    sql.NullTime
-	RevokedAt     sql.NullTime
+	ApprovedAt    *time.Time
+	RevokedAt     *time.Time
 	ServerID      uuid.UUID
 	Requester     uuid.UUID
-	Approver      uuid.NullUUID
+	Approver      *uuid.UUID
 	ApprovedState bool
 }
 
@@ -180,9 +180,9 @@ type Message struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt sql.NullTime
-	ChannelID uuid.NullUUID
-	GroupID   uuid.NullUUID
+	DeletedAt *time.Time
+	ChannelID *uuid.UUID
+	GroupID   *uuid.UUID
 	AuthorID  uuid.UUID
 	Message   string
 }
@@ -197,7 +197,7 @@ type Role struct {
 	ID           uuid.UUID
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-	DeletedAt    sql.NullTime
+	DeletedAt    *time.Time
 	Name         string
 	Color        int32
 	Priority     int16
@@ -217,14 +217,14 @@ type Server struct {
 	ID                  uuid.UUID
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
-	DeletedAt           sql.NullTime
+	DeletedAt           *time.Time
 	Name                string
 	Description         string
 	IconUrl             string
 	BannerUrl           string
 	NeedApproval        bool
-	DefaultRole         uuid.NullUUID
-	AnnouncementChannel uuid.NullUUID
+	DefaultRole         *uuid.UUID
+	AnnouncementChannel *uuid.UUID
 }
 
 type Session struct {
@@ -242,12 +242,12 @@ type User struct {
 	ID          uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   sql.NullTime
+	DeletedAt   *time.Time
 	Username    string
 	DisplayName string
 	AboutMe     string
 	Email       string
-	Password    sql.NullString
+	Password    pgtype.Text
 	Disabled    bool
 	AvatarUrl   string
 	BannerUrl   string

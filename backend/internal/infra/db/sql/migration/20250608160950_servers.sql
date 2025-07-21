@@ -10,7 +10,6 @@ CREATE TABLE servers (
 	icon_url VARCHAR(2048) NOT NULL,
   banner_url VARCHAR(2048) NOT NULL,
 	need_approval BOOLEAN NOT NULL,
-	-- Categories []Category
 	default_role UUID,
 	announcement_channel UUID
 );

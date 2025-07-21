@@ -6,13 +6,14 @@ import (
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type PGUserRepo struct {
@@ -26,15 +27,7 @@ func NewPGUserRepo(conn gen.DBTX) repositories.UserRepo {
 }
 
 func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
-	deletedAt := sql.NullTime{}
-	if user.DeletedAt == nil {
-		deletedAt.Valid = false
-	} else {
-		deletedAt.Time = *user.DeletedAt
-		deletedAt.Valid = true
-	}
-
-	password := sql.NullString{}
+	password := pgtype.Text{}
 	if len(user.Password) == 0 {
 		password.Valid = false
 	} else {
@@ -46,7 +39,7 @@ func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
 		ID:          uuid.UUID(user.Id),
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
-		DeletedAt:   deletedAt,
+		DeletedAt:   user.DeletedAt,
 		Username:    user.Username,
 		DisplayName: user.DisplayName,
 		AboutMe:     user.AboutMe,
@@ -70,7 +63,7 @@ func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
 
 func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error) {
 	u, err := r.q.FindUserById(ctx, uuid.UUID(id))
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no user found", err)
 	} else if err != nil {
 		return nil, err
@@ -89,7 +82,7 @@ func (r *PGUserRepo) FindFriends(ctx context.Context, userId e.UserId) ([]*e.Use
 
 func (r *PGUserRepo) FindByEmail(ctx context.Context, email string) (*e.User, error) {
 	u, err := r.q.FindUserByEmail(ctx, email)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no user found", err)
 	} else if err != nil {
 		return nil, err
@@ -100,7 +93,7 @@ func (r *PGUserRepo) FindByEmail(ctx context.Context, email string) (*e.User, er
 
 func (r *PGUserRepo) FindByUsername(ctx context.Context, username string) (*e.User, error) {
 	u, err := r.q.FindUserByUsername(ctx, username)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no user found", err)
 	} else if err != nil {
 		return nil, err

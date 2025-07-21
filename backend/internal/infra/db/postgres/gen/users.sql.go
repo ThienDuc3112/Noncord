@@ -7,10 +7,10 @@ package gen
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -64,12 +64,12 @@ type CreateUserParams struct {
 	ID          uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   sql.NullTime
+	DeletedAt   *time.Time
 	Username    string
 	DisplayName string
 	AboutMe     string
 	Email       string
-	Password    sql.NullString
+	Password    pgtype.Text
 	Disabled    bool
 	AvatarUrl   string
 	BannerUrl   string
@@ -77,7 +77,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	row := q.db.QueryRow(ctx, createUser,
 		arg.ID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -163,7 +163,7 @@ type CreateUserSettingParams struct {
 }
 
 func (q *Queries) CreateUserSetting(ctx context.Context, arg CreateUserSettingParams) (UserSetting, error) {
-	row := q.db.QueryRowContext(ctx, createUserSetting,
+	row := q.db.QueryRow(ctx, createUserSetting,
 		arg.UserID,
 		arg.Language,
 		arg.DmAllowOption,
@@ -196,7 +196,7 @@ SELECT id, created_at, updated_at, deleted_at, username, display_name, about_me,
 `
 
 func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, findUserByEmail, email)
+	row := q.db.QueryRow(ctx, findUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -221,7 +221,7 @@ SELECT id, created_at, updated_at, deleted_at, username, display_name, about_me,
 `
 
 func (q *Queries) FindUserById(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, findUserById, id)
+	row := q.db.QueryRow(ctx, findUserById, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -246,7 +246,7 @@ SELECT id, created_at, updated_at, deleted_at, username, display_name, about_me,
 `
 
 func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, findUserByUsername, username)
+	row := q.db.QueryRow(ctx, findUserByUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
