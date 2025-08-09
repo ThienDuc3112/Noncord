@@ -52,6 +52,8 @@ type Server struct {
 	BannerUrl    string
 	NeedApproval bool
 
+	Owner UserId
+
 	DefaultRole         *RoleId
 	AnnouncementChannel *ChannelId
 }
@@ -85,17 +87,20 @@ func (s *Server) Validate() error {
 	return nil
 }
 
-func NewServer(name, description, iconUrl, bannerUrl string, needApproval bool) *Server {
+func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, needApproval bool) *Server {
 	return &Server{
-		Id:                  ServerId(uuid.New()),
-		CreatedAt:           time.Now(),
-		UpdatedAt:           time.Now(),
-		DeletedAt:           nil,
-		Name:                name,
-		Description:         description,
-		IconUrl:             iconUrl,
-		BannerUrl:           bannerUrl,
-		NeedApproval:        needApproval,
+		Id:           ServerId(uuid.New()),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		DeletedAt:    nil,
+		Name:         name,
+		Description:  description,
+		IconUrl:      iconUrl,
+		BannerUrl:    bannerUrl,
+		NeedApproval: needApproval,
+
+		Owner: userId,
+
 		DefaultRole:         nil,
 		AnnouncementChannel: nil,
 	}

@@ -6,11 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreateServerCommand struct {
+type UpdateServerCommand struct {
 	UserId uuid.UUID
-	Name   string
-}
-
-type CreateServerCommandResult struct {
-	Result *common.Server
+	Server common.Server
 }

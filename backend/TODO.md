@@ -18,8 +18,8 @@
         - [x] Find servers by ids
         - [x] Delete servers
     - [ ] Implement service
-        - [ ] Create new server
-        - [ ] Get server by ID
+        - [x] Create new server
+        - [x] Get server by ID
         - [ ] Update server
         - [ ] Delete server
     - [ ] Implement controller

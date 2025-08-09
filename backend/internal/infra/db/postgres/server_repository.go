@@ -57,7 +57,7 @@ func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, e
 func (r *PGServerRepo) Find(ctx context.Context, id e.ServerId) (*e.Server, error) {
 	s, err := r.repo.FindServerById(ctx, uuid.UUID(id))
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, e.NewError(e.ErrCodeNoObject, "no session by this id", err)
+		return nil, e.NewError(e.ErrCodeNoObject, "no server by this id", err)
 	} else if err != nil {
 		return nil, err
 	}
