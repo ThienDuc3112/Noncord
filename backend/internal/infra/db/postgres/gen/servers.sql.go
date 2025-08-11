@@ -22,7 +22,7 @@ func (q *Queries) DeleteServer(ctx context.Context, id uuid.UUID) error {
 }
 
 const findServerById = `-- name: FindServerById :one
-SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel FROM servers WHERE id = $1 AND deleted_at IS NOT NULL
+SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = $1 AND deleted_at IS NOT NULL
 `
 
 func (q *Queries) FindServerById(ctx context.Context, id uuid.UUID) (Server, error) {
@@ -40,12 +40,13 @@ func (q *Queries) FindServerById(ctx context.Context, id uuid.UUID) (Server, err
 		&i.NeedApproval,
 		&i.DefaultRole,
 		&i.AnnouncementChannel,
+		&i.Owner,
 	)
 	return i, err
 }
 
 const findServersByIds = `-- name: FindServersByIds :many
-SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel FROM servers WHERE id = ANY($1::UUID[]) AND deleted_at IS NOT NULL
+SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = ANY($1::UUID[]) AND deleted_at IS NOT NULL
 `
 
 func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Server, error) {
@@ -69,6 +70,7 @@ func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Serv
 			&i.NeedApproval,
 			&i.DefaultRole,
 			&i.AnnouncementChannel,
+			&i.Owner,
 		); err != nil {
 			return nil, err
 		}
@@ -91,7 +93,8 @@ INSERT INTO servers (
   banner_url,
 	need_approval,
 	default_role,
-	announcement_channel
+	announcement_channel,
+  owner
 ) VALUES (
   $1,
   $2,
@@ -102,7 +105,8 @@ INSERT INTO servers (
   $7,
   $8,
   $9,
-  $10
+  $10,
+  $11
 ) 
 ON CONFLICT (id)
 DO UPDATE SET 
@@ -114,8 +118,9 @@ DO UPDATE SET
   banner_url = $7,
 	need_approval = $8,
 	default_role = $9,
-	announcement_channel = $10
-RETURNING id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel
+	announcement_channel = $10,
+  owner = $11
+RETURNING id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner
 `
 
 type SaveServerParams struct {
@@ -129,6 +134,7 @@ type SaveServerParams struct {
 	NeedApproval        bool
 	DefaultRole         *uuid.UUID
 	AnnouncementChannel *uuid.UUID
+	Owner               uuid.UUID
 }
 
 func (q *Queries) SaveServer(ctx context.Context, arg SaveServerParams) (Server, error) {
@@ -143,6 +149,7 @@ func (q *Queries) SaveServer(ctx context.Context, arg SaveServerParams) (Server,
 		arg.NeedApproval,
 		arg.DefaultRole,
 		arg.AnnouncementChannel,
+		arg.Owner,
 	)
 	var i Server
 	err := row.Scan(
@@ -157,6 +164,7 @@ func (q *Queries) SaveServer(ctx context.Context, arg SaveServerParams) (Server,
 		&i.NeedApproval,
 		&i.DefaultRole,
 		&i.AnnouncementChannel,
+		&i.Owner,
 	)
 	return i, err
 }

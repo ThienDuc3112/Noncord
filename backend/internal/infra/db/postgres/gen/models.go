@@ -225,6 +225,7 @@ type Server struct {
 	NeedApproval        bool
 	DefaultRole         *uuid.UUID
 	AnnouncementChannel *uuid.UUID
+	Owner               uuid.UUID
 }
 
 type Session struct {

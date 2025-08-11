@@ -22,6 +22,23 @@ func NewPGServerRepo(db gen.DBTX) repositories.ServerRepo {
 	}
 }
 
+func serverToEntities(s gen.Server) *e.Server {
+	return &e.Server{
+		Id:                  e.ServerId(s.ID),
+		CreatedAt:           s.CreatedAt,
+		UpdatedAt:           s.UpdatedAt,
+		DeletedAt:           s.DeletedAt,
+		Name:                s.Name,
+		Description:         s.Description,
+		IconUrl:             s.IconUrl,
+		BannerUrl:           s.BannerUrl,
+		NeedApproval:        s.NeedApproval,
+		DefaultRole:         (*e.RoleId)(s.DefaultRole),
+		AnnouncementChannel: (*e.ChannelId)(s.AnnouncementChannel),
+		Owner:               e.UserId(s.Owner),
+	}
+}
+
 func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, error) {
 	s, err := r.repo.SaveServer(ctx, gen.SaveServerParams{
 		ID:                  uuid.UUID(server.Id),
@@ -34,24 +51,13 @@ func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, e
 		NeedApproval:        server.NeedApproval,
 		DefaultRole:         (*uuid.UUID)(server.DefaultRole),
 		AnnouncementChannel: (*uuid.UUID)(server.AnnouncementChannel),
+		Owner:               uuid.UUID(server.Owner),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &e.Server{
-		Id:                  e.ServerId(s.ID),
-		CreatedAt:           s.CreatedAt,
-		UpdatedAt:           s.UpdatedAt,
-		DeletedAt:           s.DeletedAt,
-		Name:                s.Name,
-		Description:         s.Description,
-		IconUrl:             s.IconUrl,
-		BannerUrl:           s.BannerUrl,
-		NeedApproval:        s.NeedApproval,
-		DefaultRole:         (*e.RoleId)(s.DefaultRole),
-		AnnouncementChannel: (*e.ChannelId)(s.AnnouncementChannel),
-	}, nil
+	return serverToEntities(s), nil
 }
 
 func (r *PGServerRepo) Find(ctx context.Context, id e.ServerId) (*e.Server, error) {
@@ -62,19 +68,7 @@ func (r *PGServerRepo) Find(ctx context.Context, id e.ServerId) (*e.Server, erro
 		return nil, err
 	}
 
-	return &e.Server{
-		Id:                  e.ServerId(s.ID),
-		CreatedAt:           s.CreatedAt,
-		UpdatedAt:           s.UpdatedAt,
-		DeletedAt:           s.DeletedAt,
-		Name:                s.Name,
-		Description:         s.Description,
-		IconUrl:             s.IconUrl,
-		BannerUrl:           s.BannerUrl,
-		NeedApproval:        s.NeedApproval,
-		DefaultRole:         (*e.RoleId)(s.DefaultRole),
-		AnnouncementChannel: (*e.ChannelId)(s.AnnouncementChannel),
-	}, nil
+	return serverToEntities(s), nil
 }
 
 func (r *PGServerRepo) FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.Server, error) {
@@ -87,19 +81,7 @@ func (r *PGServerRepo) FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.Se
 	}
 
 	return arrutil.Map(servers, func(s gen.Server) (target *e.Server, find bool) {
-		return &e.Server{
-			Id:                  e.ServerId(s.ID),
-			CreatedAt:           s.CreatedAt,
-			UpdatedAt:           s.UpdatedAt,
-			DeletedAt:           s.DeletedAt,
-			Name:                s.Name,
-			Description:         s.Description,
-			IconUrl:             s.IconUrl,
-			BannerUrl:           s.BannerUrl,
-			NeedApproval:        s.NeedApproval,
-			DefaultRole:         (*e.RoleId)(s.DefaultRole),
-			AnnouncementChannel: (*e.ChannelId)(s.AnnouncementChannel),
-		}, true
+		return serverToEntities(s), true
 	}), nil
 }
 

@@ -21,7 +21,10 @@
         - [x] Create new server
         - [x] Get server by ID
         - [ ] Update server
+            - [ ] Check permission
+            - [x] Actual update
         - [ ] Delete server
+        - [ ] Transfer ownership
     - [ ] Implement controller
         - [ ] Document server routes
         - [ ] Green path

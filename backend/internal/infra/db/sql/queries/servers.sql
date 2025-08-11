@@ -9,7 +9,8 @@ INSERT INTO servers (
   banner_url,
 	need_approval,
 	default_role,
-	announcement_channel
+	announcement_channel,
+  owner
 ) VALUES (
   $1,
   $2,
@@ -20,7 +21,8 @@ INSERT INTO servers (
   $7,
   $8,
   $9,
-  $10
+  $10,
+  $11
 ) 
 ON CONFLICT (id)
 DO UPDATE SET 
@@ -32,7 +34,8 @@ DO UPDATE SET
   banner_url = $7,
 	need_approval = $8,
 	default_role = $9,
-	announcement_channel = $10
+	announcement_channel = $10,
+  owner = $11
 RETURNING *;
 
 -- name: FindServerById :one
