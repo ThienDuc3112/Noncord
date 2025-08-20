@@ -177,3 +177,36 @@ func (s *AuthService) Refresh(ctx context.Context, param command.RefreshCommand)
 		RefreshToken: session.Token,
 	}, nil
 }
+
+func (s *AuthService) Authenticate(ctx context.Context, param command.AuthenticateCommand) (command.AuthenticateCommandResult, error) {
+	token, err := jwt.ParseWithClaims(param.AccessToken, &AccessTokenClaim{}, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, entities.NewError(entities.ErrCodeUnauth, "invalid token", nil)
+		}
+		return s.secret, nil
+	}, jwt.WithValidMethods([]string{"HS256"}))
+
+	if err != nil {
+		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "cannot verify token")
+	}
+
+	claims, ok := token.Claims.(*AccessTokenClaim)
+	if !ok {
+		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "deformed token structure")
+	} else if !token.Valid {
+		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, potentially expired")
+	}
+
+	userId, err := uuid.Parse(claims.UserId)
+	if err != nil {
+		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, invalid user id")
+	}
+	user, err := s.userRepo.Find(ctx, entities.UserId(userId))
+	if err != nil {
+		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot find user")
+	}
+
+	return command.AuthenticateCommandResult{
+		User: mapper.NewUserResultFromUserEntity(user),
+	}, nil
+}

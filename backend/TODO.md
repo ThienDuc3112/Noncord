@@ -7,6 +7,7 @@
         - [x] Login
         - [x] Logout
         - [x] Refresh
+        - [ ] Authenticate
     - [ ] Implement controller for AuthController
         - [x] Document Auth routes
         - [x] Green path implemented
@@ -29,6 +30,9 @@
                 - [ ] Role
             - [x] Actual update
         - [ ] Delete server
+            - [ ] Check permission
+                - [ ] Server ownership
+            - [ ] Delete server
         - [ ] Transfer ownership
     - [ ] Implement controller
         - [ ] Document server routes

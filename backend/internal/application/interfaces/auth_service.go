@@ -10,4 +10,5 @@ type AuthService interface {
 	Login(context.Context, command.LoginCommand) (command.LoginCommandResult, error)
 	Logout(context.Context, command.LogoutCommand) error
 	Refresh(context.Context, command.RefreshCommand) (command.RefreshCommandResult, error)
+	Authenticate(context.Context, command.AuthenticateCommand) (command.AuthenticateCommandResult, error)
 }

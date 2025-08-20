@@ -88,5 +88,6 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 }
 
 func (s *ServerService) Delete(ctx context.Context, name string) (*entities.Server, error) {
+
 	return nil, fmt.Errorf("unimplemented")
 }
