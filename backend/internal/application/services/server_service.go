@@ -52,35 +52,40 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
 	}
 
-	if server.Owner != entities.UserId(params.UserId) {
+	// TODO: Update with mod and role permission
+	if !server.IsOwner(entities.UserId(params.UserId)) {
 		return entities.NewError(entities.ErrCodeForbidden, "not authorized", err)
 	}
-	// TODO: Update with mod and role permission
 
-	if params.Updates.Name != "" {
-		server.Name = params.Updates.Name
+	if params.Updates.Name != nil {
+		if err = server.UpdateName(*params.Updates.Name); err != nil {
+			return err
+		}
 	}
-	if params.Updates.Description != "" {
-		server.Description = params.Updates.Description
+	if params.Updates.Description != nil {
+		if err = server.UpdateDescription(*params.Updates.Description); err != nil {
+			return err
+		}
 	}
-	if params.Updates.IconUrl != "" {
-		server.IconUrl = params.Updates.IconUrl
+	if params.Updates.IconUrl != nil {
+		if err = server.UpdateIconUrl(*params.Updates.IconUrl); err != nil {
+			return err
+		}
 	}
-	if params.Updates.BannerUrl != "" {
-		server.BannerUrl = params.Updates.BannerUrl
+	if params.Updates.BannerUrl != nil {
+		if err = server.UpdateBannerUrl(*params.Updates.BannerUrl); err != nil {
+			return err
+		}
 	}
-	if params.Updates.NeedApproval != server.NeedApproval {
-		server.NeedApproval = params.Updates.NeedApproval
-	}
-	if params.Updates.DefaultRole.Valid {
-		server.DefaultRole = (*entities.RoleId)(&params.Updates.DefaultRole.UUID)
+	if params.Updates.NeedApproval != nil {
+		if err = server.UpdateNeedApproval(*params.Updates.NeedApproval); err != nil {
+			return err
+		}
 	}
 	if params.Updates.AnnouncementChannel.Valid {
-		server.AnnouncementChannel = (*entities.ChannelId)(&params.Updates.AnnouncementChannel.UUID)
-	}
-
-	if err = server.Validate(); err != nil {
-		return err
+		if err = server.UpdateAnnouncementChannel((*entities.ChannelId)(&params.Updates.AnnouncementChannel.UUID)); err != nil {
+			return err
+		}
 	}
 
 	_, err = s.r.Save(ctx, server)

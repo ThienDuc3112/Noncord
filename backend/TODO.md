@@ -7,7 +7,7 @@
         - [x] Login
         - [x] Logout
         - [x] Refresh
-        - [ ] Authenticate
+        - [x] Authenticate
     - [ ] Implement controller for AuthController
         - [x] Document Auth routes
         - [x] Green path implemented

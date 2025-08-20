@@ -12,12 +12,11 @@ type UpdateServerCommand struct {
 }
 
 type UpdateServerOption struct {
-	Name         string
-	Description  string
-	IconUrl      string
-	BannerUrl    string
-	NeedApproval bool
+	Name         *string
+	Description  *string
+	IconUrl      *string
+	BannerUrl    *string
+	NeedApproval *bool
 
-	DefaultRole         uuid.NullUUID
 	AnnouncementChannel uuid.NullUUID
 }

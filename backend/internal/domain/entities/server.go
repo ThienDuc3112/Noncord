@@ -68,9 +68,10 @@ func (s *Server) Validate() error {
 	if len(s.Description) > 512 {
 		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
 	}
-	if s.DefaultRole == nil {
-		return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
-	}
+	// TODO: Allow this when role exist
+	// if s.DefaultRole == nil {
+	// 	return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
+	// }
 	if s.IconUrl != "" && !IsValidUrl(s.IconUrl) {
 		return NewError(ErrCodeValidationError, "icon invalid url", nil)
 	}
@@ -85,6 +86,81 @@ func (s *Server) Validate() error {
 	}
 
 	return nil
+}
+
+// Server's mutators
+// # Owner UserId
+func (s *Server) UpdateName(newName string) error {
+	if newName == "" {
+		return NewError(ErrCodeValidationError, "server name cannot be empty", nil)
+	}
+	if len(newName) > 256 {
+		return NewError(ErrCodeValidationError, "server name cannot exceed 256 characters", nil)
+	}
+	if s.Name != newName { // Only update if changed
+		s.Name = newName
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+func (s *Server) UpdateDescription(newDescription string) error {
+	if len(newDescription) > 512 {
+		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
+	}
+	if s.Description != newDescription {
+		s.Description = newDescription
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+func (s *Server) UpdateIconUrl(newIconUrl string) error {
+	if newIconUrl != "" && !IsValidUrl(newIconUrl) {
+		return NewError(ErrCodeValidationError, "icon invalid url", nil)
+	}
+	if len(newIconUrl) > 2048 {
+		return NewError(ErrCodeValidationError, "icon url too long", nil)
+	}
+	if s.IconUrl != newIconUrl {
+		s.IconUrl = newIconUrl
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+func (s *Server) UpdateBannerUrl(newBannerUrl string) error {
+	if newBannerUrl != "" && !IsValidUrl(newBannerUrl) {
+		return NewError(ErrCodeValidationError, "banner invalid url", nil)
+	}
+	if len(newBannerUrl) > 2048 {
+		return NewError(ErrCodeValidationError, "banner url too long", nil)
+	}
+	if s.BannerUrl != newBannerUrl {
+		s.BannerUrl = newBannerUrl
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+func (s *Server) UpdateNeedApproval(needApproval bool) error {
+	if s.NeedApproval != needApproval {
+		s.NeedApproval = needApproval
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+func (s *Server) UpdateAnnouncementChannel(channelId *ChannelId) error {
+	if s.AnnouncementChannel == nil || *s.AnnouncementChannel != *channelId {
+		s.AnnouncementChannel = channelId
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+func (s *Server) IsOwner(userId UserId) bool {
+	return userId == s.Owner
 }
 
 func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, needApproval bool) *Server {
