@@ -18,10 +18,15 @@
         - [x] Find servers by ids
         - [x] Delete servers
     - [ ] Implement service
-        - [x] Create new server
+        - [ ] Create new server
+            - [x] Create server
+            - [ ] Create default channel
+            - [ ] Create default role
         - [x] Get server by ID
         - [ ] Update server
             - [ ] Check permission
+                - [x] Server ownership
+                - [ ] Role
             - [x] Actual update
         - [ ] Delete server
         - [ ] Transfer ownership
@@ -30,29 +35,41 @@
         - [ ] Green path
         - [ ] Error parsing route
 - [ ] Channel service
-    - [ ] Create channel
-    - [ ] Update channel
-    - [ ] Delete channel
-    - [ ] Create category
+    - [ ] Implement repo
+    - [ ] Implement service
+        - [ ] Create channel
+        - [ ] Update channel
+        - [ ] Delete channel
+        - [ ] Create category
+    - [ ] Implement controller
 - [ ] Role service
-    - [ ] Create role
-    - [ ] Update role
-    - [ ] Delete role
-    - [ ] Update channel role permission
+    - [ ] Implement repo
+    - [ ] Implement service
+        - [ ] Create role
+        - [ ] Update role
+        - [ ] Delete role
+        - [ ] Update channel role permission
+    - [ ] Implement controller
 - [ ] Invite service
     - [ ] ?
 - [ ] Membership service
-    - [ ] Join server
-    - [ ] Leave server
-    - [ ] Kick member
-    - [ ] Ban member
-    - [ ] Assign role
-    - [ ] Update channel user permission
-    - [ ] Get server by user in
-    - [ ] Set nickname
+    - [ ] Implement repo
+    - [ ] Implement service
+        - [ ] Join server
+        - [ ] Leave server
+        - [ ] Kick member
+        - [ ] Ban member
+        - [ ] Assign role
+        - [ ] Update channel user permission
+        - [ ] Get server by user in
+        - [ ] Set nickname
+    - [ ] Implement controller
 - [ ] Message service
-    - [ ] Send message
-    - [ ] Edit message
-    - [ ] Delete message
+    - [ ] Implement repo
+    - [ ] Implement service
+        - [ ] Send message
+        - [ ] Edit message
+        - [ ] Delete message
+    - [ ] Implement controller
 - [ ] User service
 - [ ] User settings service
