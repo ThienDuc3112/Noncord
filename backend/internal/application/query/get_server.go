@@ -8,6 +8,7 @@ import (
 
 type GetServer struct {
 	ServerId uuid.UUID
+	UserId   uuid.UUID
 }
 
 type GetServerResult struct {

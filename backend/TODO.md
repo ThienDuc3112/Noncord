@@ -23,7 +23,9 @@
             - [x] Create server
             - [ ] Create default channel
             - [ ] Create default role
-        - [x] Get server by ID
+        - [ ] Get server by ID
+            - [ ] Check if user is in the server
+            - [x] Return the server
         - [x] Get servers by IDs
         - [ ] Update server
             - [ ] Check permission
@@ -39,24 +41,21 @@
             - [ ] Check for ownership
             - [ ] Actual transfer
     - [ ] Implement controller
+        - [x] Auth middleware
         - [ ] Create new server
-            - [ ] Document server routes
+            - [x] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
         - [ ] Get server by ID
-            - [ ] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
-        - [ ] Get servers by IDs
-            - [ ] Document server routes
+            - [x] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
         - [ ] Update Server
-            - [ ] Document server routes
+            - [x] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
         - [ ] Delete Server
-            - [ ] Document server routes
+            - [x] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
 - [ ] Channel service

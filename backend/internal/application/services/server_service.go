@@ -44,6 +44,9 @@ func (s *ServerService) Get(ctx context.Context, params query.GetServer) (query.
 		return query.GetServerResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
 	}
 
+	// TODO: Check if user is a member of the server or not
+	// params.UserId
+
 	return query.GetServerResult{
 		Result: mapper.ServerToResult(server),
 	}, nil
