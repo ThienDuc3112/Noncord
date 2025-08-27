@@ -29,10 +29,10 @@
                 - [x] Server ownership
                 - [ ] Role
             - [x] Actual update
-        - [ ] Delete server
-            - [ ] Check permission
-                - [ ] Server ownership
-            - [ ] Delete server
+        - [x] Delete server
+            - [x] Check permission
+                - [x] Server ownership
+            - [x] Delete server
         - [ ] Transfer ownership
     - [ ] Implement controller
         - [ ] Document server routes
