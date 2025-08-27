@@ -92,7 +92,14 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot update server")
 }
 
-func (s *ServerService) Delete(ctx context.Context, name string) (*entities.Server, error) {
+func (s *ServerService) Delete(ctx context.Context, param command.DeleteServerCommand) error {
+	server, err := s.r.Find(ctx, entities.ServerId(param.ServerId))
+	if err != nil {
+		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+	}
+	if server.Owner != entities.UserId(param.UserId) {
+		return entities.NewError(entities.ErrCodeForbidden, "user is not the owner of the server", nil)
+	}
 
-	return nil, fmt.Errorf("unimplemented")
+	return fmt.Errorf("unimplemented")
 }
