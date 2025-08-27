@@ -17,6 +17,9 @@ import (
 	"github.com/swaggo/http-swagger/v2"
 )
 
+//	@title			Noncord API
+//	@version		1.0
+//	@description	This is the api for Noncord
 func main() {
 	conn, err := pgxpool.New(context.Background(), os.Getenv("DB_URI"))
 
@@ -26,8 +29,10 @@ func main() {
 
 	userRepo := postgres.NewPGUserRepo(conn)
 	sessionRepo := postgres.NewPGSessionRepo(conn)
+	serverRepo := postgres.NewPGServerRepo(conn)
 
 	authService := services.NewAuthService(userRepo, sessionRepo, conn, os.Getenv("SECRET"))
+	serverService := services.NewServerService(serverRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -43,11 +48,13 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+
 	r.Route("/api/v1", func(r chi.Router) {
 		docsHandler := httpSwagger.Handler(httpSwagger.URL(fmt.Sprintf("http://localhost:%v/api/v1/docs/doc.json", port)))
 		r.Get("/docs/*", docsHandler)
 
 		rest.NewAuthController(authService).RegisterRoute(r)
+		rest.NewServerController(serverService, authService).RegisterRoute(r)
 	})
 
 	log.Printf("listening on port %v", port)
