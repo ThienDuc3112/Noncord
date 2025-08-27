@@ -1,7 +1,388 @@
+definitions:
+  request.Login:
+    properties:
+      password:
+        example: Password1@
+        type: string
+      username:
+        example: tungsten_kitty
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  request.NewServer:
+    type: object
+  request.Refresh:
+    properties:
+      refreshToken:
+        example: 9Vz6ayzM0scQSIXHtYVbKcDeF1aa0aLs
+        type: string
+    required:
+    - refreshToken
+    type: object
+  request.Register:
+    properties:
+      email:
+        example: tungstenkitty@gmail.com
+        type: string
+      password:
+        example: Password1@
+        maxLength: 72
+        minLength: 8
+        type: string
+      username:
+        example: tungsten_kitty
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  request.UpdateServer:
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  response.GetServerResponse:
+    type: object
+  response.NewServerResponse:
+    type: object
+  response.TokensResponse:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  response.UpdateServerResponse:
+    type: object
 info:
   contact: {}
   description: This is the api for Noncord
   title: Noncord API
   version: "1.0"
-paths: {}
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Logging in an account without sso
+      parameters:
+      - description: New account data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access and refresh tokens
+          schema:
+            $ref: '#/definitions/response.TokensResponse'
+        "400":
+          description: Missing field
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Wrong credential
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: SSO enabled account
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Login
+      tags:
+      - Auth
+  /api/v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate the current session
+      parameters:
+      - description: New account data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.Refresh'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid payload
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Logout
+      tags:
+      - Auth
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Rotate current refresh token
+      parameters:
+      - description: New account data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.Refresh'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access and refresh tokens
+          schema:
+            $ref: '#/definitions/response.TokensResponse'
+        "400":
+          description: Missing field
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Refresh
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register an account
+      parameters:
+      - description: New account data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.Register'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Account created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register an account
+      tags:
+      - Auth
+  /api/v1/server:
+    post:
+      consumes:
+      - application/json
+      description: Create a server
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Data for creating server
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.NewServer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Server id
+          schema:
+            $ref: '#/definitions/response.NewServerResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Invalid name
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a server
+      tags:
+      - Server
+  /api/v1/server/{server_id}:
+    delete:
+      description: Delete server by id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Server Id
+        in: path
+        name: server_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Server not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Not valid server id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete server
+      tags:
+      - Server
+    patch:
+      consumes:
+      - application/json
+      description: Update server
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Update server
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateServer'
+      - description: Server Id
+        in: path
+        name: server_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated server
+          schema:
+            $ref: '#/definitions/response.UpdateServerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Server not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Invalid server id or invalid payload
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update server
+      tags:
+      - Server
+  /api/v1/server/{servier_id}:
+    get:
+      description: Get a server by id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: server id to fetch
+        in: path
+        name: server_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServerResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Server not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "422":
+          description: Not valid server id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get a server
+      tags:
+      - Server
 swagger: "2.0"

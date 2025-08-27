@@ -35,6 +35,7 @@ func (sc *ServerController) RegisterRoute(r chi.Router) {
 }
 
 // register 		godoc
+//
 //	@Summary		Create a server
 //	@Description	Create a server
 //	@Tags			Server
@@ -49,12 +50,12 @@ func (sc *ServerController) RegisterRoute(r chi.Router) {
 //	@Failure		422				{object}	response.ErrorResponse		"Invalid name"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/server [post]
-
 func (ac *ServerController) CreateServerController(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
 }
 
 // register 		godoc
+//
 //	@Summary		Get a server
 //	@Description	Get a server by id
 //	@Tags			Server
@@ -68,12 +69,12 @@ func (ac *ServerController) CreateServerController(w http.ResponseWriter, r *htt
 //	@Failure		422				{object}	response.ErrorResponse	"Not valid server id"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/server/{servier_id} [get]
-
 func (ac *ServerController) GetServerController(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
 }
 
 // register     godoc
+//
 //	@Summary		Update server
 //	@Description	Update server
 //	@Tags			Server
@@ -90,12 +91,12 @@ func (ac *ServerController) GetServerController(w http.ResponseWriter, r *http.R
 //	@Failure		422				{object}	response.ErrorResponse	"Invalid server id or invalid payload"
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [patch]
-
 func (ac *ServerController) UpdateServerController(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
 }
 
 // register     godoc
+//
 //	@Summary		Delete server
 //	@Description	Delete server by id
 //	@Tags			Server
@@ -109,7 +110,6 @@ func (ac *ServerController) UpdateServerController(w http.ResponseWriter, r *htt
 //	@Failure		422				{object}	response.ErrorResponse	"Not valid server id"
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [delete]
-
 func (ac *ServerController) DeleteServerController(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
 }

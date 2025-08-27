@@ -31,6 +31,7 @@ func (ac *AuthController) RegisterRoute(r chi.Router) {
 }
 
 // register 		godoc
+//
 //	@Summary		Register an account
 //	@Description	Register an account
 //	@Tags			Auth
@@ -41,7 +42,6 @@ func (ac *AuthController) RegisterRoute(r chi.Router) {
 //	@Failure		400		{object}	response.ErrorResponse
 //	@Failure		500		{object}	response.ErrorResponse
 //	@Router			/api/v1/auth/register [post]
-
 func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Request) {
 	body := request.Register{}
 	if err := render.Bind(r, &body); err != nil {
@@ -73,6 +73,7 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 }
 
 // register     godoc
+//
 //	@Summary		Login
 //	@Description	Logging in an account without sso
 //	@Tags			Auth
@@ -85,7 +86,6 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 //	@Failure		403		{object}	response.ErrorResponse	"SSO enabled account"
 //	@Failure		500		{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/auth/login [post]
-
 func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request) {
 	body := request.Login{}
 	if err := render.Bind(r, &body); err != nil {
@@ -130,6 +130,7 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 }
 
 // register     godoc
+//
 //	@Summary		Logout
 //	@Description	Invalidate the current session
 //	@Tags			Auth
@@ -141,7 +142,6 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 //	@Failure		401		{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		500		{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/auth/logout [post]
-
 func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Request) {
 	body := request.Refresh{}
 	if err := render.Bind(r, &body); err != nil {
@@ -174,6 +174,7 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 }
 
 // register     godoc
+//
 //	@Summary		Refresh
 //	@Description	Rotate current refresh token
 //	@Tags			Auth
@@ -185,7 +186,6 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 //	@Failure		401		{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		500		{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/auth/refresh [post]
-
 func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Request) {
 	payload := request.Refresh{}
 	if err := render.Bind(r, &payload); err != nil {

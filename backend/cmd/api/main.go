@@ -17,9 +17,9 @@ import (
 	"github.com/swaggo/http-swagger/v2"
 )
 
-//	@title			Noncord API
-//	@version		1.0
-//	@description	This is the api for Noncord
+// @title			Noncord API
+// @version		1.0
+// @description	This is the api for Noncord
 func main() {
 	conn, err := pgxpool.New(context.Background(), os.Getenv("DB_URI"))
 
