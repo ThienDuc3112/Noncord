@@ -2,13 +2,16 @@ package services
 
 import (
 	"backend/internal/application/command"
+	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/mapper"
 	"backend/internal/application/query"
 	"backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"context"
-	"fmt"
+
+	"github.com/google/uuid"
+	"github.com/gookit/goutil/arrutil"
 )
 
 type ServerService struct {
@@ -28,6 +31,8 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server failed")
 	}
 
+	// TODO: Create default channel and role
+
 	return command.CreateServerCommandResult{
 		Result: mapper.ServerToResult(server),
 	}, nil
@@ -39,10 +44,24 @@ func (s *ServerService) Get(ctx context.Context, params query.GetServer) (query.
 		return query.GetServerResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
 	}
 
-	// TODO: Create default channel and role
-
 	return query.GetServerResult{
 		Result: mapper.ServerToResult(server),
+	}, nil
+}
+
+func (s *ServerService) GetServers(ctx context.Context, params query.GetServers) (query.GetServersResult, error) {
+	var mapFn arrutil.MapFn[uuid.UUID, entities.ServerId] = func(input uuid.UUID) (target entities.ServerId, find bool) {
+		return entities.ServerId(input), true
+	}
+	servers, err := s.r.FindByIds(ctx, arrutil.Map(params.ServerIds, mapFn))
+	if err != nil {
+		return query.GetServersResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+	}
+
+	return query.GetServersResult{
+		Result: arrutil.Map(servers, func(server *entities.Server) (target *common.Server, find bool) {
+			return mapper.ServerToResult(server), true
+		}),
 	}, nil
 }
 

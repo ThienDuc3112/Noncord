@@ -24,6 +24,7 @@
             - [ ] Create default channel
             - [ ] Create default role
         - [x] Get server by ID
+        - [x] Get servers by IDs
         - [ ] Update server
             - [ ] Check permission
                 - [x] Server ownership
@@ -34,10 +35,30 @@
                 - [x] Server ownership
             - [x] Delete server
         - [ ] Transfer ownership
+            - [ ] Check for membership
+            - [ ] Check for ownership
+            - [ ] Actual transfer
     - [ ] Implement controller
-        - [ ] Document server routes
-        - [ ] Green path
-        - [ ] Error parsing route
+        - [ ] Create new server
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [ ] Get server by ID
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [ ] Get servers by IDs
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [ ] Update Server
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [ ] Delete Server
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
 - [ ] Channel service
     - [ ] Implement repo
     - [ ] Implement service
