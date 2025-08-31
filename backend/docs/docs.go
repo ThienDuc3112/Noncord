@@ -273,8 +273,62 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "422": {
-                        "description": "Invalid name",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{server_id}": {
+            "get": {
+                "description": "Get a server by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Get a server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "server id to fetch",
+                        "name": "server_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServerResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unknown session",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Server not found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -286,9 +340,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/v1/server/{server_id}": {
+            },
             "delete": {
                 "description": "Delete server by id",
                 "produces": [
@@ -332,12 +384,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Server not found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "422": {
-                        "description": "Not valid server id",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -418,80 +464,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
-                    "422": {
-                        "description": "Invalid server id or invalid payload",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/server/{servier_id}": {
-            "get": {
-                "description": "Get a server by id",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Server"
-                ],
-                "summary": "Get a server",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "server id to fetch",
-                        "name": "server_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetServerResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unknown session",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Server not found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "422": {
-                        "description": "Not valid server id",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -519,7 +493,17 @@ const docTemplate = `{
             }
         },
         "request.NewServer": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "example": "My very good server"
+                }
+            }
         },
         "request.Refresh": {
             "type": "object",
@@ -569,10 +553,38 @@ const docTemplate = `{
             }
         },
         "response.GetServerResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "bannerUrl": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
         },
         "response.NewServerResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
         },
         "response.TokensResponse": {
             "type": "object",

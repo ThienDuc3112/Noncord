@@ -12,6 +12,13 @@ definitions:
     - username
     type: object
   request.NewServer:
+    properties:
+      name:
+        example: My very good server
+        maxLength: 256
+        type: string
+    required:
+    - name
     type: object
   request.Refresh:
     properties:
@@ -47,8 +54,26 @@ definitions:
         type: string
     type: object
   response.GetServerResponse:
+    properties:
+      bannerUrl:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      iconUrl:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
     type: object
   response.NewServerResponse:
+    properties:
+      id:
+        type: string
     type: object
   response.TokensResponse:
     properties:
@@ -233,10 +258,6 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-        "422":
-          description: Invalid name
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -275,15 +296,50 @@ paths:
           description: Server not found
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-        "422":
-          description: Not valid server id
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Delete server
+      tags:
+      - Server
+    get:
+      description: Get a server by id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: server id to fetch
+        in: path
+        name: server_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServerResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Server not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get a server
       tags:
       - Server
     patch:
@@ -330,59 +386,11 @@ paths:
           description: Server not found
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-        "422":
-          description: Invalid server id or invalid payload
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Update server
-      tags:
-      - Server
-  /api/v1/server/{servier_id}:
-    get:
-      description: Get a server by id
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: server id to fetch
-        in: path
-        name: server_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetServerResponse'
-        "401":
-          description: Unknown session
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Server not found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "422":
-          description: Not valid server id
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Get a server
       tags:
       - Server
 swagger: "2.0"

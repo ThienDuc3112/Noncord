@@ -2,16 +2,19 @@ package rest
 
 import (
 	"backend/internal/application/command"
+	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/query"
 	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/gookit/goutil/arrutil"
 )
 
 type ServerController struct {
@@ -28,6 +31,7 @@ func (c *ServerController) RegisterRoute(r chi.Router) {
 		r.Use(authMiddleware(c.authService))
 
 		r.Post("/", c.CreateServerController)
+		r.Get("/", c.GetServersController)
 		r.Get("/{server_id}", c.GetServerController)
 		r.Patch("/{server_id}", c.UpdateServerController)
 		r.Put("/{server_id}", c.UpdateServerController)
@@ -77,6 +81,61 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 	render.Status(r, 200)
 	render.JSON(w, r, response.NewServerResponse{
 		Id: server.Result.Id,
+	})
+}
+
+func placeholderGetServerIds() ([]uuid.UUID, error) {
+	return nil, fmt.Errorf("unimplemented")
+}
+
+// register 		godoc
+//
+//	@Summary		Get servers by user
+//	@Description	Get all servers the user is in
+//	@Tags			Server
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"Bearer token"
+//	@Success		200				{object}	response.GetServersResponse
+//	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
+//	@Failure		500				{object}	response.ErrorResponse
+//	@Router			/api/v1/server/{server_id} [get]
+func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[GetServersController] Getting servers by user")
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	// TODO: replace with actual getting servers code
+	serverIds, err := placeholderGetServerIds()
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Unimplemented", http.StatusNotImplemented, err))
+		// render.Render(w, r, response.NewErrorResponse("Cannot get user's servers", 500, err))
+		return
+	}
+
+	servers, err := c.serverService.GetServers(r.Context(), query.GetServers{
+		ServerIds: serverIds,
+	})
+
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot get server", 500, err))
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.GetServersResponse{
+		Result: arrutil.Map(servers.Result, func(s *common.Server) (target response.ServerPreview, find bool) {
+			return response.ServerPreview{
+				Id:        s.Id,
+				Name:      s.Name,
+				IconUrl:   s.IconUrl,
+				BannerUrl: s.BannerUrl,
+			}, true
+		}),
 	})
 }
 

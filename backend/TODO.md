@@ -46,6 +46,11 @@
             - [x] Document server routes
             - [x] Green path
             - [ ] Error parsing route
+        - [ ] Get servers user in
+            - [x] Document server routes
+            - [ ] Get user's servers
+            - [x] Get servers
+            - [ ] Error parsing route
         - [ ] Get server by ID
             - [x] Document server routes
             - [x] Get server
