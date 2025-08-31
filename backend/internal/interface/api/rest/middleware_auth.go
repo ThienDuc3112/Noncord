@@ -7,6 +7,7 @@ import (
 	"backend/internal/interface/api/rest/dto/response"
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 
@@ -16,6 +17,8 @@ import (
 func authMiddleware(authService interfaces.AuthService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Println("[authMiddleware] Verifying user")
+
 			auth := r.Header.Get("Authorization")
 			if auth == "" {
 				render.Render(w, r, response.NewErrorResponse("Empty authorization header", 401, nil))
@@ -40,7 +43,7 @@ func authMiddleware(authService interfaces.AuthService) func(http.Handler) http.
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "user", res)
+			ctx := context.WithValue(r.Context(), "user", res.User)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

@@ -44,11 +44,13 @@
         - [x] Auth middleware
         - [ ] Create new server
             - [x] Document server routes
-            - [ ] Green path
+            - [x] Green path
             - [ ] Error parsing route
         - [ ] Get server by ID
             - [x] Document server routes
-            - [ ] Green path
+            - [x] Get server
+            - [ ] Get channels
+            - [ ] Get members
             - [ ] Error parsing route
         - [ ] Update Server
             - [x] Document server routes

@@ -1,16 +1,17 @@
 package rest
 
 import (
-	// "backend/internal/application/command"
+	"backend/internal/application/command"
 	"backend/internal/application/interfaces"
-	// "backend/internal/domain/entities"
-	// "backend/internal/interface/api/rest/dto/request"
+	"backend/internal/application/query"
+	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
-	// "errors"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type ServerController struct {
@@ -22,15 +23,15 @@ func NewServerController(serverService interfaces.ServerService, authService int
 	return &ServerController{serverService: serverService, authService: authService}
 }
 
-func (sc *ServerController) RegisterRoute(r chi.Router) {
+func (c *ServerController) RegisterRoute(r chi.Router) {
 	r.Route("/server", func(r chi.Router) {
-		r.Use(authMiddleware(sc.authService))
+		r.Use(authMiddleware(c.authService))
 
-		r.Post("/", sc.CreateServerController)
-		r.Get("/{server_id}", sc.GetServerController)
-		r.Patch("/{server_id}", sc.UpdateServerController)
-		r.Put("/{server_id}", sc.UpdateServerController)
-		r.Delete("/{server_id}", sc.DeleteServerController)
+		r.Post("/", c.CreateServerController)
+		r.Get("/{server_id}", c.GetServerController)
+		r.Patch("/{server_id}", c.UpdateServerController)
+		r.Put("/{server_id}", c.UpdateServerController)
+		r.Delete("/{server_id}", c.DeleteServerController)
 	})
 }
 
@@ -47,11 +48,36 @@ func (sc *ServerController) RegisterRoute(r chi.Router) {
 //	@Failure		400				{object}	response.ErrorResponse		"Bad request"
 //	@Failure		401				{object}	response.ErrorResponse		"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse		"Forbidden"
-//	@Failure		422				{object}	response.ErrorResponse		"Invalid name"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/server [post]
-func (ac *ServerController) CreateServerController(w http.ResponseWriter, r *http.Request) {
-	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
+func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[CreateServerController] Creating server")
+
+	body := request.NewServer{}
+	if err := render.Bind(r, &body); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	server, err := c.serverService.Create(r.Context(), command.CreateServerCommand{
+		UserId: user.Id,
+		Name:   body.Name,
+	})
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot create server", 500, err))
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.NewServerResponse{
+		Id: server.Result.Id,
+	})
 }
 
 // register 		godoc
@@ -66,11 +92,45 @@ func (ac *ServerController) CreateServerController(w http.ResponseWriter, r *htt
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
 //	@Failure		404				{object}	response.ErrorResponse	"Server not found"
-//	@Failure		422				{object}	response.ErrorResponse	"Not valid server id"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/server/{servier_id} [get]
-func (ac *ServerController) GetServerController(w http.ResponseWriter, r *http.Request) {
-	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
+//	@Router			/api/v1/server/{server_id} [get]
+func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[GetServerController] Getting server")
+
+	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	server, err := c.serverService.Get(r.Context(), query.GetServer{
+		ServerId: serverId,
+		UserId:   user.Id,
+	})
+
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot get server", 500, err))
+		return
+	}
+
+	// TODO: Fetch channels and Members
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.GetServerResponse{
+		Id:          server.Result.Id,
+		Name:        server.Result.Name,
+		Description: server.Result.Description,
+		CreatedAt:   server.Result.CreatedAt,
+		UpdatedAt:   server.Result.UpdatedAt,
+		IconUrl:     server.Result.IconUrl,
+		BannerUrl:   server.Result.BannerUrl,
+	})
 }
 
 // register     godoc
@@ -88,10 +148,9 @@ func (ac *ServerController) GetServerController(w http.ResponseWriter, r *http.R
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
 //	@Failure		404				{object}	response.ErrorResponse	"Server not found"
-//	@Failure		422				{object}	response.ErrorResponse	"Invalid server id or invalid payload"
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [patch]
-func (ac *ServerController) UpdateServerController(w http.ResponseWriter, r *http.Request) {
+func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
 }
 
@@ -107,9 +166,8 @@ func (ac *ServerController) UpdateServerController(w http.ResponseWriter, r *htt
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
 //	@Failure		404				{object}	response.ErrorResponse	"Server not found"
-//	@Failure		422				{object}	response.ErrorResponse	"Not valid server id"
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [delete]
-func (ac *ServerController) DeleteServerController(w http.ResponseWriter, r *http.Request) {
+func (c *ServerController) DeleteServerController(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
 }

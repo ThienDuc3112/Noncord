@@ -2,6 +2,7 @@ package response
 
 import (
 	"backend/internal/domain/entities"
+	"errors"
 	"log"
 	"net/http"
 
@@ -15,12 +16,17 @@ type ErrorResponse struct {
 }
 
 func (e *ErrorResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	log.Printf("Error response: %v\nError: %v\n", e.Error, e.err)
+	log.Printf("[ErrorResponse] Error response: %v\nError: %v\n", e.Error, e.err)
 	render.Status(r, int(e.statusCode))
 	return nil
 }
 
 func NewErrorResponse(str string, statusCode int32, err error) *ErrorResponse {
+	derr := &entities.ChatError{}
+	if errors.As(err, &derr) {
+		return NewErrorResponseFromChatError(derr)
+	}
+
 	return &ErrorResponse{
 		Error:      str,
 		statusCode: statusCode,

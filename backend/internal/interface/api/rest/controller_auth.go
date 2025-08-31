@@ -7,6 +7,7 @@ import (
 	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -43,6 +44,8 @@ func (ac *AuthController) RegisterRoute(r chi.Router) {
 //	@Failure		500		{object}	response.ErrorResponse
 //	@Router			/api/v1/auth/register [post]
 func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[RegisterController] Register request")
+
 	body := request.Register{}
 	if err := render.Bind(r, &body); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
@@ -87,6 +90,8 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 //	@Failure		500		{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/auth/login [post]
 func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[LoginController] Login request")
+
 	body := request.Login{}
 	if err := render.Bind(r, &body); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
@@ -143,6 +148,8 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 //	@Failure		500		{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/auth/logout [post]
 func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[LogoutController] Logout request")
+
 	body := request.Refresh{}
 	if err := render.Bind(r, &body); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
@@ -187,6 +194,8 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 //	@Failure		500		{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/auth/refresh [post]
 func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[RefreshController] Refresh request")
+
 	payload := request.Refresh{}
 	if err := render.Bind(r, &payload); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
