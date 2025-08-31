@@ -44,7 +44,8 @@
         - [x] Auth middleware
         - [ ] Create new server
             - [x] Document server routes
-            - [x] Green path
+            - [x] Create server
+            - [ ] Add user to the server
             - [ ] Error parsing route
         - [ ] Get servers user in
             - [x] Document server routes
@@ -59,30 +60,12 @@
             - [ ] Error parsing route
         - [ ] Update Server
             - [x] Document server routes
-            - [ ] Green path
+            - [x] Green path
             - [ ] Error parsing route
         - [ ] Delete Server
             - [x] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
-- [ ] Channel service
-    - [ ] Implement repo
-    - [ ] Implement service
-        - [ ] Create channel
-        - [ ] Update channel
-        - [ ] Delete channel
-        - [ ] Create category
-    - [ ] Implement controller
-- [ ] Role service
-    - [ ] Implement repo
-    - [ ] Implement service
-        - [ ] Create role
-        - [ ] Update role
-        - [ ] Delete role
-        - [ ] Update channel role permission
-    - [ ] Implement controller
-- [ ] Invite service
-    - [ ] ?
 - [ ] Membership service
     - [ ] Implement repo
     - [ ] Implement service
@@ -95,6 +78,24 @@
         - [ ] Get server by user in
         - [ ] Set nickname
     - [ ] Implement controller
+- [ ] Role service
+    - [ ] Implement repo
+    - [ ] Implement service
+        - [ ] Create role
+        - [ ] Update role
+        - [ ] Delete role
+        - [ ] Update channel role permission
+    - [ ] Implement controller
+- [ ] Channel service
+    - [ ] Implement repo
+    - [ ] Implement service
+        - [ ] Create channel
+        - [ ] Update channel
+        - [ ] Delete channel
+        - [ ] Create category
+    - [ ] Implement controller
+- [ ] Invite service
+    - [ ] ?
 - [ ] Message service
     - [ ] Implement repo
     - [ ] Implement service

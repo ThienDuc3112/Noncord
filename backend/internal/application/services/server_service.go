@@ -68,50 +68,55 @@ func (s *ServerService) GetServers(ctx context.Context, params query.GetServers)
 	}, nil
 }
 
-func (s *ServerService) Update(ctx context.Context, params command.UpdateServerCommand) error {
+func (s *ServerService) Update(ctx context.Context, params command.UpdateServerCommand) (command.UpdateServerCommandResult, error) {
 	server, err := s.r.Find(ctx, entities.ServerId(params.ServerId))
 	if err != nil {
-		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+		return command.UpdateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
 	}
 
 	// TODO: Update with mod and role permission
 	if !server.IsOwner(entities.UserId(params.UserId)) {
-		return entities.NewError(entities.ErrCodeForbidden, "not authorized", err)
+		return command.UpdateServerCommandResult{}, entities.NewError(entities.ErrCodeForbidden, "not authorized", err)
 	}
 
 	if params.Updates.Name != nil {
 		if err = server.UpdateName(*params.Updates.Name); err != nil {
-			return err
+			return command.UpdateServerCommandResult{}, err
 		}
 	}
 	if params.Updates.Description != nil {
 		if err = server.UpdateDescription(*params.Updates.Description); err != nil {
-			return err
+			return command.UpdateServerCommandResult{}, err
 		}
 	}
 	if params.Updates.IconUrl != nil {
 		if err = server.UpdateIconUrl(*params.Updates.IconUrl); err != nil {
-			return err
+			return command.UpdateServerCommandResult{}, err
 		}
 	}
 	if params.Updates.BannerUrl != nil {
 		if err = server.UpdateBannerUrl(*params.Updates.BannerUrl); err != nil {
-			return err
+			return command.UpdateServerCommandResult{}, err
 		}
 	}
 	if params.Updates.NeedApproval != nil {
 		if err = server.UpdateNeedApproval(*params.Updates.NeedApproval); err != nil {
-			return err
+			return command.UpdateServerCommandResult{}, err
 		}
 	}
 	if params.Updates.AnnouncementChannel.Valid {
 		if err = server.UpdateAnnouncementChannel((*entities.ChannelId)(&params.Updates.AnnouncementChannel.UUID)); err != nil {
-			return err
+			return command.UpdateServerCommandResult{}, err
 		}
 	}
 
-	_, err = s.r.Save(ctx, server)
-	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot update server")
+	server, err = s.r.Save(ctx, server)
+	if err != nil {
+		return command.UpdateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot update server")
+	}
+	return command.UpdateServerCommandResult{
+		Result: mapper.ServerToResult(server),
+	}, nil
 }
 
 func (s *ServerService) Delete(ctx context.Context, param command.DeleteServerCommand) error {

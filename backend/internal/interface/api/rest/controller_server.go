@@ -210,7 +210,47 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [patch]
 func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http.Request) {
-	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
+	log.Println("[UpdateServerController] Update server")
+
+	body := request.UpdateServer{}
+	if err := render.Bind(r, &body); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	server, err := c.serverService.Update(r.Context(), command.UpdateServerCommand{
+		UserId:   user.Id,
+		ServerId: body.Id,
+		Updates: command.UpdateServerOption{
+			Name:                body.Name,
+			Description:         body.Description,
+			IconUrl:             body.IconUrl,
+			BannerUrl:           body.BannerUrl,
+			NeedApproval:        body.NeedApproval,
+			AnnouncementChannel: body.AnnouncementChannel,
+		},
+	})
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("cannot update server", 500, err))
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.UpdateServerResponse{
+		Id:          server.Result.Id,
+		Name:        server.Result.Name,
+		Description: server.Result.Description,
+		CreatedAt:   server.Result.CreatedAt,
+		UpdatedAt:   server.Result.UpdatedAt,
+		IconUrl:     server.Result.IconUrl,
+		BannerUrl:   server.Result.BannerUrl,
+	})
 }
 
 // register     godoc
