@@ -70,9 +70,27 @@ definitions:
       updatedAt:
         type: string
     type: object
+  response.GetServersResponse:
+    properties:
+      result:
+        items:
+          $ref: '#/definitions/response.ServerPreview'
+        type: array
+    type: object
   response.NewServerResponse:
     properties:
       id:
+        type: string
+    type: object
+  response.ServerPreview:
+    properties:
+      bannerUrl:
+        type: string
+      iconUrl:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
   response.TokensResponse:
