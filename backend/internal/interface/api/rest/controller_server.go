@@ -99,7 +99,7 @@ func placeholderGetServerIds() ([]uuid.UUID, error) {
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/server/{server_id} [get]
+//	@Router			/api/v1/server [get]
 func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetServersController] Getting servers by user")
 

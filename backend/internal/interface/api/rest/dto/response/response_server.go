@@ -11,24 +11,24 @@ type NewServerResponse struct {
 }
 
 type ServerPreview struct {
-	Id        uuid.UUID
-	Name      string
-	IconUrl   string
-	BannerUrl string
+	Id        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	IconUrl   string    `json:"iconUrl"`
+	BannerUrl string    `json:"bannerUrl"`
 }
 
 type GetServersResponse struct {
-	Result []ServerPreview
+	Result []ServerPreview `json:"result"`
 }
 
 type GetServerResponse struct {
-	Id          uuid.UUID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Name        string
-	Description string
-	IconUrl     string
-	BannerUrl   string
+	Id          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	IconUrl     string    `json:"iconUrl"`
+	BannerUrl   string    `json:"bannerUrl"`
 
 	// Channels
 	// Members
