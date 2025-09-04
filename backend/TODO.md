@@ -68,6 +68,14 @@
             - [x] Error parsing route
 - [ ] Membership service
     - [ ] Implement repo
+        - [x] Find membership
+        - [x] Find memberships by user id
+        - [x] Find membership by server id
+        - [ ] Find member's role assignments
+        - [x] Save membership
+        - [ ] Save role for membership
+        - [x] Delete membership
+        - [ ] Delete role for membership
     - [ ] Implement service
         - [ ] Join server
         - [ ] Leave server
