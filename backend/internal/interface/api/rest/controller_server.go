@@ -5,6 +5,7 @@ import (
 	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/query"
+	"backend/internal/domain/entities"
 	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
 	"fmt"
@@ -212,6 +213,12 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[UpdateServerController] Update server")
 
+	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		return
+	}
+
 	body := request.UpdateServer{}
 	if err := render.Bind(r, &body); err != nil {
 		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
@@ -226,7 +233,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 
 	server, err := c.serverService.Update(r.Context(), command.UpdateServerCommand{
 		UserId:   user.Id,
-		ServerId: body.Id,
+		ServerId: serverId,
 		Updates: command.UpdateServerOption{
 			Name:                body.Name,
 			Description:         body.Description,
@@ -268,5 +275,29 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [delete]
 func (c *ServerController) DeleteServerController(w http.ResponseWriter, r *http.Request) {
-	render.Render(w, r, response.NewErrorResponse("Not implemented", http.StatusNotImplemented, nil))
+	log.Println("[DeleteServerController] Delete server")
+
+	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	err = c.serverService.Delete(r.Context(), command.DeleteServerCommand{
+		UserId:   user.Id,
+		ServerId: serverId,
+	})
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponseFromChatError(err.(*entities.ChatError)))
+		return
+	}
+
+	render.Status(r, 201)
+	render.JSON(w, r, nil)
 }

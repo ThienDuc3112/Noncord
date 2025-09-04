@@ -51,21 +51,21 @@
             - [x] Document server routes
             - [ ] Get user's servers
             - [x] Get servers
-            - [ ] Error parsing route
+            - [x] Error parsing route
         - [ ] Get server by ID
             - [x] Document server routes
             - [x] Get server
             - [ ] Get channels
             - [ ] Get members
-            - [ ] Error parsing route
+            - [x] Error parsing route
         - [ ] Update Server
             - [x] Document server routes
             - [x] Green path
             - [ ] Error parsing route
-        - [ ] Delete Server
+        - [x] Delete Server
             - [x] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
+            - [x] Green path
+            - [x] Error parsing route
 - [ ] Membership service
     - [ ] Implement repo
     - [ ] Implement service

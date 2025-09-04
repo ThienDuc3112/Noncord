@@ -15,7 +15,6 @@ func (r *NewServer) Bind(_ *http.Request) error {
 }
 
 type UpdateServer struct {
-	Id                  uuid.UUID     `json:"id" validate:"required"`
 	Name                *string       `json:"name"`
 	Description         *string       `json:"description"`
 	IconUrl             *string       `json:"iconUrl"`
