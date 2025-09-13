@@ -72,4 +72,15 @@ func (r *PGServerRepo) Delete(ctx context.Context, id e.ServerId) error {
 	return r.repo.DeleteServer(ctx, uuid.UUID(id))
 }
 
+func (r *PGServerRepo) FindByInvitationId(ctx context.Context, id e.InvitationId) (*e.Server, error) {
+	server, err := r.repo.FindServerFromInviteId(ctx, uuid.UUID(id))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, e.NewError(e.ErrCodeNoObject, "no server by this id", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	return fromDbServer(server), nil
+}
+
 var _ repositories.ServerRepo = &PGServerRepo{}

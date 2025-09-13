@@ -21,12 +21,90 @@ func (q *Queries) DeleteServer(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const findInvitationById = `-- name: FindInvitationById :one
+SELECT id, server_id, created_at, expired_at, bypass_approval, join_limit, join_count FROM invitations WHERE id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit > 0 AND join_limit > join_count)
+`
+
+func (q *Queries) FindInvitationById(ctx context.Context, id uuid.UUID) (Invitation, error) {
+	row := q.db.QueryRow(ctx, findInvitationById, id)
+	var i Invitation
+	err := row.Scan(
+		&i.ID,
+		&i.ServerID,
+		&i.CreatedAt,
+		&i.ExpiredAt,
+		&i.BypassApproval,
+		&i.JoinLimit,
+		&i.JoinCount,
+	)
+	return i, err
+}
+
+const findInvitationsByServerId = `-- name: FindInvitationsByServerId :many
+SELECT id, server_id, created_at, expired_at, bypass_approval, join_limit, join_count FROM invitations WHERE server_id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit <= 0 OR join_limit > join_count)
+`
+
+func (q *Queries) FindInvitationsByServerId(ctx context.Context, serverID uuid.UUID) ([]Invitation, error) {
+	rows, err := q.db.Query(ctx, findInvitationsByServerId, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invitation
+	for rows.Next() {
+		var i Invitation
+		if err := rows.Scan(
+			&i.ID,
+			&i.ServerID,
+			&i.CreatedAt,
+			&i.ExpiredAt,
+			&i.BypassApproval,
+			&i.JoinLimit,
+			&i.JoinCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findServerById = `-- name: FindServerById :one
 SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = $1 AND deleted_at IS NOT NULL
 `
 
 func (q *Queries) FindServerById(ctx context.Context, id uuid.UUID) (Server, error) {
 	row := q.db.QueryRow(ctx, findServerById, id)
+	var i Server
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Name,
+		&i.Description,
+		&i.IconUrl,
+		&i.BannerUrl,
+		&i.NeedApproval,
+		&i.DefaultRole,
+		&i.AnnouncementChannel,
+		&i.Owner,
+	)
+	return i, err
+}
+
+const findServerFromInviteId = `-- name: FindServerFromInviteId :one
+SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.default_role, s.announcement_channel, s.owner 
+FROM servers s 
+JOIN invitations i ON s.id = i.server_id
+WHERE i.id = $1 AND (i.expired_at IS NULL OR i.expired_at > NOW()) AND (i.join_limit <= 0 OR i.join_limit > i.join_count)
+`
+
+func (q *Queries) FindServerFromInviteId(ctx context.Context, id uuid.UUID) (Server, error) {
+	row := q.db.QueryRow(ctx, findServerFromInviteId, id)
 	var i Server
 	err := row.Scan(
 		&i.ID,
@@ -80,6 +158,68 @@ func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Serv
 		return nil, err
 	}
 	return items, nil
+}
+
+const saveInvitation = `-- name: SaveInvitation :one
+INSERT INTO invitations (
+	id,
+	server_id,
+  created_at,
+  expired_at,
+	bypass_approval,
+	join_limit,
+  join_count
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7
+) 
+ON CONFLICT (id)
+DO UPDATE SET 
+	server_id = $2,
+  created_at = $3,
+  expired_at = $4,
+	bypass_approval = $5,
+	join_limit = $6,
+  join_count = $7
+RETURNING id, server_id, created_at, expired_at, bypass_approval, join_limit, join_count
+`
+
+type SaveInvitationParams struct {
+	ID             uuid.UUID
+	ServerID       uuid.UUID
+	CreatedAt      time.Time
+	ExpiredAt      *time.Time
+	BypassApproval bool
+	JoinLimit      int32
+	JoinCount      int32
+}
+
+func (q *Queries) SaveInvitation(ctx context.Context, arg SaveInvitationParams) (Invitation, error) {
+	row := q.db.QueryRow(ctx, saveInvitation,
+		arg.ID,
+		arg.ServerID,
+		arg.CreatedAt,
+		arg.ExpiredAt,
+		arg.BypassApproval,
+		arg.JoinLimit,
+		arg.JoinCount,
+	)
+	var i Invitation
+	err := row.Scan(
+		&i.ID,
+		&i.ServerID,
+		&i.CreatedAt,
+		&i.ExpiredAt,
+		&i.BypassApproval,
+		&i.JoinLimit,
+		&i.JoinCount,
+	)
+	return i, err
 }
 
 const saveServer = `-- name: SaveServer :one

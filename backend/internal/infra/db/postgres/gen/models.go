@@ -156,6 +156,7 @@ type Invitation struct {
 	ExpiredAt      *time.Time
 	BypassApproval bool
 	JoinLimit      int32
+	JoinCount      int32
 }
 
 type JoinRequest struct {

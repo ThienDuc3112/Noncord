@@ -40,6 +40,7 @@
             - [ ] Check for membership
             - [ ] Check for ownership
             - [ ] Actual transfer
+        - [ ] Join server
     - [ ] Implement controller
         - [x] Auth middleware
         - [ ] Create new server
@@ -66,6 +67,42 @@
             - [x] Document server routes
             - [x] Green path
             - [x] Error parsing route
+- [ ] Invitation service
+    - [x] Implement repo
+        - [x] Get invitations by server id
+        - [x] Get invitation by id
+        - [x] Save invitation
+    - [x] Implement service
+        - [x] Get invitations by server ID
+        - [x] Get invitation by ID
+        - [x] Create invitation
+        - [x] Edit invitation
+    - [ ] Implement controller
+        <!-- - [x] Auth middleware -->
+        <!-- - [ ] Create new server -->
+        <!--     - [x] Document server routes -->
+        <!--     - [x] Create server -->
+        <!--     - [ ] Add user to the server -->
+        <!--     - [ ] Error parsing route -->
+        <!-- - [ ] Get servers user in -->
+        <!--     - [x] Document server routes -->
+        <!--     - [ ] Get user's servers -->
+        <!--     - [x] Get servers -->
+        <!--     - [x] Error parsing route -->
+        <!-- - [ ] Get server by ID -->
+        <!--     - [x] Document server routes -->
+        <!--     - [x] Get server -->
+        <!--     - [ ] Get channels -->
+        <!--     - [ ] Get members -->
+        <!--     - [x] Error parsing route -->
+        <!-- - [ ] Update Server -->
+        <!--     - [x] Document server routes -->
+        <!--     - [x] Green path -->
+        <!--     - [ ] Error parsing route -->
+        <!-- - [x] Delete Server -->
+        <!--     - [x] Document server routes -->
+        <!--     - [x] Green path -->
+        <!--     - [x] Error parsing route -->
 - [ ] Membership service
     - [ ] Implement repo
         - [x] Find membership
