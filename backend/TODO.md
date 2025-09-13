@@ -67,42 +67,40 @@
             - [x] Document server routes
             - [x] Green path
             - [x] Error parsing route
+        - [ ] Get invitations
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [ ] Create invitation
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [ ] Update invitation
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
 - [ ] Invitation service
     - [x] Implement repo
         - [x] Get invitations by server id
         - [x] Get invitation by id
         - [x] Save invitation
-    - [x] Implement service
+    - [ ] Implement service
         - [x] Get invitations by server ID
         - [x] Get invitation by ID
         - [x] Create invitation
         - [x] Edit invitation
+        - [ ] Invalidate invitation
     - [ ] Implement controller
-        <!-- - [x] Auth middleware -->
-        <!-- - [ ] Create new server -->
-        <!--     - [x] Document server routes -->
-        <!--     - [x] Create server -->
-        <!--     - [ ] Add user to the server -->
-        <!--     - [ ] Error parsing route -->
-        <!-- - [ ] Get servers user in -->
-        <!--     - [x] Document server routes -->
-        <!--     - [ ] Get user's servers -->
-        <!--     - [x] Get servers -->
-        <!--     - [x] Error parsing route -->
-        <!-- - [ ] Get server by ID -->
-        <!--     - [x] Document server routes -->
-        <!--     - [x] Get server -->
-        <!--     - [ ] Get channels -->
-        <!--     - [ ] Get members -->
-        <!--     - [x] Error parsing route -->
-        <!-- - [ ] Update Server -->
-        <!--     - [x] Document server routes -->
-        <!--     - [x] Green path -->
-        <!--     - [ ] Error parsing route -->
-        <!-- - [x] Delete Server -->
-        <!--     - [x] Document server routes -->
-        <!--     - [x] Green path -->
-        <!--     - [x] Error parsing route -->
+        - [x] Auth middleware
+        - [x] Get invitation by ID
+            - [x] Document server routes
+            - [x] Get invitation
+            - [x] Get server details
+            - [x] Error parsing route
+        - [ ] Join server
+            - [x] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
 - [ ] Membership service
     - [ ] Implement repo
         - [x] Find membership

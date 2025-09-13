@@ -12,5 +12,6 @@ type GetServer struct {
 }
 
 type GetServerResult struct {
-	Result *common.Server
+	Preview common.ServerPreview
+	Full    *common.Server
 }

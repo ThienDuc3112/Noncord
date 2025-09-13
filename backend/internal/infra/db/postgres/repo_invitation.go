@@ -16,7 +16,7 @@ type PGInvitationRepo struct {
 	repo *gen.Queries
 }
 
-func NewPGInvitattionRepo(db gen.DBTX) repositories.InvitationRepo {
+func NewPGInvitationRepo(db gen.DBTX) repositories.InvitationRepo {
 	return &PGInvitationRepo{
 		repo: gen.New(db),
 	}

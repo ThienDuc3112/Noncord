@@ -47,11 +47,31 @@ definitions:
     - username
     type: object
   request.UpdateServer:
+    properties:
+      announcementChannel:
+        type: string
+      bannerUrl:
+        type: string
+      description:
+        type: string
+      iconUrl:
+        type: string
+      name:
+        type: string
+      needApproval:
+        type: boolean
     type: object
   response.ErrorResponse:
     properties:
       error:
         type: string
+    type: object
+  response.GetInvitationResponse:
+    properties:
+      id:
+        type: string
+      server:
+        $ref: '#/definitions/response.ServerPreview'
     type: object
   response.GetServerResponse:
     properties:
@@ -101,6 +121,21 @@ definitions:
         type: string
     type: object
   response.UpdateServerResponse:
+    properties:
+      bannerUrl:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      iconUrl:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
     type: object
 info:
   contact: {}
@@ -240,6 +275,68 @@ paths:
       summary: Register an account
       tags:
       - Auth
+  /api/v1/invitation/{invitation_id}:
+    get:
+      description: Get an invitation detail by invitation id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: invite id to fetch
+        in: path
+        name: invitation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetInvitationResponse'
+        "404":
+          description: Invitation not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get invitation detail
+      tags:
+      - Invitation
+  /api/v1/invitation/{invitation_id}/join:
+    post:
+      description: Join a server through an invitation
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: invite id to join server
+        in: path
+        name: invitation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Invitation not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Join a server
+      tags:
+      - Invitation
   /api/v1/server:
     get:
       description: Get all servers the user is in

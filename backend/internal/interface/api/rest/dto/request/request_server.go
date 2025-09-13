@@ -15,12 +15,12 @@ func (r *NewServer) Bind(_ *http.Request) error {
 }
 
 type UpdateServer struct {
-	Name                *string       `json:"name"`
-	Description         *string       `json:"description"`
-	IconUrl             *string       `json:"iconUrl"`
-	BannerUrl           *string       `json:"bannerUrl"`
-	NeedApproval        *bool         `json:"needApproval"`
-	AnnouncementChannel uuid.NullUUID `json:"announcementChannel"`
+	Name                *string    `json:"name"`
+	Description         *string    `json:"description"`
+	IconUrl             *string    `json:"iconUrl"`
+	BannerUrl           *string    `json:"bannerUrl"`
+	NeedApproval        *bool      `json:"needApproval"`
+	AnnouncementChannel *uuid.UUID `json:"announcementChannel"`
 }
 
 func (r *UpdateServer) Bind(_ *http.Request) error {

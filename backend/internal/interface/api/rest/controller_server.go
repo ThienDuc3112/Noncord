@@ -19,12 +19,13 @@ import (
 )
 
 type ServerController struct {
-	serverService interfaces.ServerService
-	authService   interfaces.AuthService
+	serverService     interfaces.ServerService
+	authService       interfaces.AuthService
+	invitationService interfaces.InviteService
 }
 
-func NewServerController(serverService interfaces.ServerService, authService interfaces.AuthService) *ServerController {
-	return &ServerController{serverService: serverService, authService: authService}
+func NewServerController(serverService interfaces.ServerService, authService interfaces.AuthService, invitationService interfaces.InviteService) *ServerController {
+	return &ServerController{serverService: serverService, authService: authService, invitationService: invitationService}
 }
 
 func (c *ServerController) RegisterRoute(r chi.Router) {
@@ -181,16 +182,27 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 
 	// TODO: Fetch channels and Members
 
-	render.Status(r, 200)
-	render.JSON(w, r, response.GetServerResponse{
-		Id:          server.Result.Id,
-		Name:        server.Result.Name,
-		Description: server.Result.Description,
-		CreatedAt:   server.Result.CreatedAt,
-		UpdatedAt:   server.Result.UpdatedAt,
-		IconUrl:     server.Result.IconUrl,
-		BannerUrl:   server.Result.BannerUrl,
-	})
+	if server.Full != nil {
+		render.Status(r, 200)
+		render.JSON(w, r, response.GetServerResponse{
+			Id:          server.Full.Id,
+			Name:        server.Full.Name,
+			Description: server.Full.Description,
+			CreatedAt:   server.Full.CreatedAt,
+			UpdatedAt:   server.Full.UpdatedAt,
+			IconUrl:     server.Full.IconUrl,
+			BannerUrl:   server.Full.BannerUrl,
+		})
+	} else {
+		render.Status(r, 200)
+		render.JSON(w, r, response.GetServerResponse{
+			Id:          server.Preview.Id,
+			Name:        server.Preview.Name,
+			Description: server.Preview.Description,
+			IconUrl:     server.Preview.IconUrl,
+			BannerUrl:   server.Preview.BannerUrl,
+		})
+	}
 }
 
 // register     godoc
@@ -231,6 +243,12 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		return
 	}
 
+	nullableAnnouncementChannel := uuid.NullUUID{}
+	if body.AnnouncementChannel != nil {
+		nullableAnnouncementChannel.UUID = *body.AnnouncementChannel
+		nullableAnnouncementChannel.Valid = true
+	}
+
 	server, err := c.serverService.Update(r.Context(), command.UpdateServerCommand{
 		UserId:   user.Id,
 		ServerId: serverId,
@@ -240,7 +258,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 			IconUrl:             body.IconUrl,
 			BannerUrl:           body.BannerUrl,
 			NeedApproval:        body.NeedApproval,
-			AnnouncementChannel: body.AnnouncementChannel,
+			AnnouncementChannel: nullableAnnouncementChannel,
 		},
 	})
 	if err != nil {

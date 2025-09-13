@@ -20,3 +20,11 @@ type Server struct {
 	DefaultRole         *uuid.UUID
 	AnnouncementChannel *uuid.UUID
 }
+
+type ServerPreview struct {
+	Id          uuid.UUID
+	Name        string
+	IconUrl     string
+	BannerUrl   string
+	Description string
+}

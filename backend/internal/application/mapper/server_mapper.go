@@ -23,6 +23,16 @@ func ServerToResult(s *entities.Server) *common.Server {
 	}
 }
 
+func ServerToPreview(s *entities.Server) common.ServerPreview {
+	return common.ServerPreview{
+		Id:          uuid.UUID(s.Id),
+		Name:        s.Name,
+		Description: s.Description,
+		IconUrl:     s.IconUrl,
+		BannerUrl:   s.BannerUrl,
+	}
+}
+
 // func ResultToServer(s *common.Server) *entities.Server {
 // 	return &entities.Server{
 // 		Id:                  entities.ServerId(s.Id),

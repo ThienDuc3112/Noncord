@@ -23,8 +23,8 @@ type GetServersResponse struct {
 
 type GetServerResponse struct {
 	Id          uuid.UUID `json:"id"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	CreatedAt   time.Time `json:"createdAt,omitempty,omitzero"`
+	UpdatedAt   time.Time `json:"updatedAt,omitempty,omitzero"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	IconUrl     string    `json:"iconUrl"`
