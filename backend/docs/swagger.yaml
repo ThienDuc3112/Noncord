@@ -309,6 +309,47 @@ paths:
       tags:
       - Auth
   /api/v1/invitation/{invitation_id}:
+    delete:
+      description: Invalidate an invitation by invitation id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: invite id to fetch
+        in: path
+        name: invitation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid invitation id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Cannot authenticate user
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden action
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Invitation not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Invalidate invitation
+      tags:
+      - Invitation
     get:
       description: Get an invitation detail by invitation id
       parameters:
@@ -329,6 +370,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.GetInvitationResponse'
+        "400":
+          description: Invalid invitation id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
           description: Invitation not found
           schema:
@@ -367,7 +412,7 @@ paths:
           schema:
             $ref: '#/definitions/response.Invitation'
         "400":
-          description: Invalid body
+          description: Invalid body or invalid invitation id
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "401":
@@ -408,6 +453,10 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Invalid invitation id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "404":
           description: Invitation not found
           schema:
@@ -509,8 +558,8 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "204":
+          description: No Content
         "401":
           description: Unknown session
           schema:

@@ -21,17 +21,13 @@ func (e *ErrorResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func NewErrorResponse(str string, statusCode int32, err error) *ErrorResponse {
+func ParseErrorResponse(str string, statusCode int32, err error) *ErrorResponse {
 	derr := &entities.ChatError{}
 	if errors.As(err, &derr) {
 		return NewErrorResponseFromChatError(derr)
 	}
 
-	return &ErrorResponse{
-		Error:      str,
-		statusCode: statusCode,
-		err:        err,
-	}
+	return NewErrorResponse(str, statusCode, err)
 }
 
 func NewErrorResponseFromChatError(err *entities.ChatError) *ErrorResponse {
@@ -60,4 +56,12 @@ func NewErrorResponseFromChatError(err *entities.ChatError) *ErrorResponse {
 		err:        err,
 	}
 
+}
+
+func NewErrorResponse(str string, statusCode int32, err error) *ErrorResponse {
+	return &ErrorResponse{
+		Error:      str,
+		statusCode: statusCode,
+		err:        err,
+	}
 }

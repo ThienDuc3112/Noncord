@@ -30,6 +30,9 @@ func (c *InvitationController) RegisterRoute(r chi.Router) {
 
 		r.Post("/{invitation_id}/join", c.GetInvitationController)
 		r.Get("/{invitation_id}", c.GetInvitationController)
+		r.Put("/{invitation_id}", c.UpdateInvitationController)
+		r.Patch("/{invitation_id}", c.UpdateInvitationController)
+		r.Delete("/{invitation_id}", c.DeleteInvitationController)
 	})
 }
 
@@ -40,8 +43,9 @@ func (c *InvitationController) RegisterRoute(r chi.Router) {
 //	@Tags			Invitation
 //	@Produce		json
 //	@Param			Authorization	header		string	true	"Bearer token"
-//	@Param			invitation_id		path		string	true	"invite id to fetch"
+//	@Param			invitation_id	path		string	true	"invite id to fetch"
 //	@Success		200				{object}	response.GetInvitationResponse
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
 //	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/invitation/{invitation_id} [get]
@@ -50,7 +54,7 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 
 	invitationId, err := uuid.Parse(chi.URLParam(r, "invitation_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
 		return
 	}
 
@@ -58,13 +62,13 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 		InvitationId: invitationId,
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot get invitation", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation", 500, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -73,11 +77,9 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 		UserId:   user.Id,
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot get invitation info", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation info", 500, err))
 		return
 	}
-
-	// TODO: Fetch channels and Members
 
 	render.Status(r, 200)
 	render.JSON(w, r, response.GetInvitationResponse{
@@ -98,8 +100,9 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 //	@Tags			Invitation
 //	@Produce		json
 //	@Param			Authorization	header		string	true	"Bearer token"
-//	@Param			invitation_id		path		string	true	"invite id to join server"
+//	@Param			invitation_id	path		string	true	"invite id to join server"
 //	@Success		200				{object}	nil
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
 //	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/invitation/{invitation_id}/join [post]
@@ -108,7 +111,7 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 
 	invitationId, err := uuid.Parse(chi.URLParam(r, "invitation_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
 		return
 	}
 
@@ -116,17 +119,17 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 		InvitationId: invitationId,
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot get invitation", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation", 500, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
-	render.Render(w, r, response.NewErrorResponse("Have not implemented", http.StatusNotImplemented, nil))
+	render.Render(w, r, response.ParseErrorResponse("Have not implemented", http.StatusNotImplemented, nil))
 }
 
 // register 		godoc
@@ -135,14 +138,14 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 //	@Description	Update invitation detail by invitation id
 //	@Tags			Invitation
 //	@Produce		json
-//	@Param			Authorization	header		string	true	"Bearer token"
-//	@Param			invitation_id		path		string	true	"invite id to fetch"
-//	@Param			payload			body		request.UpdateInvitation			true "payload"
-//	@Success		200				{object}	response.Invitation "Updated invitation"
-//	@Failure		400				{object}	response.ErrorResponse	"Invalid body"
-//	@Failure		401				{object}	response.ErrorResponse	"Cannot authenticate user"
-//	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
-//	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
+//	@Param			Authorization	header		string						true	"Bearer token"
+//	@Param			invitation_id	path		string						true	"invite id to fetch"
+//	@Param			payload			body		request.UpdateInvitation	true	"payload"
+//	@Success		200				{object}	response.Invitation			"Updated invitation"
+//	@Failure		400				{object}	response.ErrorResponse		"Invalid body or invalid invitation id"
+//	@Failure		401				{object}	response.ErrorResponse		"Cannot authenticate user"
+//	@Failure		403				{object}	response.ErrorResponse		"Forbidden action"
+//	@Failure		404				{object}	response.ErrorResponse		"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/invitation/{invitation_id} [put]
 func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +153,7 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 
 	invitationId, err := uuid.Parse(chi.URLParam(r, "invitation_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
 		return
 	}
 
@@ -158,19 +161,19 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 		InvitationId: invitationId,
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot get invitation", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation", 500, err))
 		return
 	}
 
 	body := request.UpdateInvitation{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -180,7 +183,7 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 		Updates:      command.UpdateInvitationOption(body),
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot update invitation info", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot update invitation info", 500, err))
 		return
 	}
 
@@ -194,4 +197,54 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 		JoinLimit:      newInv.Result.JoinLimit,
 		JoinCount:      newInv.Result.JoinCount,
 	})
+}
+
+// register 		godoc
+//
+//	@Summary		Invalidate invitation
+//	@Description	Invalidate an invitation by invitation id
+//	@Tags			Invitation
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"Bearer token"
+//	@Param			invitation_id	path		string	true	"invite id to fetch"
+//	@Success		204				{object}	nil
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
+//	@Failure		401				{object}	response.ErrorResponse	"Cannot authenticate user"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
+//	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
+//	@Failure		500				{object}	response.ErrorResponse
+//	@Router			/api/v1/invitation/{invitation_id} [delete]
+func (c *InvitationController) DeleteInvitationController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[DeleteInvitationController] Invalidating invitation")
+
+	invitationId, err := uuid.Parse(chi.URLParam(r, "invitation_id"))
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Invalid invitation id", http.StatusBadRequest, err))
+		return
+	}
+
+	invitation, err := c.invitationService.GetInvitationById(r.Context(), query.GetInvitation{
+		InvitationId: invitationId,
+	})
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation", 500, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	err = c.invitationService.InvalidateInvitation(r.Context(), command.InvalidateInvitationCommand{
+		InvitationId: invitation.Result.Id,
+		UserId:       user.Id,
+	})
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation info", 500, err))
+		return
+	}
+
+	render.NoContent(w, r)
 }

@@ -64,13 +64,13 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 
 	body := request.NewServer{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -79,7 +79,7 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 		Name:   body.Name,
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot create server", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot create server", 500, err))
 		return
 	}
 
@@ -110,14 +110,14 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	// TODO: replace with actual getting servers code
 	serverIds, err := placeholderGetServerIds()
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Unimplemented", http.StatusNotImplemented, err))
+		render.Render(w, r, response.ParseErrorResponse("Unimplemented", http.StatusNotImplemented, err))
 		// render.Render(w, r, response.NewErrorResponse("Cannot get user's servers", 500, err))
 		return
 	}
@@ -127,7 +127,7 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 	})
 
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot get server", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get server", 500, err))
 		return
 	}
 
@@ -163,13 +163,13 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 
 	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid server id", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -179,7 +179,7 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 	})
 
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot get server", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get server", 500, err))
 		return
 	}
 
@@ -230,19 +230,19 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 
 	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid server id", http.StatusBadRequest, err))
 		return
 	}
 
 	body := request.UpdateServer{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -265,7 +265,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		},
 	})
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("cannot update server", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("cannot update server", 500, err))
 		return
 	}
 
@@ -289,7 +289,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 //	@Produce		json
 //	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			server_id		path		int		true	"Server Id"
-//	@Success		201				{object}	nil
+//	@Success		204				{object}	nil
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
 //	@Failure		404				{object}	response.ErrorResponse	"Server not found"
@@ -300,13 +300,13 @@ func (c *ServerController) DeleteServerController(w http.ResponseWriter, r *http
 
 	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid server id", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -319,7 +319,7 @@ func (c *ServerController) DeleteServerController(w http.ResponseWriter, r *http
 		return
 	}
 
-	render.Status(r, 201)
+	render.Status(r, 204)
 	render.JSON(w, r, nil)
 }
 
@@ -342,13 +342,13 @@ func (c *ServerController) GetInvitationController(w http.ResponseWriter, r *htt
 
 	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid server id", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
@@ -383,9 +383,9 @@ func (c *ServerController) GetInvitationController(w http.ResponseWriter, r *htt
 //	@Description	Get an invitation on a server
 //	@Tags			Server
 //	@Produce		json
-//	@Param			Authorization	header		string	true	"Bearer token"
-//	@Param			server_id		path		int		true	"Server Id"
-//	@Param			payload			body		request.NewInvitation			true	"Data for creating invitation"
+//	@Param			Authorization	header		string					true	"Bearer token"
+//	@Param			server_id		path		int						true	"Server Id"
+//	@Param			payload			body		request.NewInvitation	true	"Data for creating invitation"
 //	@Success		200				{object}	response.Invitation
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
@@ -397,19 +397,19 @@ func (c *ServerController) CreateInvitationController(w http.ResponseWriter, r *
 
 	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
 	if err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid server id", http.StatusBadRequest, err))
 		return
 	}
 
 	body := request.NewInvitation{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
 	user := extractUser(r.Context())
 	if user == nil {
-		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 

@@ -48,7 +48,7 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 
 	body := request.Register{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
@@ -62,12 +62,12 @@ func (ac *AuthController) RegisterController(w http.ResponseWriter, r *http.Requ
 		if errors.As(err, &e) {
 			switch e.Code {
 			case entities.ErrCodeValidationError, entities.ErrCodeNoObject:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
+				render.Render(w, r, response.ParseErrorResponse(e.Message, http.StatusBadRequest, e))
 			default:
-				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+				render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
 		} else {
-			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+			render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, err))
 		}
 		return
 	}
@@ -94,7 +94,7 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 
 	body := request.Login{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
@@ -109,17 +109,17 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 		if errors.As(err, &e) {
 			switch e.Code {
 			case entities.ErrCodeValidationError:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusBadRequest, e))
+				render.Render(w, r, response.ParseErrorResponse(e.Message, http.StatusBadRequest, e))
 			case entities.ErrCodeForbidden:
-				render.Render(w, r, response.NewErrorResponse(e.Message, http.StatusForbidden, e))
+				render.Render(w, r, response.ParseErrorResponse(e.Message, http.StatusForbidden, e))
 			case entities.ErrCodeUnauth, entities.ErrCodeNoObject:
-				render.Render(w, r, response.NewErrorResponse("Wrong credential", http.StatusUnauthorized, e))
+				render.Render(w, r, response.ParseErrorResponse("Wrong credential", http.StatusUnauthorized, e))
 			default:
-				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+				render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
 			return
 		} else {
-			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+			render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, err))
 		}
 
 		return
@@ -152,7 +152,7 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 
 	body := request.Refresh{}
 	if err := render.Bind(r, &body); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
@@ -165,13 +165,13 @@ func (ac *AuthController) LogoutController(w http.ResponseWriter, r *http.Reques
 		if errors.As(err, &e) {
 			switch e.Code {
 			case entities.ErrCodeNoObject:
-				render.Render(w, r, response.NewErrorResponse("unknown session", http.StatusUnauthorized, e))
+				render.Render(w, r, response.ParseErrorResponse("unknown session", http.StatusUnauthorized, e))
 			default:
-				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+				render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
 			return
 		} else {
-			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+			render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, err))
 		}
 
 		return
@@ -198,7 +198,7 @@ func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Reque
 
 	payload := request.Refresh{}
 	if err := render.Bind(r, &payload); err != nil {
-		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
 
@@ -211,13 +211,13 @@ func (ac *AuthController) RefreshController(w http.ResponseWriter, r *http.Reque
 		if errors.As(err, &e) {
 			switch e.Code {
 			case entities.ErrCodeNoObject:
-				render.Render(w, r, response.NewErrorResponse("Token not found", http.StatusUnauthorized, e))
+				render.Render(w, r, response.ParseErrorResponse("Token not found", http.StatusUnauthorized, e))
 			default:
-				render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, e))
+				render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, e))
 			}
 			return
 		} else {
-			render.Render(w, r, response.NewErrorResponse("Internal server error", http.StatusInternalServerError, err))
+			render.Render(w, r, response.ParseErrorResponse("Internal server error", http.StatusInternalServerError, err))
 		}
 
 		return

@@ -250,6 +250,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.GetInvitationResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid invitation id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Invitation not found",
                         "schema": {
@@ -306,7 +312,68 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid body",
+                        "description": "Invalid body or invalid invitation id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Cannot authenticate user",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Invitation not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Invalidate an invitation by invitation id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Invitation"
+                ],
+                "summary": "Invalidate invitation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "invite id to fetch",
+                        "name": "invitation_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid invitation id",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -367,6 +434,12 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Invalid invitation id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
                     },
                     "404": {
                         "description": "Invitation not found",
@@ -578,8 +651,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "204": {
+                        "description": "No Content"
                     },
                     "401": {
                         "description": "Unknown session",

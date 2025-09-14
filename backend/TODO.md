@@ -97,14 +97,14 @@
             - [x] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
-        - [x] Update invitation
+        - [ ] Update invitation
             - [x] Document server routes
             - [x] Green path
             - [ ] Error parsing route
-        - [ ] Invalidate invitation
-            - [ ] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
+        - [x] Invalidate invitation
+            - [x] Document server routes
+            - [x] Green path
+            - [x] Error parsing route
 - [ ] Membership service
     - [ ] Implement repo
         - [x] Find membership

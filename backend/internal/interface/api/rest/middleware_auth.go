@@ -3,10 +3,8 @@ package rest
 import (
 	"backend/internal/application/command"
 	"backend/internal/application/interfaces"
-	"backend/internal/domain/entities"
 	"backend/internal/interface/api/rest/dto/response"
 	"context"
-	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -21,12 +19,12 @@ func authMiddleware(authService interfaces.AuthService) func(http.Handler) http.
 
 			auth := r.Header.Get("Authorization")
 			if auth == "" {
-				render.Render(w, r, response.NewErrorResponse("Empty authorization header", 401, nil))
+				render.Render(w, r, response.ParseErrorResponse("Empty authorization header", 401, nil))
 				return
 			}
 			parts := strings.SplitN(auth, " ", 2)
 			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-				render.Render(w, r, response.NewErrorResponse("Invalid authorization header format", 401, nil))
+				render.Render(w, r, response.ParseErrorResponse("Invalid authorization header format", 401, nil))
 				return
 			}
 
@@ -34,12 +32,7 @@ func authMiddleware(authService interfaces.AuthService) func(http.Handler) http.
 
 			res, err := authService.Authenticate(r.Context(), command.AuthenticateCommand{AccessToken: token})
 			if err != nil {
-				var derr *entities.ChatError
-				if errors.As(err, &derr) {
-					render.Render(w, r, response.NewErrorResponseFromChatError(derr))
-				} else {
-					render.Render(w, r, response.NewErrorResponse("Internal server error", 500, err))
-				}
+				render.Render(w, r, response.ParseErrorResponse("Internal server error", 500, err))
 				return
 			}
 
