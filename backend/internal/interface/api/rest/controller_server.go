@@ -225,6 +225,7 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 //	@Failure		404				{object}	response.ErrorResponse	"Server not found"
 //	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
 //	@Router			/api/v1/server/{server_id} [patch]
+//	@Router			/api/v1/server/{server_id} [put]
 func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[UpdateServerController] Update server")
 

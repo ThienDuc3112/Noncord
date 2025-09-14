@@ -183,7 +183,7 @@ func (s *AuthService) Authenticate(ctx context.Context, param command.Authentica
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, entities.NewError(entities.ErrCodeUnauth, "invalid token", nil)
 		}
-		return s.secret, nil
+		return []byte(s.secret), nil
 	}, jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {

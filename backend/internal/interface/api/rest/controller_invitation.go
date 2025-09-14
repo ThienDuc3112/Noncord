@@ -25,7 +25,7 @@ func NewInvitationController(serverService interfaces.ServerService, authService
 }
 
 func (c *InvitationController) RegisterRoute(r chi.Router) {
-	r.Route("/invitation", func(r chi.Router) {
+	r.Route("/invitations", func(r chi.Router) {
 		r.Use(authMiddleware(c.authService))
 
 		r.Post("/{invitation_id}/join", c.GetInvitationController)
@@ -48,7 +48,7 @@ func (c *InvitationController) RegisterRoute(r chi.Router) {
 //	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
 //	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/invitation/{invitation_id} [get]
+//	@Router			/api/v1/invitations/{invitation_id} [get]
 func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetInvitationController] Getting invitation")
 
@@ -105,7 +105,7 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 //	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
 //	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/invitation/{invitation_id}/join [post]
+//	@Router			/api/v1/invitations/{invitation_id}/join [post]
 func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[JoinServerController] Joining server")
 
@@ -147,7 +147,8 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 //	@Failure		403				{object}	response.ErrorResponse		"Forbidden action"
 //	@Failure		404				{object}	response.ErrorResponse		"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/invitation/{invitation_id} [put]
+//	@Router			/api/v1/invitations/{invitation_id} [put]
+//	@Router			/api/v1/invitations/{invitation_id} [patch]
 func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetInvitationController] Getting invitation")
 
@@ -213,7 +214,7 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
 //	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/invitation/{invitation_id} [delete]
+//	@Router			/api/v1/invitations/{invitation_id} [delete]
 func (c *InvitationController) DeleteInvitationController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[DeleteInvitationController] Invalidating invitation")
 

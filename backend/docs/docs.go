@@ -217,7 +217,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/invitation/{invitation_id}": {
+        "/api/v1/invitations/{invitation_id}": {
             "get": {
                 "description": "Get an invitation detail by invitation id",
                 "produces": [
@@ -403,9 +403,82 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Update invitation detail by invitation id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Invitation"
+                ],
+                "summary": "Update invitation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "invite id to fetch",
+                        "name": "invitation_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateInvitation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated invitation",
+                        "schema": {
+                            "$ref": "#/definitions/response.Invitation"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or invalid invitation id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Cannot authenticate user",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Invitation not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
-        "/api/v1/invitation/{invitation_id}/join": {
+        "/api/v1/invitations/{invitation_id}/join": {
             "post": {
                 "description": "Join a server through an invitation",
                 "produces": [
@@ -619,6 +692,82 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update server",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server"
+                ],
+                "summary": "Update server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Update server",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateServer"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Server Id",
+                        "name": "server_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated server",
+                        "schema": {
+                            "$ref": "#/definitions/response.UpdateServerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unknown session",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Server not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
