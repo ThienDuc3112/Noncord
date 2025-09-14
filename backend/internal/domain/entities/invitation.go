@@ -38,6 +38,12 @@ func (i *Invitation) UpdateJoinCount(joinCount int32) error {
 	return nil
 }
 
+func (i *Invitation) Invalidate() error {
+	now := time.Now()
+	i.ExpiresAt = &now
+	return nil
+}
+
 func NewInvitation(serverId ServerId, expiresAt *time.Time, bypass bool, joinLimit int32) *Invitation {
 	return &Invitation{
 		Id:             InvitationId(uuid.New()),

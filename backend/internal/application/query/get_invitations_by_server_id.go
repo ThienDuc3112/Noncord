@@ -8,6 +8,7 @@ import (
 
 type GetInvitationsByServerId struct {
 	ServerId uuid.UUID
+	UserId   uuid.UUID
 }
 
 type GetInvitationsByServerIdResult struct {

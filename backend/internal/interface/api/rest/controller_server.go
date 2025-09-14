@@ -319,3 +319,57 @@ func (c *ServerController) DeleteServerController(w http.ResponseWriter, r *http
 	render.Status(r, 201)
 	render.JSON(w, r, nil)
 }
+
+// register     godoc
+//
+//	@Summary		Get server's invitations
+//	@Description	Get all server's invitations
+//	@Tags			Server
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"Bearer token"
+//	@Param			server_id		path		int		true	"Server Id"
+//	@Success		200				{object}	response.Invitation
+//	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
+//	@Failure		404				{object}	response.ErrorResponse	"Server not found"
+//	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
+//	@Router			/api/v1/server/{server_id}/invitations [get]
+func (c *ServerController) GetInvitationController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[GetInvitationController] Get invites")
+
+	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	invs, err := c.invitationService.GetInvitationsByServerId(r.Context(), query.GetInvitationsByServerId{
+		ServerId: serverId,
+		UserId:   user.Id,
+	})
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponseFromChatError(err.(*entities.ChatError)))
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.GetServerInvitationsResponse{
+		Result: arrutil.Map(invs.Result, func(i *common.Invitation) (target response.Invitation, find bool) {
+			return response.Invitation{
+				Id:             i.Id,
+				ServerId:       i.ServerId,
+				CreatedAt:      i.CreatedAt,
+				ExpiresAt:      i.ExpiresAt,
+				BypassApproval: i.BypassApproval,
+				JoinLimit:      i.JoinLimit,
+				JoinCount:      i.JoinCount,
+			}, true
+		}),
+	})
+}

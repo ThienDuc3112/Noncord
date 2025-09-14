@@ -95,6 +95,16 @@ func (s *InvitationService) GetInvitationById(ctx context.Context, params query.
 }
 
 func (s *InvitationService) GetInvitationsByServerId(ctx context.Context, params query.GetInvitationsByServerId) (query.GetInvitationsByServerIdResult, error) {
+	server, err := s.sr.Find(ctx, entities.ServerId(params.ServerId))
+	if err != nil {
+		return query.GetInvitationsByServerIdResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+	}
+
+	// TODO: Check for other permission as well
+	if server.IsOwner(entities.UserId(params.UserId)) {
+		return query.GetInvitationsByServerIdResult{}, entities.NewError(entities.ErrCodeDepFail, "user don't have enough permission", nil)
+	}
+
 	invs, err := s.ir.FindByServerId(ctx, entities.ServerId(params.ServerId))
 	if err != nil {
 		return query.GetInvitationsByServerIdResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get invitations")
@@ -105,4 +115,25 @@ func (s *InvitationService) GetInvitationsByServerId(ctx context.Context, params
 			return mapper.InvitationToResult(inv), true
 		}),
 	}, nil
+}
+
+func (s *InvitationService) InvalidateInvitation(ctx context.Context, params command.InvalidateInvitationCommand) error {
+	inv, err := s.ir.Find(ctx, entities.InvitationId(params.InvitationId))
+	if err != nil {
+		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get invitation")
+	}
+
+	server, err := s.sr.Find(ctx, entities.ServerId(inv.ServerId))
+	if err != nil {
+		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+	}
+
+	// Check for role permission as well
+	if server.IsOwner(entities.UserId(params.UserId)) {
+		return entities.NewError(entities.ErrCodeForbidden, "user not authorized to perfrom this action", nil)
+	}
+
+	inv.Invalidate()
+	_, err = s.ir.Save(ctx, inv)
+	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 }

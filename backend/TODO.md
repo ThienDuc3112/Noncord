@@ -67,10 +67,10 @@
             - [x] Document server routes
             - [x] Green path
             - [x] Error parsing route
-        - [ ] Get invitations
-            - [ ] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
+        - [x] Get invitations
+            - [x] Document server routes
+            - [x] Green path
+            - [x] Error parsing route
         - [ ] Create invitation
             - [ ] Document server routes
             - [ ] Green path
@@ -79,17 +79,21 @@
             - [ ] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
+        - [ ] Invalidate invitation
+            - [ ] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
 - [ ] Invitation service
     - [x] Implement repo
         - [x] Get invitations by server id
         - [x] Get invitation by id
         - [x] Save invitation
-    - [ ] Implement service
+    - [x] Implement service
         - [x] Get invitations by server ID
         - [x] Get invitation by ID
         - [x] Create invitation
         - [x] Edit invitation
-        - [ ] Invalidate invitation
+        - [x] Invalidate invitation
     - [ ] Implement controller
         - [x] Auth middleware
         - [x] Get invitation by ID

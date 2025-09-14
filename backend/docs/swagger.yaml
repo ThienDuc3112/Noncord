@@ -97,6 +97,23 @@ definitions:
           $ref: '#/definitions/response.ServerPreview'
         type: array
     type: object
+  response.Invitation:
+    properties:
+      bypassApproval:
+        type: boolean
+      createdAt:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      joinCount:
+        type: integer
+      joinLimit:
+        type: integer
+      serverId:
+        type: string
+    type: object
   response.NewServerResponse:
     properties:
       id:
@@ -536,6 +553,46 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Update server
+      tags:
+      - Server
+  /api/v1/server/{server_id}/invitations:
+    get:
+      description: Get all server's invitations
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Server Id
+        in: path
+        name: server_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Invitation'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Server not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get server's invitations
       tags:
       - Server
 swagger: "2.0"
