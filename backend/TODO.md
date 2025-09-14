@@ -72,16 +72,8 @@
             - [x] Green path
             - [x] Error parsing route
         - [ ] Create invitation
-            - [ ] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
-        - [ ] Update invitation
-            - [ ] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
-        - [ ] Invalidate invitation
-            - [ ] Document server routes
-            - [ ] Green path
+            - [x] Document server routes
+            - [x] Green path
             - [ ] Error parsing route
 - [ ] Invitation service
     - [x] Implement repo
@@ -103,6 +95,14 @@
             - [x] Error parsing route
         - [ ] Join server
             - [x] Document server routes
+            - [ ] Green path
+            - [ ] Error parsing route
+        - [x] Update invitation
+            - [x] Document server routes
+            - [x] Green path
+            - [ ] Error parsing route
+        - [ ] Invalidate invitation
+            - [ ] Document server routes
             - [ ] Green path
             - [ ] Error parsing route
 - [ ] Membership service

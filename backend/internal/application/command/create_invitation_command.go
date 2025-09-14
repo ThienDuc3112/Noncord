@@ -8,7 +8,6 @@ import (
 )
 
 type CreateInvitationCommand struct {
-	Id             uuid.UUID
 	ServerId       uuid.UUID
 	UserId         uuid.UUID
 	ExpiresAt      *time.Time

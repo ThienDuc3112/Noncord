@@ -38,6 +38,9 @@ func (c *ServerController) RegisterRoute(r chi.Router) {
 		r.Patch("/{server_id}", c.UpdateServerController)
 		r.Put("/{server_id}", c.UpdateServerController)
 		r.Delete("/{server_id}", c.DeleteServerController)
+
+		r.Get("/{server_id}/invitations", c.GetInvitationController)
+		r.Post("/{server_id}/invitations", c.CreateInvitationController)
 	})
 }
 
@@ -371,5 +374,65 @@ func (c *ServerController) GetInvitationController(w http.ResponseWriter, r *htt
 				JoinCount:      i.JoinCount,
 			}, true
 		}),
+	})
+}
+
+// register     godoc
+//
+//	@Summary		Create invitation
+//	@Description	Get an invitation on a server
+//	@Tags			Server
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"Bearer token"
+//	@Param			server_id		path		int		true	"Server Id"
+//	@Param			payload			body		request.NewInvitation			true	"Data for creating invitation"
+//	@Success		200				{object}	response.Invitation
+//	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
+//	@Failure		404				{object}	response.ErrorResponse	"Server not found"
+//	@Failure		500				{object}	response.ErrorResponse	"Internal server error"
+//	@Router			/api/v1/server/{server_id}/invitations [post]
+func (c *ServerController) CreateInvitationController(w http.ResponseWriter, r *http.Request) {
+	log.Println("[CreateInvitationController] Creating invite")
+
+	serverId, err := uuid.Parse(chi.URLParam(r, "server_id"))
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid server id", http.StatusBadRequest, err))
+		return
+	}
+
+	body := request.NewInvitation{}
+	if err := render.Bind(r, &body); err != nil {
+		render.Render(w, r, response.NewErrorResponse("Invalid body", http.StatusBadRequest, err))
+		return
+	}
+
+	user := extractUser(r.Context())
+	if user == nil {
+		render.Render(w, r, response.NewErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	inv, err := c.invitationService.CreateInvitation(r.Context(), command.CreateInvitationCommand{
+		ServerId:       serverId,
+		UserId:         user.Id,
+		ExpiresAt:      body.ExpiresAt,
+		BypassApproval: body.BypassApproval,
+		JoinLimit:      body.JoinLimit,
+	})
+	if err != nil {
+		render.Render(w, r, response.NewErrorResponseFromChatError(err.(*entities.ChatError)))
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.Invitation{
+		Id:             inv.Result.Id,
+		ServerId:       inv.Result.ServerId,
+		CreatedAt:      inv.Result.CreatedAt,
+		ExpiresAt:      inv.Result.ExpiresAt,
+		BypassApproval: inv.Result.BypassApproval,
+		JoinLimit:      inv.Result.JoinLimit,
+		JoinCount:      inv.Result.JoinCount,
 	})
 }
