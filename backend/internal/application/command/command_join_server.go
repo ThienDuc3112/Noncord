@@ -3,5 +3,5 @@ package command
 type JoinServerCommand struct {
 }
 
-type JoinServerCommandResult struct {
-}
+// type JoinServerCommandResult struct {
+// }
