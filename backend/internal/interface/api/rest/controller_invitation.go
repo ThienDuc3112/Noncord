@@ -18,10 +18,11 @@ type InvitationController struct {
 	serverService     interfaces.ServerService
 	authService       interfaces.AuthService
 	invitationService interfaces.InviteService
+	memberService     interfaces.MembershipService
 }
 
-func NewInvitationController(serverService interfaces.ServerService, authService interfaces.AuthService, invitationService interfaces.InviteService) *ServerController {
-	return &ServerController{serverService: serverService, authService: authService, invitationService: invitationService}
+func NewInvitationController(serverService interfaces.ServerService, authService interfaces.AuthService, invitationService interfaces.InviteService, memberService interfaces.MembershipService) *InvitationController {
+	return &InvitationController{serverService: serverService, authService: authService, invitationService: invitationService, memberService: memberService}
 }
 
 func (c *InvitationController) RegisterRoute(r chi.Router) {
@@ -101,7 +102,7 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 //	@Produce		json
 //	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			invitation_id	path		string	true	"invite id to join server"
-//	@Success		200				{object}	nil
+//	@Success		200				{object}	response.JoinServerResponse
 //	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
 //	@Failure		404				{object}	response.ErrorResponse	"Invitation not found"
 //	@Failure		500				{object}	response.ErrorResponse
@@ -115,21 +116,41 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 		return
 	}
 
-	_, err = c.invitationService.GetInvitationById(r.Context(), query.GetInvitation{
-		InvitationId: invitationId,
-	})
-	if err != nil {
-		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation", 500, err))
-		return
-	}
-
 	user := extractUser(r.Context())
 	if user == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
-	render.Render(w, r, response.ParseErrorResponse("Have not implemented", http.StatusNotImplemented, nil))
+	membership, err := c.memberService.JoinServer(r.Context(), command.JoinServerCommand{
+		UserId:       user.Id,
+		InvitationId: invitationId,
+	})
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Cannot join server", 500, err))
+		return
+	}
+
+	server, err := c.serverService.Get(r.Context(), query.GetServer{
+		ServerId: membership.Result.ServerId,
+		UserId:   membership.Result.UserId,
+	})
+
+	render.Status(r, 200)
+	render.JSON(w, r, response.JoinServerResponse{
+		Server: response.ServerPreview{
+			Id:        server.Preview.Id,
+			Name:      server.Preview.Name,
+			IconUrl:   server.Preview.IconUrl,
+			BannerUrl: server.Preview.BannerUrl,
+		},
+		Membership: response.Membership{
+			ServerId:  membership.Result.ServerId,
+			UserId:    membership.Result.UserId,
+			Nickname:  membership.Result.Nickname,
+			CreatedAt: membership.Result.CreatedAt,
+		},
+	})
 }
 
 // register 		godoc

@@ -6,12 +6,13 @@ import (
 )
 
 type MembershipService interface {
-	JoinServer(context.Context, command.JoinServerCommand) error
+	JoinServer(context.Context, command.JoinServerCommand) (command.JoinServerCommandResult, error)
 	LeaveServer(context.Context, command.LeaveServerCommand) error
-	KickServer(context.Context, command.KickServerCommand) error
-	BanServer(context.Context, command.BanServerCommand) error
-	// - [ ] Assign role
-	// - [ ] Update channel user permission
-	// - [ ] Get server by user in
-	// - [ ] Set nickname
+	Kick(context.Context, command.KickCommand) error
+	Ban(context.Context, command.BanCommand) error
+	SetNickname(context.Context, command.SetNickname) error
 }
+
+// - [ ] Assign role
+// - [ ] Update channel user permission
+// - [ ] Get server by user in

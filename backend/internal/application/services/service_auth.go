@@ -46,7 +46,7 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 	user := entities.NewUser(entities.NewUserParam{
 		Username:    strings.ToLower(cmd.Username),
 		Email:       strings.ToLower(cmd.Email),
-		DisplayName: "",
+		DisplayName: cmd.Username,
 		AboutMe:     "",
 		Password:    string(password),
 		AvatarUrl:   "",

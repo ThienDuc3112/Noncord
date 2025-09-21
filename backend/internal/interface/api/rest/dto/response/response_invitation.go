@@ -20,3 +20,8 @@ type Invitation struct {
 	JoinLimit      int32      `json:"joinLimit"`
 	JoinCount      int32      `json:"joinCount"`
 }
+
+type JoinServerResponse struct {
+	Server     ServerPreview
+	Membership Membership
+}

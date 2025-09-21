@@ -1,4 +1,4 @@
 package command
 
-type BanServerCommand struct {
+type BanCommand struct {
 }

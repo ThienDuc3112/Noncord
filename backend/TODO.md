@@ -93,10 +93,10 @@
             - [x] Get invitation
             - [x] Get server details
             - [x] Error parsing route
-        - [ ] Join server
+        - [x] Join server
             - [x] Document server routes
-            - [ ] Green path
-            - [ ] Error parsing route
+            - [x] Green path
+            - [x] Error parsing route
         - [ ] Update invitation
             - [x] Document server routes
             - [x] Green path
@@ -116,8 +116,8 @@
         - [x] Delete membership
         - [ ] Delete role for membership
     - [ ] Implement service
-        - [ ] Join server
-        - [ ] Leave server
+        - [x] Join server
+        - [x] Leave server
         - [ ] Kick member
         - [ ] Ban member
         - [ ] Assign role

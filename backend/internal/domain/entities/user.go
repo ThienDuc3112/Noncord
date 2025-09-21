@@ -53,6 +53,9 @@ func (u *User) Validate() error {
 	if !IsValidUsername(u.Username) {
 		return NewError(ErrCodeValidationError, "username must only contain alphanumeric character '_' or '-' and cannot start or end with '_' or '-' ", nil)
 	}
+	if len(u.DisplayName) == 0 {
+		return NewError(ErrCodeValidationError, "display name cannot be empty", nil)
+	}
 	if !IsValidEmail(u.Email) {
 		return NewError(ErrCodeValidationError, "invalid email", nil)
 	}

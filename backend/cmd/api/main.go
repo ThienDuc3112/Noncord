@@ -31,10 +31,12 @@ func main() {
 	sessionRepo := postgres.NewPGSessionRepo(conn)
 	serverRepo := postgres.NewPGServerRepo(conn)
 	invitationRepo := postgres.NewPGInvitationRepo(conn)
+	memberRepo := postgres.NewPGMemberRepo(conn)
 
 	authService := services.NewAuthService(userRepo, sessionRepo, conn, os.Getenv("SECRET"))
 	serverService := services.NewServerService(serverRepo)
 	invitationService := services.NewInvitationService(serverRepo, invitationRepo)
+	membershipService := services.NewMemberService(memberRepo, invitationRepo, serverRepo, userRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -57,6 +59,7 @@ func main() {
 
 		rest.NewAuthController(authService).RegisterRoute(r)
 		rest.NewServerController(serverService, authService, invitationService).RegisterRoute(r)
+		rest.NewInvitationController(serverService, authService, invitationService, membershipService).RegisterRoute(r)
 	})
 
 	log.Printf("listening on port %v", port)
