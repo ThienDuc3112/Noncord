@@ -160,6 +160,46 @@ func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Serv
 	return items, nil
 }
 
+const findServersFromUserId = `-- name: FindServersFromUserId :many
+SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.default_role, s.announcement_channel, s.owner 
+FROM servers s
+JOIN memberships m ON m.server_id = s.id
+WHERE m.user_id = $1 AND deleted_at IS NOT NULL
+`
+
+func (q *Queries) FindServersFromUserId(ctx context.Context, userID uuid.UUID) ([]Server, error) {
+	rows, err := q.db.Query(ctx, findServersFromUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Server
+	for rows.Next() {
+		var i Server
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Name,
+			&i.Description,
+			&i.IconUrl,
+			&i.BannerUrl,
+			&i.NeedApproval,
+			&i.DefaultRole,
+			&i.AnnouncementChannel,
+			&i.Owner,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const saveInvitation = `-- name: SaveInvitation :one
 INSERT INTO invitations (
 	id,

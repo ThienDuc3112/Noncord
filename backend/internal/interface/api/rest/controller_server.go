@@ -8,7 +8,6 @@ import (
 	"backend/internal/domain/entities"
 	"backend/internal/interface/api/rest/dto/request"
 	"backend/internal/interface/api/rest/dto/response"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -75,8 +74,9 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 	}
 
 	server, err := c.serverService.Create(r.Context(), command.CreateServerCommand{
-		UserId: user.Id,
-		Name:   body.Name,
+		UserId:          user.Id,
+		Name:            body.Name,
+		UserDisplayName: user.DisplayName,
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot create server", 500, err))
@@ -87,10 +87,6 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 	render.JSON(w, r, response.NewServerResponse{
 		Id: server.Result.Id,
 	})
-}
-
-func placeholderGetServerIds() ([]uuid.UUID, error) {
-	return nil, fmt.Errorf("unimplemented")
 }
 
 // register 		godoc
@@ -115,19 +111,11 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 	}
 
 	// TODO: replace with actual getting servers code
-	serverIds, err := placeholderGetServerIds()
-	if err != nil {
-		render.Render(w, r, response.ParseErrorResponse("Unimplemented", http.StatusNotImplemented, err))
-		// render.Render(w, r, response.NewErrorResponse("Cannot get user's servers", 500, err))
-		return
-	}
-
-	servers, err := c.serverService.GetServers(r.Context(), query.GetServers{
-		ServerIds: serverIds,
+	servers, err := c.serverService.GetServersUserIn(r.Context(), query.GetServersUserIn{
+		UserId: user.Id,
 	})
-
 	if err != nil {
-		render.Render(w, r, response.ParseErrorResponse("Cannot get server", 500, err))
+		render.Render(w, r, response.ParseErrorResponse("Cannot get servers", 500, err))
 		return
 	}
 

@@ -16,11 +16,13 @@ import (
 
 type ServerService struct {
 	sr repositories.ServerRepo
+	mr repositories.MemberRepo
 }
 
-func NewServerService(sr repositories.ServerRepo) interfaces.ServerService {
+func NewServerService(sr repositories.ServerRepo, mr repositories.MemberRepo) interfaces.ServerService {
 	return &ServerService{
 		sr: sr,
+		mr: mr,
 	}
 }
 
@@ -28,7 +30,12 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 	server := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
 	_, err := s.sr.Save(ctx, server)
 	if err != nil {
-		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server failed")
+		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
+	}
+
+	_, err = s.mr.Save(ctx, entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserDisplayName))
+	if err != nil {
+		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
 	}
 
 	// TODO: Create default channel and role
@@ -63,6 +70,19 @@ func (s *ServerService) GetServers(ctx context.Context, params query.GetServers)
 	}
 
 	return query.GetServersResult{
+		Result: arrutil.Map(servers, func(server *entities.Server) (target *common.Server, find bool) {
+			return mapper.ServerToResult(server), true
+		}),
+	}, nil
+}
+
+func (s *ServerService) GetServersUserIn(ctx context.Context, params query.GetServersUserIn) (query.GetServersUserInResult, error) {
+	servers, err := s.sr.FindByUser(ctx, entities.UserId(params.UserId))
+	if err != nil {
+		return query.GetServersUserInResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+	}
+
+	return query.GetServersUserInResult{
 		Result: arrutil.Map(servers, func(server *entities.Server) (target *common.Server, find bool) {
 			return mapper.ServerToResult(server), true
 		}),

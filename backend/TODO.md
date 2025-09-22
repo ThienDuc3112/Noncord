@@ -21,8 +21,10 @@
     - [ ] Implement service
         - [ ] Create new server
             - [x] Create server
+            - [x] Add user to the server
             - [ ] Create default channel
             - [ ] Create default role
+        - [x] Get servers by user
         - [ ] Get server by ID
             - [ ] Check if user is in the server
             - [x] Return the server
@@ -40,17 +42,15 @@
             - [ ] Check for membership
             - [ ] Check for ownership
             - [ ] Actual transfer
-        - [ ] Join server
     - [ ] Implement controller
         - [x] Auth middleware
         - [ ] Create new server
             - [x] Document server routes
             - [x] Create server
-            - [ ] Add user to the server
             - [ ] Error parsing route
-        - [ ] Get servers user in
+        - [x] Get servers user in
             - [x] Document server routes
-            - [ ] Get user's servers
+            - [x] Get user's servers
             - [x] Get servers
             - [x] Error parsing route
         - [ ] Get server by ID

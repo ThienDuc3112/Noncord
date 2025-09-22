@@ -7,8 +7,9 @@ import (
 )
 
 type CreateServerCommand struct {
-	UserId uuid.UUID
-	Name   string
+	UserId          uuid.UUID
+	Name            string
+	UserDisplayName string
 }
 
 type CreateServerCommandResult struct {

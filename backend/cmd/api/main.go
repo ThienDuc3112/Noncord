@@ -34,7 +34,7 @@ func main() {
 	memberRepo := postgres.NewPGMemberRepo(conn)
 
 	authService := services.NewAuthService(userRepo, sessionRepo, conn, os.Getenv("SECRET"))
-	serverService := services.NewServerService(serverRepo)
+	serverService := services.NewServerService(serverRepo, memberRepo)
 	invitationService := services.NewInvitationService(serverRepo, invitationRepo)
 	membershipService := services.NewMemberService(memberRepo, invitationRepo, serverRepo, userRepo)
 

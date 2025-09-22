@@ -83,4 +83,15 @@ func (r *PGServerRepo) FindByInvitationId(ctx context.Context, id e.InvitationId
 	return fromDbServer(server), nil
 }
 
+func (r *PGServerRepo) FindByUser(ctx context.Context, userId e.UserId) ([]*e.Server, error) {
+	servers, err := r.repo.FindServersFromUserId(ctx, uuid.UUID(userId))
+	if err != nil {
+		return nil, err
+	}
+
+	return arrutil.Map(servers, func(s gen.Server) (target *e.Server, find bool) {
+		return fromDbServer(s), true
+	}), nil
+}
+
 var _ repositories.ServerRepo = &PGServerRepo{}

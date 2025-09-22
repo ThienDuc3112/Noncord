@@ -86,3 +86,9 @@ SELECT s.*
 FROM servers s 
 JOIN invitations i ON s.id = i.server_id
 WHERE i.id = $1 AND (i.expired_at IS NULL OR i.expired_at > NOW()) AND (i.join_limit <= 0 OR i.join_limit > i.join_count);
+
+-- name: FindServersFromUserId :many
+SELECT s.* 
+FROM servers s
+JOIN memberships m ON m.server_id = s.id
+WHERE m.user_id = $1 AND deleted_at IS NOT NULL;
