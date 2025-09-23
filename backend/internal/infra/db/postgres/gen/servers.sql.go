@@ -73,7 +73,7 @@ func (q *Queries) FindInvitationsByServerId(ctx context.Context, serverID uuid.U
 }
 
 const findServerById = `-- name: FindServerById :one
-SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = $1 AND deleted_at IS NOT NULL
+SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) FindServerById(ctx context.Context, id uuid.UUID) (Server, error) {
@@ -124,7 +124,7 @@ func (q *Queries) FindServerFromInviteId(ctx context.Context, id uuid.UUID) (Ser
 }
 
 const findServersByIds = `-- name: FindServersByIds :many
-SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = ANY($1::UUID[]) AND deleted_at IS NOT NULL
+SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, default_role, announcement_channel, owner FROM servers WHERE id = ANY($1::UUID[]) AND deleted_at IS NULL
 `
 
 func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Server, error) {
@@ -164,7 +164,7 @@ const findServersFromUserId = `-- name: FindServersFromUserId :many
 SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.default_role, s.announcement_channel, s.owner 
 FROM servers s
 JOIN memberships m ON m.server_id = s.id
-WHERE m.user_id = $1 AND deleted_at IS NOT NULL
+WHERE m.user_id = $1 AND s.deleted_at IS NULL
 `
 
 func (q *Queries) FindServersFromUserId(ctx context.Context, userID uuid.UUID) ([]Server, error) {

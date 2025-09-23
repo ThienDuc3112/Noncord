@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,10 +28,29 @@ import {
 } from "lucide-react";
 import { theme } from "@/lib/theme";
 
+import { useQuery } from "@tanstack/react-query";
+
 export default function DashboardPage() {
   const [selectedChannel, setSelectedChannel] = useState("general");
   const [message, setMessage] = useState("");
   const [isMuted, setIsMuted] = useState(false);
+
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["servers"],
+    queryFn: async () => {
+      return (await (await fetch("/api/server")).json()).result ?? null;
+    },
+  });
+
+  useEffect(() => {
+    console.log(`data: ${JSON.stringify(data, null, 2)}`);
+  }, [data]);
+  useEffect(() => {
+    console.log(`error: ${error}`);
+  }, [error]);
+  useEffect(() => {
+    console.log(`isLoading: ${isLoading}`);
+  }, [isLoading]);
 
   const servers = [
     { id: "1", name: "My Server", avatar: "MS", color: "bg-pink-600" },

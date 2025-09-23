@@ -19,3 +19,5 @@
                 - [x] Validate frontend input
                 - [x] Send login request and handle error
                 - [x] Auto redirect on active session
+- [ ] Redirect routes to api
+    - [ ] Redirect each part instead of everything under /api

@@ -39,10 +39,10 @@ DO UPDATE SET
 RETURNING *;
 
 -- name: FindServerById :one
-SELECT * FROM servers WHERE id = $1 AND deleted_at IS NOT NULL;
+SELECT * FROM servers WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: FindServersByIds :many
-SELECT * FROM servers WHERE id = ANY(@ids::UUID[]) AND deleted_at IS NOT NULL;
+SELECT * FROM servers WHERE id = ANY(@ids::UUID[]) AND deleted_at IS NULL;
 
 -- name: DeleteServer :exec
 UPDATE servers SET deleted_at = NOW() WHERE id = $1;
@@ -91,4 +91,4 @@ WHERE i.id = $1 AND (i.expired_at IS NULL OR i.expired_at > NOW()) AND (i.join_l
 SELECT s.* 
 FROM servers s
 JOIN memberships m ON m.server_id = s.id
-WHERE m.user_id = $1 AND deleted_at IS NOT NULL;
+WHERE m.user_id = $1 AND s.deleted_at IS NULL;
