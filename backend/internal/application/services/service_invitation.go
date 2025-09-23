@@ -101,8 +101,8 @@ func (s *InvitationService) GetInvitationsByServerId(ctx context.Context, params
 	}
 
 	// TODO: Check for other permission as well
-	if server.IsOwner(entities.UserId(params.UserId)) {
-		return query.GetInvitationsByServerIdResult{}, entities.NewError(entities.ErrCodeDepFail, "user don't have enough permission", nil)
+	if !server.IsOwner(entities.UserId(params.UserId)) {
+		return query.GetInvitationsByServerIdResult{}, entities.NewError(entities.ErrCodeForbidden, "user don't have enough permission", nil)
 	}
 
 	invs, err := s.ir.FindByServerId(ctx, entities.ServerId(params.ServerId))
@@ -129,7 +129,7 @@ func (s *InvitationService) InvalidateInvitation(ctx context.Context, params com
 	}
 
 	// Check for role permission as well
-	if server.IsOwner(entities.UserId(params.UserId)) {
+	if !server.IsOwner(entities.UserId(params.UserId)) {
 		return entities.NewError(entities.ErrCodeForbidden, "user not authorized to perfrom this action", nil)
 	}
 
