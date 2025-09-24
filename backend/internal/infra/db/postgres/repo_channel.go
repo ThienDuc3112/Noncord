@@ -59,6 +59,11 @@ func (r *PGChannelRepo) FindByServerId(ctx context.Context, serverId e.ServerId)
 	}), nil
 }
 
+func (r *PGChannelRepo) GetServerMaxChannelOrder(ctx context.Context, serverId e.ServerId) (int32, error) {
+	return r.db.GetServerMaxOrdering(ctx, uuid.UUID(serverId))
+
+}
+
 func (r *PGChannelRepo) FindRoleOverrides(ctx context.Context, id e.ChannelId) ([]*e.ChannelRolePermissionOverride, error) {
 	return nil, fmt.Errorf("Not implemented")
 }

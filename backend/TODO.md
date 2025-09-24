@@ -22,7 +22,7 @@
         - [ ] Create new server
             - [x] Create server
             - [x] Add user to the server
-            - [ ] Create default channel
+            - [x] Create default channel
             - [ ] Create default role
         - [x] Get servers by user
         - [ ] Get server by ID
@@ -132,6 +132,8 @@
         - [x] Find channels by server id
         - [x] Save channel
         - [x] Delete channel
+
+        - [x] Get server max ordering
         
         - [ ] Find role overrides
         - [ ] Find role override by role id
@@ -144,6 +146,17 @@
         - [ ] Delete user override
         <!-- Find override by user without channel id -->
     - [ ] Implement service
+        - [x] Get channel
+        - [x] Get channels by server id
+        - [ ] Create channel
+            - [ ] Permission check
+            - [x] Create channel
+        - [ ] Update channel
+            - [ ] Permission check
+            - [ ] Update channel
+        - [ ] Delete channel
+            - [ ] Permission check
+            - [x] Delete channel
     - [ ] Implement controller
 - [ ] Role service
     - [ ] Implement repo

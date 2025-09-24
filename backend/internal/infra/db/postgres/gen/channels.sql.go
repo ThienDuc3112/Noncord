@@ -110,6 +110,17 @@ func (q *Queries) FindChannelsByServerId(ctx context.Context, serverID uuid.UUID
 	return items, nil
 }
 
+const getServerMaxOrdering = `-- name: GetServerMaxOrdering :one
+SELECT COALESCE(MAX(ordering), 0)::int AS max_order FROM channels WHERE server_id = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) GetServerMaxOrdering(ctx context.Context, serverID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, getServerMaxOrdering, serverID)
+	var max_order int32
+	err := row.Scan(&max_order)
+	return max_order, err
+}
+
 const saveChannel = `-- name: SaveChannel :one
 INSERT INTO channels (
 	id,

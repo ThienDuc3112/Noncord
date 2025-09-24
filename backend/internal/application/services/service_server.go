@@ -17,18 +17,20 @@ import (
 type ServerService struct {
 	sr repositories.ServerRepo
 	mr repositories.MemberRepo
+	cr repositories.ChannelRepo
 }
 
-func NewServerService(sr repositories.ServerRepo, mr repositories.MemberRepo) interfaces.ServerService {
+func NewServerService(sr repositories.ServerRepo, mr repositories.MemberRepo, cr repositories.ChannelRepo) interfaces.ServerService {
 	return &ServerService{
 		sr: sr,
 		mr: mr,
+		cr: cr,
 	}
 }
 
 func (s *ServerService) Create(ctx context.Context, params command.CreateServerCommand) (command.CreateServerCommandResult, error) {
 	server := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
-	_, err := s.sr.Save(ctx, server)
+	server, err := s.sr.Save(ctx, server)
 	if err != nil {
 		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 	}
@@ -38,7 +40,21 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
 	}
 
-	// TODO: Create default channel and role
+	channel := entities.NewChannel("text channel", "Your first channel", server.Id, 1, nil)
+	channel, err = s.cr.Save(ctx, channel)
+	if err != nil {
+		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save channel")
+	}
+	// TODO: Create default role
+
+	if err = server.UpdateAnnouncementChannel(&channel.Id); err != nil {
+		return command.CreateServerCommandResult{}, err
+	}
+
+	server, err = s.sr.Save(ctx, server)
+	if err != nil {
+		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
+	}
 
 	return command.CreateServerCommandResult{
 		Result: mapper.ServerToResult(server),

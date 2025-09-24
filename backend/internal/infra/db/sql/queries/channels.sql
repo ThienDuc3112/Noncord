@@ -43,3 +43,6 @@ SELECT * FROM channels WHERE id = ANY(@ids::UUID[]) AND deleted_at IS NULL;
 
 -- name: DeleteChannel :exec
 UPDATE channels SET deleted_at = NOW() WHERE id = $1;
+
+-- name: GetServerMaxOrdering :one
+SELECT COALESCE(MAX(ordering), 0)::int AS max_order FROM channels WHERE server_id = $1 AND deleted_at IS NULL;

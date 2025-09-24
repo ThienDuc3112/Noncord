@@ -6,21 +6,23 @@ import (
 )
 
 type ChannelRepo interface {
-	Find(ctx context.Context, id e.ChannelId) (*e.Channel, error)
-	FindIds(ctx context.Context, ids []e.ChannelId) ([]*e.Channel, error)
-	FindByServerId(ctx context.Context, serverId e.ServerId) ([]*e.Channel, error)
+	Find(context.Context, e.ChannelId) (*e.Channel, error)
+	FindIds(context.Context, []e.ChannelId) ([]*e.Channel, error)
+	FindByServerId(context.Context, e.ServerId) ([]*e.Channel, error)
 
-	FindRoleOverrides(ctx context.Context, id e.ChannelId) ([]*e.ChannelRolePermissionOverride, error)
-	FindRoleOverrideByRoleId(ctx context.Context, id e.ChannelId, roleId e.RoleId) (*e.ChannelRolePermissionOverride, error)
+	GetServerMaxChannelOrder(context.Context, e.ServerId) (int32, error)
 
-	FindUserOverrides(ctx context.Context, id e.ChannelId) (*e.ChannelUserPermissionOverride, error)
-	FindUserOverrideByUserId(ctx context.Context, id e.ChannelId, userId e.UserId) (*e.ChannelUserPermissionOverride, error)
+	FindRoleOverrides(context.Context, e.ChannelId) ([]*e.ChannelRolePermissionOverride, error)
+	FindRoleOverrideByRoleId(context.Context, e.ChannelId, e.RoleId) (*e.ChannelRolePermissionOverride, error)
 
-	Save(ctx context.Context, channel *e.Channel) (*e.Channel, error)
-	SaveRoleOverride(ctx context.Context, perm *e.ChannelRolePermissionOverride) (*e.ChannelRolePermissionOverride, error)
-	SaveUserOverride(ctx context.Context, perm *e.ChannelUserPermissionOverride) (*e.ChannelUserPermissionOverride, error)
+	FindUserOverrides(context.Context, e.ChannelId) (*e.ChannelUserPermissionOverride, error)
+	FindUserOverrideByUserId(context.Context, e.ChannelId, e.UserId) (*e.ChannelUserPermissionOverride, error)
 
-	Delete(ctx context.Context, id e.ChannelId) error
-	DeleteRoleOverride(ctx context.Context, id e.ChannelId, roleId e.RoleId) error
-	DeleteUserOverride(ctx context.Context, id e.ChannelId, userId e.UserId) error
+	Save(context.Context, *e.Channel) (*e.Channel, error)
+	SaveRoleOverride(context.Context, *e.ChannelRolePermissionOverride) (*e.ChannelRolePermissionOverride, error)
+	SaveUserOverride(context.Context, *e.ChannelUserPermissionOverride) (*e.ChannelUserPermissionOverride, error)
+
+	Delete(context.Context, e.ChannelId) error
+	DeleteRoleOverride(context.Context, e.ChannelId, e.RoleId) error
+	DeleteUserOverride(context.Context, e.ChannelId, e.UserId) error
 }
