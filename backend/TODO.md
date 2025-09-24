@@ -125,6 +125,26 @@
         - [ ] Get server by user in
         - [ ] Set nickname
     - [ ] Implement controller
+- [ ] Channel service
+    - [ ] Implement repo
+        - [x] Find channel by id
+        - [x] Find channels by ids
+        - [x] Find channels by server id
+        - [x] Save channel
+        - [x] Delete channel
+        
+        - [ ] Find role overrides
+        - [ ] Find role override by role id
+        - [ ] Save role override
+        - [ ] Delete role override
+
+        - [ ] Find user overrides
+        - [ ] Find user override by user id
+        - [ ] Save user override
+        - [ ] Delete user override
+        <!-- Find override by user without channel id -->
+    - [ ] Implement service
+    - [ ] Implement controller
 - [ ] Role service
     - [ ] Implement repo
     - [ ] Implement service
@@ -132,14 +152,6 @@
         - [ ] Update role
         - [ ] Delete role
         - [ ] Update channel role permission
-    - [ ] Implement controller
-- [ ] Channel service
-    - [ ] Implement repo
-    - [ ] Implement service
-        - [ ] Create channel
-        - [ ] Update channel
-        - [ ] Delete channel
-        - [ ] Create category
     - [ ] Implement controller
 - [ ] Invite service
     - [ ] ?
