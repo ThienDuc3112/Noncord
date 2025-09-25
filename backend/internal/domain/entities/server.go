@@ -39,6 +39,26 @@ const (
 	PermAdministrator ServerPermissionBits = 1 << 22
 )
 
+func CreatePermission(permissions ...ServerPermissionBits) ServerPermissionBits {
+	var res ServerPermissionBits = 0
+	for _, p := range permissions {
+		res |= p
+	}
+	return res
+}
+
+// Supported many permission check by making check a combination of many permission bits
+// Can use `CreatePermission` to create one
+func (p ServerPermissionBits) HasAll(check ServerPermissionBits) bool {
+	return (p & check) == check
+}
+
+// Supported many permission check by making check a combination of many permission bits
+// Can use `CreatePermission` to create one
+func (p ServerPermissionBits) HasAny(check ServerPermissionBits) bool {
+	return (p & check) > 0
+}
+
 type ServerId uuid.UUID
 
 type Server struct {
@@ -54,7 +74,7 @@ type Server struct {
 
 	Owner UserId
 
-	DefaultRole         *RoleId
+	DefaultPermission   ServerPermissionBits
 	AnnouncementChannel *ChannelId
 }
 
@@ -159,6 +179,14 @@ func (s *Server) UpdateAnnouncementChannel(channelId *ChannelId) error {
 	return nil
 }
 
+func (s *Server) UpdateDefaultPermission(perm ServerPermissionBits) error {
+	if s.DefaultPermission != perm {
+		s.DefaultPermission = perm
+		s.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
 func (s *Server) IsOwner(userId UserId) bool {
 	return userId == s.Owner
 }
@@ -177,7 +205,7 @@ func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, need
 
 		Owner: userId,
 
-		DefaultRole:         nil,
+		DefaultPermission:   CreatePermission(PermViewChannel, PermCreateInvite, PermChangeNickname, PermSendMessage, PermEmbedLinks, PermAttachFiles, PermAddReactions, PermExternalEmote, PermReadMessagesHistory),
 		AnnouncementChannel: nil,
 	}
 }

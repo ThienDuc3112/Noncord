@@ -163,6 +163,11 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 			return command.UpdateServerCommandResult{}, err
 		}
 	}
+	if params.Updates.DefaultPermission != nil {
+		if err = server.UpdateDefaultPermission(entities.ServerPermissionBits(*params.Updates.DefaultPermission)); err != nil {
+			return command.UpdateServerCommandResult{}, err
+		}
+	}
 
 	server, err = s.sr.Save(ctx, server)
 	if err != nil {

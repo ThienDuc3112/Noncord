@@ -16,7 +16,7 @@ func fromDbServer(s gen.Server) *e.Server {
 		IconUrl:             s.IconUrl,
 		BannerUrl:           s.BannerUrl,
 		NeedApproval:        s.NeedApproval,
-		DefaultRole:         (*e.RoleId)(s.DefaultRole),
+		DefaultPermission:   e.ServerPermissionBits(s.DefaultPermssion),
 		AnnouncementChannel: (*e.ChannelId)(s.AnnouncementChannel),
 		Owner:               e.UserId(s.Owner),
 	}

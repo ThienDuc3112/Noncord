@@ -17,7 +17,7 @@ type Server struct {
 	BannerUrl    string
 	NeedApproval bool
 
-	DefaultRole         *uuid.UUID
+	DefaultPermission   int64
 	AnnouncementChannel *uuid.UUID
 }
 

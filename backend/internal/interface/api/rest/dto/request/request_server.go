@@ -16,12 +16,13 @@ func (r *NewServer) Bind(_ *http.Request) error {
 }
 
 type UpdateServer struct {
-	Name                *string    `json:"name" validate:"required_without_all=Description IconUrl BannerUrl NeedApproval AnnouncementChannel"`
-	Description         *string    `json:"description" validate:"required_without_all=Name IconUrl BannerUrl NeedApproval AnnouncementChannel"`
-	IconUrl             *string    `json:"iconUrl" validate:"required_without_all=Name Description BannerUrl NeedApproval AnnouncementChannel"`
-	BannerUrl           *string    `json:"bannerUrl" validate:"required_without_all=Name Description IconUrl NeedApproval AnnouncementChannel"`
-	NeedApproval        *bool      `json:"needApproval" validate:"required_without_all=Name Description IconUrl BannerUrl AnnouncementChannel"`
-	AnnouncementChannel *uuid.UUID `json:"announcementChannel" validate:"required_without_all=Name Description IconUrl BannerUrl NeedApproval"`
+	Name                *string    `json:"name" validate:"required_without_all=Description IconUrl BannerUrl NeedApproval AnnouncementChannel DefaultPermission"`
+	Description         *string    `json:"description" validate:"required_without_all=Name IconUrl BannerUrl NeedApproval AnnouncementChannel DefaultPermission"`
+	IconUrl             *string    `json:"iconUrl" validate:"required_without_all=Name Description BannerUrl NeedApproval AnnouncementChannel DefaultPermission"`
+	BannerUrl           *string    `json:"bannerUrl" validate:"required_without_all=Name Description IconUrl NeedApproval AnnouncementChannel DefaultPermission"`
+	NeedApproval        *bool      `json:"needApproval" validate:"required_without_all=Name Description IconUrl BannerUrl AnnouncementChannel DefaultPermission"`
+	AnnouncementChannel *uuid.UUID `json:"announcementChannel" validate:"required_without_all=Name Description IconUrl BannerUrl NeedApproval DefaultPermission"`
+	DefaultPermission   *int64     `json:"defaultPermission" validate:"required_without_all=Name Description IconUrl BannerUrl NeedApproval AnnouncementChannel"`
 }
 
 func (r *UpdateServer) Bind(_ *http.Request) error {

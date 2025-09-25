@@ -8,7 +8,7 @@ INSERT INTO servers (
 	icon_url,
   banner_url,
 	need_approval,
-	default_role,
+	default_permssion,
 	announcement_channel,
   owner
 ) VALUES (

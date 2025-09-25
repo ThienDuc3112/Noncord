@@ -22,6 +22,7 @@ type UpdateServerOption struct {
 	NeedApproval *bool
 
 	AnnouncementChannel uuid.NullUUID
+	DefaultPermission   *int64
 }
 
 type UpdateServerCommandResult struct {

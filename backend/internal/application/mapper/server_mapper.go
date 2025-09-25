@@ -18,8 +18,8 @@ func ServerToResult(s *entities.Server) *common.Server {
 		IconUrl:             s.IconUrl,
 		BannerUrl:           s.BannerUrl,
 		NeedApproval:        s.NeedApproval,
-		DefaultRole:         (*uuid.UUID)(s.DefaultRole),
 		AnnouncementChannel: (*uuid.UUID)(s.AnnouncementChannel),
+		DefaultPermission:   int64(s.DefaultPermission),
 	}
 }
 

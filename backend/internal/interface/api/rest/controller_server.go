@@ -188,6 +188,7 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 			IconUrl:             server.Full.IconUrl,
 			BannerUrl:           server.Full.BannerUrl,
 			AnnouncementChannel: server.Full.AnnouncementChannel,
+			DefaultPermission:   server.Full.DefaultPermission,
 			Channels: arrutil.Map(server.Channel, func(c *common.Channel) (target response.Channel, find bool) {
 				return response.Channel{
 					Id:             c.Id,
@@ -262,6 +263,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 			BannerUrl:           body.BannerUrl,
 			NeedApproval:        body.NeedApproval,
 			AnnouncementChannel: nullableAnnouncementChannel,
+			DefaultPermission:   body.DefaultPermission,
 		},
 	})
 	if err != nil {
@@ -279,6 +281,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		IconUrl:             server.Result.IconUrl,
 		BannerUrl:           server.Result.BannerUrl,
 		AnnouncementChannel: server.Result.AnnouncementChannel,
+		DefaultPermission:   server.Result.DefaultPermission,
 	})
 }
 
