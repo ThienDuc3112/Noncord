@@ -67,12 +67,29 @@ func (s *ServerService) Get(ctx context.Context, params query.GetServer) (query.
 		return query.GetServerResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
 	}
 
-	// TODO: Check if user is a member of the server or not
-	// params.UserId
+	if params.UserId == nil {
+		return query.GetServerResult{
+			Preview: mapper.ServerToPreview(server),
+		}, nil
+	}
+
+	if _, err = s.mr.Find(ctx, entities.UserId(*params.UserId), server.Id); err != nil {
+		return query.GetServerResult{
+			Preview: mapper.ServerToPreview(server),
+		}, nil
+	}
+
+	channels, err := s.cr.FindByServerId(ctx, server.Id)
+	if err != nil {
+		return query.GetServerResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channels")
+	}
 
 	return query.GetServerResult{
 		Preview: mapper.ServerToPreview(server),
 		Full:    mapper.ServerToResult(server),
+		Channel: arrutil.Map(channels, func(c *entities.Channel) (target *common.Channel, find bool) {
+			return mapper.ChannelToResult(c), true
+		}),
 	}, nil
 }
 

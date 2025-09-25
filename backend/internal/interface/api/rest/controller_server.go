@@ -141,7 +141,7 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 // register 		godoc
 //
 //	@Summary		Get a server
-//	@Description	Get a server by id
+//	@Description	Get a server by id, can only get server the user is in
 //	@Tags			Server
 //	@Produce		json
 //	@Param			Authorization	header		string	true	"Bearer token"
@@ -177,28 +177,33 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// TODO: Fetch channels and Members
-
 	if server.Full != nil {
 		render.Status(r, 200)
 		render.JSON(w, r, response.GetServerResponse{
-			Id:          server.Full.Id,
-			Name:        server.Full.Name,
-			Description: server.Full.Description,
-			CreatedAt:   server.Full.CreatedAt,
-			UpdatedAt:   server.Full.UpdatedAt,
-			IconUrl:     server.Full.IconUrl,
-			BannerUrl:   server.Full.BannerUrl,
+			Id:                  server.Full.Id,
+			Name:                server.Full.Name,
+			Description:         server.Full.Description,
+			CreatedAt:           server.Full.CreatedAt,
+			UpdatedAt:           server.Full.UpdatedAt,
+			IconUrl:             server.Full.IconUrl,
+			BannerUrl:           server.Full.BannerUrl,
+			AnnouncementChannel: server.Full.AnnouncementChannel,
+			Channels: arrutil.Map(server.Channel, func(c *common.Channel) (target response.Channel, find bool) {
+				return response.Channel{
+					Id:             c.Id,
+					CreatedAt:      c.CreatedAt,
+					UpdatedAt:      c.UpdatedAt,
+					Name:           c.Name,
+					Description:    c.Description,
+					ServerId:       c.ServerId,
+					Order:          c.Order,
+					ParentCategory: c.ParentCategory,
+				}, true
+			}),
 		})
 	} else {
-		render.Status(r, 200)
-		render.JSON(w, r, response.GetServerResponse{
-			Id:          server.Preview.Id,
-			Name:        server.Preview.Name,
-			Description: server.Preview.Description,
-			IconUrl:     server.Preview.IconUrl,
-			BannerUrl:   server.Preview.BannerUrl,
-		})
+		render.Status(r, 404)
+		render.Render(w, r, response.NewErrorResponse("Server not found", http.StatusNotFound, nil))
 	}
 }
 
@@ -266,13 +271,14 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 
 	render.Status(r, 200)
 	render.JSON(w, r, response.UpdateServerResponse{
-		Id:          server.Result.Id,
-		Name:        server.Result.Name,
-		Description: server.Result.Description,
-		CreatedAt:   server.Result.CreatedAt,
-		UpdatedAt:   server.Result.UpdatedAt,
-		IconUrl:     server.Result.IconUrl,
-		BannerUrl:   server.Result.BannerUrl,
+		Id:                  server.Result.Id,
+		Name:                server.Result.Name,
+		Description:         server.Result.Description,
+		CreatedAt:           server.Result.CreatedAt,
+		UpdatedAt:           server.Result.UpdatedAt,
+		IconUrl:             server.Result.IconUrl,
+		BannerUrl:           server.Result.BannerUrl,
+		AnnouncementChannel: server.Result.AnnouncementChannel,
 	})
 }
 

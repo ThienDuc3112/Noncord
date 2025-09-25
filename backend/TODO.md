@@ -25,9 +25,10 @@
             - [x] Create default channel
             - [ ] Create default role
         - [x] Get servers by user
-        - [ ] Get server by ID
-            - [ ] Check if user is in the server
+        - [x] Get server by ID
+            - [x] Check if user is in the server
             - [x] Return the server
+            - [x] Get channels
         - [x] Get servers by IDs
         - [ ] Update server
             - [ ] Check permission
@@ -53,11 +54,10 @@
             - [x] Get user's servers
             - [x] Get servers
             - [x] Error parsing route
-        - [ ] Get server by ID
+        - [x] Get server by ID
             - [x] Document server routes
             - [x] Get server
-            - [ ] Get channels
-            - [ ] Get members
+            - [x] Get channels
             - [x] Error parsing route
         - [ ] Update Server
             - [x] Document server routes
@@ -125,6 +125,7 @@
         - [ ] Get server by user in
         - [ ] Set nickname
     - [ ] Implement controller
+        - [ ] Get members in a server
 - [ ] Channel service
     - [ ] Implement repo
         - [x] Find channel by id

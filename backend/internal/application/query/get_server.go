@@ -14,4 +14,5 @@ type GetServer struct {
 type GetServerResult struct {
 	Preview common.ServerPreview
 	Full    *common.Server
+	Channel []*common.Channel
 }
