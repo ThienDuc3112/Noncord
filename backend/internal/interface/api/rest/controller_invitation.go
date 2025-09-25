@@ -27,13 +27,17 @@ func NewInvitationController(serverService interfaces.ServerService, authService
 
 func (c *InvitationController) RegisterRoute(r chi.Router) {
 	r.Route("/invitations", func(r chi.Router) {
-		r.Use(authMiddleware(c.authService))
-
-		r.Post("/{invitation_id}/join", c.GetInvitationController)
 		r.Get("/{invitation_id}", c.GetInvitationController)
-		r.Put("/{invitation_id}", c.UpdateInvitationController)
-		r.Patch("/{invitation_id}", c.UpdateInvitationController)
-		r.Delete("/{invitation_id}", c.DeleteInvitationController)
+
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware(c.authService))
+
+			r.Post("/{invitation_id}/join", c.GetInvitationController)
+			r.Put("/{invitation_id}", c.UpdateInvitationController)
+			r.Patch("/{invitation_id}", c.UpdateInvitationController)
+			r.Delete("/{invitation_id}", c.DeleteInvitationController)
+
+		})
 	})
 }
 
@@ -43,7 +47,6 @@ func (c *InvitationController) RegisterRoute(r chi.Router) {
 //	@Description	Get an invitation detail by invitation id
 //	@Tags			Invitation
 //	@Produce		json
-//	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			invitation_id	path		string	true	"invite id to fetch"
 //	@Success		200				{object}	response.GetInvitationResponse
 //	@Failure		400				{object}	response.ErrorResponse	"Invalid invitation id"
@@ -67,15 +70,9 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
-		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
-		return
-	}
-
+	log.Printf("%v", invitation.Result.ServerId)
 	server, err := c.serverService.Get(r.Context(), query.GetServer{
 		ServerId: invitation.Result.ServerId,
-		UserId:   user.Id,
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation info", 500, err))
@@ -133,7 +130,7 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 
 	server, err := c.serverService.Get(r.Context(), query.GetServer{
 		ServerId: membership.Result.ServerId,
-		UserId:   membership.Result.UserId,
+		UserId:   &membership.Result.UserId,
 	})
 
 	render.Status(r, 200)

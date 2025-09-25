@@ -38,6 +38,7 @@ func main() {
 	serverService := services.NewServerService(serverRepo, memberRepo, channelRepo)
 	invitationService := services.NewInvitationService(serverRepo, invitationRepo)
 	membershipService := services.NewMemberService(memberRepo, invitationRepo, serverRepo, userRepo)
+	channelService := services.NewChannelService(channelRepo, serverRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -59,7 +60,7 @@ func main() {
 		r.Get("/docs/*", docsHandler)
 
 		rest.NewAuthController(authService).RegisterRoute(r)
-		rest.NewServerController(serverService, authService, invitationService).RegisterRoute(r)
+		rest.NewServerController(serverService, authService, invitationService, channelService).RegisterRoute(r)
 		rest.NewInvitationController(serverService, authService, invitationService, membershipService).RegisterRoute(r)
 	})
 

@@ -22,7 +22,7 @@ func (q *Queries) DeleteServer(ctx context.Context, id uuid.UUID) error {
 }
 
 const findInvitationById = `-- name: FindInvitationById :one
-SELECT id, server_id, created_at, expired_at, bypass_approval, join_limit, join_count FROM invitations WHERE id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit > 0 AND join_limit > join_count)
+SELECT id, server_id, created_at, expired_at, bypass_approval, join_limit, join_count FROM invitations WHERE id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit <= 0 OR join_limit > join_count)
 `
 
 func (q *Queries) FindInvitationById(ctx context.Context, id uuid.UUID) (Invitation, error) {

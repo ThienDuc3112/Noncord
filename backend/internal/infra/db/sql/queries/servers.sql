@@ -48,7 +48,7 @@ SELECT * FROM servers WHERE id = ANY(@ids::UUID[]) AND deleted_at IS NULL;
 UPDATE servers SET deleted_at = NOW() WHERE id = $1;
 
 -- name: FindInvitationById :one
-SELECT * FROM invitations WHERE id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit > 0 AND join_limit > join_count);
+SELECT * FROM invitations WHERE id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit <= 0 OR join_limit > join_count);
 
 -- name: FindInvitationsByServerId :many
 SELECT * FROM invitations WHERE server_id = $1 AND (expired_at IS NULL OR expired_at > NOW()) AND (join_limit <= 0 OR join_limit > join_count);

@@ -21,9 +21,15 @@ type ServerController struct {
 	serverService     interfaces.ServerService
 	authService       interfaces.AuthService
 	invitationService interfaces.InviteService
+	channelService    interfaces.ChannelService
 }
 
-func NewServerController(serverService interfaces.ServerService, authService interfaces.AuthService, invitationService interfaces.InviteService) *ServerController {
+func NewServerController(
+	serverService interfaces.ServerService,
+	authService interfaces.AuthService,
+	invitationService interfaces.InviteService,
+	channelService interfaces.ChannelService,
+) *ServerController {
 	return &ServerController{serverService: serverService, authService: authService, invitationService: invitationService}
 }
 
@@ -163,7 +169,7 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 
 	server, err := c.serverService.Get(r.Context(), query.GetServer{
 		ServerId: serverId,
-		UserId:   user.Id,
+		UserId:   &user.Id,
 	})
 
 	if err != nil {
