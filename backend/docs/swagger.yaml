@@ -1,4 +1,18 @@
 definitions:
+  request.CreateChannel:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      parentCategory:
+        type: string
+      serverId:
+        type: string
+    required:
+    - name
+    - serverId
+    type: object
   request.Login:
     properties:
       password:
@@ -55,6 +69,13 @@ definitions:
     - password
     - username
     type: object
+  request.UpdateChannel:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   request.UpdateInvitation:
     properties:
       bypassApproval:
@@ -68,6 +89,8 @@ definitions:
         type: string
       bannerUrl:
         type: string
+      defaultPermission:
+        type: integer
       description:
         type: string
       iconUrl:
@@ -76,6 +99,25 @@ definitions:
         type: string
       needApproval:
         type: boolean
+    type: object
+  response.Channel:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      order:
+        type: integer
+      parentCategory:
+        type: string
+      serverId:
+        type: string
+      updatedAt:
+        type: string
     type: object
   response.ErrorResponse:
     properties:
@@ -91,10 +133,18 @@ definitions:
     type: object
   response.GetServerResponse:
     properties:
+      announcementChannel:
+        type: string
       bannerUrl:
         type: string
+      channels:
+        items:
+          $ref: '#/definitions/response.Channel'
+        type: array
       createdAt:
         type: string
+      defaultPermission:
+        type: integer
       description:
         type: string
       iconUrl:
@@ -130,6 +180,24 @@ definitions:
       serverId:
         type: string
     type: object
+  response.JoinServerResponse:
+    properties:
+      membership:
+        $ref: '#/definitions/response.Membership'
+      server:
+        $ref: '#/definitions/response.ServerPreview'
+    type: object
+  response.Membership:
+    properties:
+      createdAt:
+        type: string
+      nickname:
+        type: string
+      serverId:
+        type: string
+      userId:
+        type: string
+    type: object
   response.NewServerResponse:
     properties:
       id:
@@ -155,10 +223,14 @@ definitions:
     type: object
   response.UpdateServerResponse:
     properties:
+      announcementChannel:
+        type: string
       bannerUrl:
         type: string
       createdAt:
         type: string
+      defaultPermission:
+        type: integer
       description:
         type: string
       iconUrl:
@@ -308,6 +380,232 @@ paths:
       summary: Register an account
       tags:
       - Auth
+  /api/v1/channels:
+    post:
+      description: Create channel
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: channel id to fetch
+        in: path
+        name: channel_id
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateChannel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created channel
+          schema:
+            $ref: '#/definitions/response.Channel'
+        "400":
+          description: Invalid body or invalid channel id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Cannot authenticate user
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden action
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Channel not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create channel
+      tags:
+      - Channel
+  /api/v1/channels/{channel_id}:
+    get:
+      description: Get channel details
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: channel id to fetch
+        in: path
+        name: channel_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Channel'
+        "400":
+          description: Invalid channel id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Channel not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get channel details
+      tags:
+      - Channel
+    patch:
+      description: Update channel
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: channel id
+        in: path
+        name: channel_id
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateChannel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New updated channel
+          schema:
+            $ref: '#/definitions/response.Channel'
+        "400":
+          description: Invalid body or invalid channel id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Cannot authenticate user
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden action
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Channel not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update channel
+      tags:
+      - Channel
+    put:
+      description: Update channel
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: channel id
+        in: path
+        name: channel_id
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateChannel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New updated channel
+          schema:
+            $ref: '#/definitions/response.Channel'
+        "400":
+          description: Invalid body or invalid channel id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Cannot authenticate user
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden action
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Channel not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update channel
+      tags:
+      - Channel
+  /api/v1/invitations/{channel_id}:
+    delete:
+      description: Delete channel
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: channel id
+        in: path
+        name: channel_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid channel id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Cannot authenticate user
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden action
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Channel not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Delete channel
+      tags:
+      - Channel
   /api/v1/invitations/{invitation_id}:
     delete:
       description: Invalidate an invitation by invitation id
@@ -353,11 +651,6 @@ paths:
     get:
       description: Get an invitation detail by invitation id
       parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: invite id to fetch
         in: path
         name: invitation_id
@@ -502,6 +795,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.JoinServerResponse'
         "400":
           description: Invalid invitation id
           schema:
@@ -629,7 +924,7 @@ paths:
       tags:
       - Server
     get:
-      description: Get a server by id
+      description: Get a server by id, can only get server the user is in
       parameters:
       - description: Bearer token
         in: header

@@ -159,6 +159,10 @@
             - [ ] Permission check
             - [x] Delete channel
     - [ ] Implement controller
+        - [x] Get channel
+        - [x] Create channel
+        - [ ] Update channel
+        - [ ] Delete channel
 - [ ] Role service
     - [ ] Implement repo
     - [ ] Implement service

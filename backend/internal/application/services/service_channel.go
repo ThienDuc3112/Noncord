@@ -16,12 +16,14 @@ import (
 type ChannelService struct {
 	cr repositories.ChannelRepo
 	sr repositories.ServerRepo
+	mr repositories.MemberRepo
 }
 
-func NewChannelService(cr repositories.ChannelRepo, sr repositories.ServerRepo) interfaces.ChannelService {
+func NewChannelService(cr repositories.ChannelRepo, sr repositories.ServerRepo, mr repositories.MemberRepo) interfaces.ChannelService {
 	return &ChannelService{
 		cr: cr,
 		sr: sr,
+		mr: mr,
 	}
 }
 
@@ -56,6 +58,12 @@ func (s *ChannelService) Get(ctx context.Context, params query.GetChannel) (quer
 	channel, err := s.cr.Find(ctx, entities.ChannelId(params.ChannelId))
 	if err != nil {
 		return query.GetChannelResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channel")
+	}
+
+	// TODO: Check view permission
+	_, err = s.mr.Find(ctx, entities.UserId(params.UserId), channel.ServerId)
+	if err != nil {
+		return query.GetChannelResult{}, entities.GetErrOrDefault(err, entities.ErrCodeNoObject, "channel not found")
 	}
 
 	return query.GetChannelResult{

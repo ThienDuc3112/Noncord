@@ -217,6 +217,344 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/channels": {
+            "post": {
+                "description": "Create channel",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Create channel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel id to fetch",
+                        "name": "channel_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateChannel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created channel",
+                        "schema": {
+                            "$ref": "#/definitions/response.Channel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or invalid channel id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Cannot authenticate user",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Channel not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channels/{channel_id}": {
+            "get": {
+                "description": "Get channel details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Get channel details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel id to fetch",
+                        "name": "channel_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Channel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid channel id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Channel not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update channel",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Update channel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel id",
+                        "name": "channel_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateChannel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "New updated channel",
+                        "schema": {
+                            "$ref": "#/definitions/response.Channel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or invalid channel id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Cannot authenticate user",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Channel not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update channel",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Update channel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel id",
+                        "name": "channel_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateChannel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "New updated channel",
+                        "schema": {
+                            "$ref": "#/definitions/response.Channel"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or invalid channel id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Cannot authenticate user",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Channel not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/invitations/{channel_id}": {
+            "delete": {
+                "description": "Delete channel",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Channel"
+                ],
+                "summary": "Delete channel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel id",
+                        "name": "channel_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "invalid channel id",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Cannot authenticate user",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden action",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Channel not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/invitations/{invitation_id}": {
             "get": {
                 "description": "Get an invitation detail by invitation id",
@@ -228,13 +566,6 @@ const docTemplate = `{
                 ],
                 "summary": "Get invitation detail",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "invite id to fetch",
@@ -506,7 +837,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.JoinServerResponse"
+                        }
                     },
                     "400": {
                         "description": "Invalid invitation id",
@@ -641,7 +975,7 @@ const docTemplate = `{
         },
         "/api/v1/server/{server_id}": {
             "get": {
-                "description": "Get a server by id",
+                "description": "Get a server by id, can only get server the user is in",
                 "produces": [
                     "application/json"
                 ],
@@ -1035,6 +1369,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "request.CreateChannel": {
+            "type": "object",
+            "required": [
+                "name",
+                "serverId"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parentCategory": {
+                    "type": "string"
+                },
+                "serverId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Login": {
             "type": "object",
             "required": [
@@ -1115,6 +1470,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateChannel": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateInvitation": {
             "type": "object",
             "properties": {
@@ -1135,6 +1501,9 @@ const docTemplate = `{
                 "bannerUrl": {
                     "type": "string"
                 },
+                "defaultPermission": {
+                    "type": "integer"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1146,6 +1515,35 @@ const docTemplate = `{
                 },
                 "needApproval": {
                     "type": "boolean"
+                }
+            }
+        },
+        "response.Channel": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "parentCategory": {
+                    "type": "string"
+                },
+                "serverId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -1171,11 +1569,23 @@ const docTemplate = `{
         "response.GetServerResponse": {
             "type": "object",
             "properties": {
+                "announcementChannel": {
+                    "type": "string"
+                },
                 "bannerUrl": {
                     "type": "string"
                 },
+                "channels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Channel"
+                    }
+                },
                 "createdAt": {
                     "type": "string"
+                },
+                "defaultPermission": {
+                    "type": "integer"
                 },
                 "description": {
                     "type": "string"
@@ -1231,6 +1641,34 @@ const docTemplate = `{
                 }
             }
         },
+        "response.JoinServerResponse": {
+            "type": "object",
+            "properties": {
+                "membership": {
+                    "$ref": "#/definitions/response.Membership"
+                },
+                "server": {
+                    "$ref": "#/definitions/response.ServerPreview"
+                }
+            }
+        },
+        "response.Membership": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "serverId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "response.NewServerResponse": {
             "type": "object",
             "properties": {
@@ -1270,11 +1708,17 @@ const docTemplate = `{
         "response.UpdateServerResponse": {
             "type": "object",
             "properties": {
+                "announcementChannel": {
+                    "type": "string"
+                },
                 "bannerUrl": {
                     "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
+                },
+                "defaultPermission": {
+                    "type": "integer"
                 },
                 "description": {
                     "type": "string"

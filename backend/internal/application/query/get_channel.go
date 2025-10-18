@@ -8,6 +8,7 @@ import (
 
 type GetChannel struct {
 	ChannelId uuid.UUID
+	UserId    uuid.UUID
 }
 
 type GetChannelResult struct {

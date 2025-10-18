@@ -14,7 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/swaggo/http-swagger/v2"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 // @title			Noncord API
@@ -38,7 +38,7 @@ func main() {
 	serverService := services.NewServerService(serverRepo, memberRepo, channelRepo)
 	invitationService := services.NewInvitationService(serverRepo, invitationRepo)
 	membershipService := services.NewMemberService(memberRepo, invitationRepo, serverRepo, userRepo)
-	channelService := services.NewChannelService(channelRepo, serverRepo)
+	channelService := services.NewChannelService(channelRepo, serverRepo, memberRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
