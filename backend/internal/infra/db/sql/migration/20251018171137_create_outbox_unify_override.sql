@@ -4,18 +4,17 @@ CREATE TABLE outbox (
   id UUID NOT NULL PRIMARY KEY,
   aggregate_name TEXT NOT NULL,
   aggregate_id UUID NOT NULL,
-  -- aggregate_version BIGINT NOT NULL,
 
   event_type TEXT NOT NULL,
   schema_version INT NOT NULL,
-  occurred_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+  occurred_at TIMESTAMP WITH TIME ZONE NOT NULL,
 
-  payload       JSONB NOT NULL,
+  payload JSONB NOT NULL,
 
-  status        TEXT NOT NULL DEFAULT 'pending', -- pending|inflight|dispatched|failed
-  attempts      INT NOT NULL DEFAULT 0,
-  claimed_at    TIMESTAMP WITH TIME ZONE,
-  worker_id     TEXT
+  status TEXT NOT NULL DEFAULT 'pending', -- pending|inflight|dispatched|failed
+  attempts INT NOT NULL DEFAULT 0,
+  claimed_at TIMESTAMP WITH TIME ZONE,
+  published_at TIMESTAMP WITH TIME ZONE
 );
 
 DROP TABLE channel_user_permission_override;
