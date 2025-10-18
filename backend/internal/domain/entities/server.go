@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/internal/domain/events"
 	"time"
 
 	"github.com/google/uuid"
@@ -62,6 +63,8 @@ func (p ServerPermissionBits) HasAny(check ServerPermissionBits) bool {
 type ServerId uuid.UUID
 
 type Server struct {
+	events.Recorder
+
 	Id           ServerId
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -118,8 +121,10 @@ func (s *Server) UpdateName(newName string) error {
 		return NewError(ErrCodeValidationError, "server name cannot exceed 256 characters", nil)
 	}
 	if s.Name != newName { // Only update if changed
+		old := s.Name
 		s.Name = newName
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerNameUpdated(s, old))
 	}
 	return nil
 }
@@ -129,8 +134,10 @@ func (s *Server) UpdateDescription(newDescription string) error {
 		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
 	}
 	if s.Description != newDescription {
+		old := s.Description
 		s.Description = newDescription
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerDescriptionUpdated(s, old))
 	}
 	return nil
 }
@@ -143,8 +150,10 @@ func (s *Server) UpdateIconUrl(newIconUrl string) error {
 		return NewError(ErrCodeValidationError, "icon url too long", nil)
 	}
 	if s.IconUrl != newIconUrl {
+		old := s.IconUrl
 		s.IconUrl = newIconUrl
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerIconURLUpdated(s, old))
 	}
 	return nil
 }
@@ -157,32 +166,44 @@ func (s *Server) UpdateBannerUrl(newBannerUrl string) error {
 		return NewError(ErrCodeValidationError, "banner url too long", nil)
 	}
 	if s.BannerUrl != newBannerUrl {
+		old := s.BannerUrl
 		s.BannerUrl = newBannerUrl
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerBannerURLUpdated(s, old))
 	}
 	return nil
 }
 
 func (s *Server) UpdateNeedApproval(needApproval bool) error {
 	if s.NeedApproval != needApproval {
+		old := s.NeedApproval
 		s.NeedApproval = needApproval
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerNeedApprovalChanged(s, old))
 	}
 	return nil
 }
 
 func (s *Server) UpdateAnnouncementChannel(channelId *ChannelId) error {
-	if s.AnnouncementChannel == nil || *s.AnnouncementChannel != *channelId {
+	changed := (s.AnnouncementChannel == nil && channelId != nil) ||
+		(s.AnnouncementChannel != nil && channelId == nil) ||
+		(s.AnnouncementChannel != nil && channelId != nil && *s.AnnouncementChannel != *channelId)
+
+	if changed {
+		old := s.AnnouncementChannel
 		s.AnnouncementChannel = channelId
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerAnnouncementChannelChanged(s, old))
 	}
 	return nil
 }
 
 func (s *Server) UpdateDefaultPermission(perm ServerPermissionBits) error {
 	if s.DefaultPermission != perm {
+		old := s.DefaultPermission
 		s.DefaultPermission = perm
 		s.UpdatedAt = time.Now()
+		s.Record(NewServerDefaultPermissionChanged(s, old))
 	}
 	return nil
 }
@@ -194,11 +215,12 @@ func (s *Server) IsOwner(userId UserId) bool {
 func (s *Server) Delete() error {
 	now := time.Now()
 	s.DeletedAt = &now
+	s.Record(NewServerDeleted(s))
 	return nil
 }
 
-func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, needApproval bool) *Server {
-	return &Server{
+func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, needApproval bool) (*Server, error) {
+	s := &Server{
 		Id:           ServerId(uuid.New()),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -214,6 +236,13 @@ func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, need
 		DefaultPermission:   CreatePermission(PermViewChannel, PermCreateInvite, PermChangeNickname, PermSendMessage, PermEmbedLinks, PermAttachFiles, PermAddReactions, PermExternalEmote, PermReadMessagesHistory),
 		AnnouncementChannel: nil,
 	}
+
+	if err := s.Validate(); err != nil {
+		return nil, err
+	}
+
+	s.Record(NewServerCreated(s))
+	return s, nil
 }
 
 type CategoryId uuid.UUID
