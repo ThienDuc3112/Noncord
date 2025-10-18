@@ -12,6 +12,4 @@ type MessageRepo interface {
 	FindByGroupId(ctx context.Context, groupId e.DMGroupId, before time.Time, limit int32) ([]*e.Message, error)
 
 	Save(ctx context.Context, msg *e.Message) (*e.Message, error)
-
-	Delete(ctx context.Context, id e.MessageId) error
 }

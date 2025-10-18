@@ -20,7 +20,5 @@ type UserRepo interface {
 	Save(ctx context.Context, user *e.User) error
 	SaveSettings(ctx context.Context, settings *e.UserSettings) (*e.UserSettings, error)
 
-	Delete(ctx context.Context, id e.UserId) error
-
 	WithTx(DBTX) UserRepo
 }

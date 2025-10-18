@@ -10,6 +10,4 @@ type DMGroupRepo interface {
 	FindByUserId(ctx context.Context, userId e.UserId) ([]*e.DMGroup, error)
 
 	Save(ctx context.Context, group *e.DMGroup) (*e.DMGroup, error)
-
-	Delete(ctx context.Context, id e.DMGroupId) error
 }

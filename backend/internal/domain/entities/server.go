@@ -191,6 +191,12 @@ func (s *Server) IsOwner(userId UserId) bool {
 	return userId == s.Owner
 }
 
+func (s *Server) Delete() error {
+	now := time.Now()
+	s.DeletedAt = &now
+	return nil
+}
+
 func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, needApproval bool) *Server {
 	return &Server{
 		Id:           ServerId(uuid.New()),

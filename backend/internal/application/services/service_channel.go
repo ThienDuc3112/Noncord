@@ -104,6 +104,7 @@ func (s *ChannelService) Delete(ctx context.Context, params command.DeleteChanne
 		return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
 	}
 
-	err = s.cr.Delete(ctx, channel.Id)
+	channel.Delete()
+	channel, err = s.cr.Save(ctx, channel)
 	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot delete server")
 }

@@ -11,6 +11,4 @@ type RoleRepo interface {
 	FindByMember(ctx context.Context, serverId e.ServerId, userId e.UserId) ([]*e.Role, error)
 
 	Save(ctx context.Context, role *e.Role) (*e.Role, error)
-
-	Delete(ctx context.Context, id e.RoleId) error
 }

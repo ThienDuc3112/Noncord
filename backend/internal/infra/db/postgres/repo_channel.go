@@ -6,7 +6,6 @@ import (
 	"backend/internal/infra/db/postgres/gen"
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/gookit/goutil/arrutil"
@@ -64,21 +63,21 @@ func (r *PGChannelRepo) GetServerMaxChannelOrder(ctx context.Context, serverId e
 
 }
 
-func (r *PGChannelRepo) FindRoleOverrides(ctx context.Context, id e.ChannelId) ([]*e.ChannelRolePermissionOverride, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) FindRoleOverrides(ctx context.Context, id e.ChannelId) ([]*e.ChannelRolePermissionOverride, error) {
+// 	return nil, fmt.Errorf("Not implemented")
+// }
 
-func (r *PGChannelRepo) FindRoleOverrideByRoleId(ctx context.Context, id e.ChannelId, roleId e.RoleId) (*e.ChannelRolePermissionOverride, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) FindRoleOverrideByRoleId(ctx context.Context, id e.ChannelId, roleId e.RoleId) (*e.ChannelRolePermissionOverride, error) {
+// 	return nil, fmt.Errorf("Not implemented")
+// }
 
-func (r *PGChannelRepo) FindUserOverrides(ctx context.Context, id e.ChannelId) (*e.ChannelUserPermissionOverride, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) FindUserOverrides(ctx context.Context, id e.ChannelId) (*e.ChannelPermOverwrite, error) {
+// 	return nil, fmt.Errorf("Not implemented")
+// }
 
-func (r *PGChannelRepo) FindUserOverrideByUserId(ctx context.Context, id e.ChannelId, userId e.UserId) (*e.ChannelUserPermissionOverride, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) FindUserOverrideByUserId(ctx context.Context, id e.ChannelId, userId e.UserId) (*e.ChannelPermOverwrite, error) {
+// 	return nil, fmt.Errorf("Not implemented")
+// }
 
 func (r *PGChannelRepo) Save(ctx context.Context, channel *e.Channel) (*e.Channel, error) {
 	c, err := r.db.SaveChannel(ctx, gen.SaveChannelParams{
@@ -99,24 +98,24 @@ func (r *PGChannelRepo) Save(ctx context.Context, channel *e.Channel) (*e.Channe
 	return fromDbChannel(c), nil
 }
 
-func (r *PGChannelRepo) SaveRoleOverride(ctx context.Context, perm *e.ChannelRolePermissionOverride) (*e.ChannelRolePermissionOverride, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) SaveRoleOverride(ctx context.Context, perm *e.ChannelRolePermissionOverride) (*e.ChannelRolePermissionOverride, error) {
+// 	return nil, fmt.Errorf("Not implemented")
+// }
 
-func (r *PGChannelRepo) SaveUserOverride(ctx context.Context, perm *e.ChannelUserPermissionOverride) (*e.ChannelUserPermissionOverride, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) SaveUserOverride(ctx context.Context, perm *e.ChannelPermOverwrite) (*e.ChannelPermOverwrite, error) {
+// 	return nil, fmt.Errorf("Not implemented")
+// }
 
 func (r *PGChannelRepo) Delete(ctx context.Context, id e.ChannelId) error {
 	return r.db.DeleteChannel(ctx, uuid.UUID(id))
 }
 
-func (r *PGChannelRepo) DeleteRoleOverride(ctx context.Context, id e.ChannelId, roleId e.RoleId) error {
-	return fmt.Errorf("Not implemented")
-}
-
-func (r *PGChannelRepo) DeleteUserOverride(ctx context.Context, id e.ChannelId, userId e.UserId) error {
-	return fmt.Errorf("Not implemented")
-}
+// func (r *PGChannelRepo) DeleteRoleOverride(ctx context.Context, id e.ChannelId, roleId e.RoleId) error {
+// 	return fmt.Errorf("Not implemented")
+// }
+//
+// func (r *PGChannelRepo) DeleteUserOverride(ctx context.Context, id e.ChannelId, userId e.UserId) error {
+// 	return fmt.Errorf("Not implemented")
+// }
 
 var _ repositories.ChannelRepo = &PGChannelRepo{}

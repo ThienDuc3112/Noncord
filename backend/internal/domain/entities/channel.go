@@ -47,52 +47,62 @@ func NewChannel(name, desc string, serverId ServerId, order uint16, parent *Cate
 	}
 }
 
-type ChannelRolePermissionOverride struct {
-	ChannelId ChannelId
-	RoleId    RoleId
-	UpdatedAt time.Time
-	Allow     ServerPermissionBits
-	Deny      ServerPermissionBits
-}
-
-func (p *ChannelRolePermissionOverride) Validate() error {
-	if (p.Allow & p.Deny) != 0 {
-		return NewError(ErrCodeValidationError, "cannot allow and deny the same permission", nil)
-	}
+func (c *Channel) Delete() error {
+	now := time.Now()
+	c.DeletedAt = &now
 	return nil
 }
 
-func NewChannelRolePermissionOverride(channelId ChannelId, roleId RoleId, allow, deny ServerPermissionBits) *ChannelRolePermissionOverride {
-	return &ChannelRolePermissionOverride{
-		ChannelId: channelId,
-		RoleId:    roleId,
-		UpdatedAt: time.Now(),
-		Allow:     allow,
-		Deny:      deny,
-	}
+type OverwriteTarget string
+
+const (
+	ChannelUserTarget OverwriteTarget = "user"
+	ChannelRoleTarget OverwriteTarget = "role"
+)
+
+type ChannelPermOverwrite struct {
+	ChannelId       ChannelId
+	RoleId          *RoleId
+	UserId          *UserId
+	OverwriteTarget OverwriteTarget
+	UpdatedAt       time.Time
+	Allow           ServerPermissionBits
+	Deny            ServerPermissionBits
 }
 
-type ChannelUserPermissionOverride struct {
-	ChannelId ChannelId
-	UserId    UserId
-	UpdatedAt time.Time
-	Allow     ServerPermissionBits
-	Deny      ServerPermissionBits
-}
-
-func (p *ChannelUserPermissionOverride) Validate() error {
+func (p *ChannelPermOverwrite) Validate() error {
 	if (p.Allow & p.Deny) != 0 {
 		return NewError(ErrCodeValidationError, "cannot allow and deny the same permission", nil)
 	}
+	if p.OverwriteTarget != ChannelRoleTarget && p.OverwriteTarget != ChannelUserTarget {
+		return NewError(ErrCodeValidationError, "invalid overwrite target", nil)
+	}
+	if p.OverwriteTarget == ChannelRoleTarget && (p.RoleId == nil || p.UserId != nil) {
+		return NewError(ErrCodeValidationError, "overwrite target role cannot have null role id or set user id", nil)
+	}
+	if p.OverwriteTarget == ChannelUserTarget && (p.UserId == nil || p.RoleId != nil) {
+		return NewError(ErrCodeValidationError, "overwrite target user cannot have null user id or set role id", nil)
+	}
+
 	return nil
 }
 
-func NewChannelUserPermissionOverride(channelId ChannelId, userId UserId, allow, deny ServerPermissionBits) *ChannelUserPermissionOverride {
-	return &ChannelUserPermissionOverride{
-		ChannelId: channelId,
-		UserId:    userId,
-		UpdatedAt: time.Now(),
-		Allow:     allow,
-		Deny:      deny,
+func NewChannelPermOverwrite(channelId ChannelId, target OverwriteTarget, targetId uuid.UUID, allow, deny ServerPermissionBits) (*ChannelPermOverwrite, error) {
+	channel := &ChannelPermOverwrite{
+		ChannelId:       channelId,
+		OverwriteTarget: target,
+		UpdatedAt:       time.Now(),
+		Allow:           allow,
+		Deny:            deny,
 	}
+	if target == ChannelUserTarget {
+		channel.UserId = (*UserId)(&targetId)
+	}
+	if target == ChannelRoleTarget {
+		channel.RoleId = (*RoleId)(&targetId)
+	}
+	if err := channel.Validate(); err != nil {
+		return nil, err
+	}
+	return channel, nil
 }

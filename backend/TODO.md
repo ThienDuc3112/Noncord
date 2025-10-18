@@ -14,10 +14,14 @@
         - [ ] Proper parsing of validator error
 - [ ] Server service
     - [x] Implement repo
-        - [x] Save server
+        - [ ] Save server
+            - [x] Update the change
+            - [ ] Add event to outbox
         - [x] Find server by id
         - [x] Find servers by ids
-        - [x] Delete servers
+        <!-- - [ ] Delete servers -->
+        <!--     - [x] Update the change -->
+        <!--     - [ ] Add event to outbox -->
     - [ ] Implement service
         - [ ] Create new server
             - [x] Create server
@@ -79,7 +83,9 @@
     - [x] Implement repo
         - [x] Get invitations by server id
         - [x] Get invitation by id
-        - [x] Save invitation
+        - [ ] Save invitation
+            - [x] Update the change
+            - [ ] Add event to outbox
     - [x] Implement service
         - [x] Get invitations by server ID
         - [x] Get invitation by ID
@@ -111,10 +117,10 @@
         - [x] Find memberships by user id
         - [x] Find membership by server id
         - [ ] Find member's role assignments
-        - [x] Save membership
+        - [ ] Save membership
+            - [x] Update the change
+            - [ ] Add event to outbox
         - [ ] Save role for membership
-        - [x] Delete membership
-        - [ ] Delete role for membership
     - [ ] Implement service
         - [x] Join server
         - [x] Leave server
@@ -128,23 +134,21 @@
         - [ ] Get members in a server
 - [ ] Channel service
     - [ ] Implement repo
-        - [x] Find channel by id
-        - [x] Find channels by ids
-        - [x] Find channels by server id
-        - [x] Save channel
-        - [x] Delete channel
+        - [ ] Find channel by id
+            - [x] Fetch channel
+            - [ ] Fetch overwrites
+        - [ ] Find channels by ids
+            - [x] Fetch channels
+            - [ ] Fetch overwrites
+        - [ ] Find channels by server id
+            - [x] Fetch channels
+            - [ ] Fetch overwrites
+        - [ ] Save channel
+            - [x] Update the change
+            - [ ] Add event to outbox
 
         - [x] Get server max ordering
-        
-        - [ ] Find role overrides
-        - [ ] Find role override by role id
-        - [ ] Save role override
-        - [ ] Delete role override
 
-        - [ ] Find user overrides
-        - [ ] Find user override by user id
-        - [ ] Save user override
-        - [ ] Delete user override
         <!-- Find override by user without channel id -->
     - [ ] Implement service
         - [x] Get channel

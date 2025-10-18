@@ -189,5 +189,7 @@ func (s *ServerService) Delete(ctx context.Context, param command.DeleteServerCo
 		return entities.NewError(entities.ErrCodeForbidden, "user is not the owner of the server", nil)
 	}
 
-	return entities.GetErrOrDefault(s.sr.Delete(ctx, server.Id), entities.ErrCodeDepFail, "cannot delete server")
+	server.Delete()
+	server, err = s.sr.Save(ctx, server)
+	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot delete server")
 }
