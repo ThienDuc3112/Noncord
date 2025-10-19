@@ -43,7 +43,7 @@ type ServerCreated struct {
 
 func NewServerCreated(s *Server) ServerCreated {
 	return ServerCreated{
-		Base:              events.NewBase("server", uuid.UUID(s.Id), EventServerCreated, ServerCreatedSchemaVersion, nil, nil),
+		Base:              events.NewBase("server", uuid.UUID(s.Id), EventServerCreated, ServerCreatedSchemaVersion),
 		Name:              s.Name,
 		Description:       s.Description,
 		OwnerID:           uuid.UUID(s.Owner),
@@ -62,7 +62,7 @@ type ServerNameUpdated struct {
 
 func NewServerNameUpdated(s *Server, old string) ServerNameUpdated {
 	return ServerNameUpdated{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerNameUpdated, ServerNameUpdatedSchemaVersion, nil, nil),
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerNameUpdated, ServerNameUpdatedSchemaVersion),
 		Old:  old,
 		New:  s.Name,
 	}
@@ -76,7 +76,7 @@ type ServerDescriptionUpdated struct {
 
 func NewServerDescriptionUpdated(s *Server, old string) ServerDescriptionUpdated {
 	return ServerDescriptionUpdated{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDescriptionUpdated, ServerDescriptionUpdatedSchemaVersion, nil, nil),
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDescriptionUpdated, ServerDescriptionUpdatedSchemaVersion),
 		Old:  old,
 		New:  s.Description,
 	}
@@ -90,7 +90,7 @@ type ServerIconURLUpdated struct {
 
 func NewServerIconURLUpdated(s *Server, old string) ServerIconURLUpdated {
 	return ServerIconURLUpdated{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerIconURLUpdated, ServerIconURLUpdatedSchemaVersion, nil, nil),
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerIconURLUpdated, ServerIconURLUpdatedSchemaVersion),
 		Old:  old,
 		New:  s.IconUrl,
 	}
@@ -104,7 +104,7 @@ type ServerBannerURLUpdated struct {
 
 func NewServerBannerURLUpdated(s *Server, old string) ServerBannerURLUpdated {
 	return ServerBannerURLUpdated{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerBannerURLUpdated, ServerBannerURLUpdatedSchemaVersion, nil, nil),
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerBannerURLUpdated, ServerBannerURLUpdatedSchemaVersion),
 		Old:  old,
 		New:  s.BannerUrl,
 	}
@@ -118,7 +118,7 @@ type ServerNeedApprovalChanged struct {
 
 func NewServerNeedApprovalChanged(s *Server, old bool) ServerNeedApprovalChanged {
 	return ServerNeedApprovalChanged{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerNeedApprovalChanged, ServerNeedApprovalChangedSchemaVersion, nil, nil),
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerNeedApprovalChanged, ServerNeedApprovalChangedSchemaVersion),
 		Old:  old,
 		New:  s.NeedApproval,
 	}
@@ -132,7 +132,7 @@ type ServerAnnouncementChannelChanged struct {
 
 func NewServerAnnouncementChannelChanged(s *Server, old *ChannelId) ServerAnnouncementChannelChanged {
 	return ServerAnnouncementChannelChanged{
-		Base:         events.NewBase("server", uuid.UUID(s.Id), EventServerAnnouncementChannelChanged, ServerAnnouncementChannelChangedSchemaVersion, nil, nil),
+		Base:         events.NewBase("server", uuid.UUID(s.Id), EventServerAnnouncementChannelChanged, ServerAnnouncementChannelChangedSchemaVersion),
 		OldChannelID: (*uuid.UUID)(old),
 		NewChannelID: (*uuid.UUID)(s.AnnouncementChannel),
 	}
@@ -146,7 +146,7 @@ type ServerDefaultPermissionChanged struct {
 
 func NewServerDefaultPermissionChanged(s *Server, old ServerPermissionBits) ServerDefaultPermissionChanged {
 	return ServerDefaultPermissionChanged{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion, nil, nil),
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion),
 		Old:  uint64(old),
 		New:  uint64(s.DefaultPermission),
 	}
@@ -163,7 +163,7 @@ func NewServerDeleted(s *Server) ServerDeleted {
 		deletedAt = *s.DeletedAt
 	}
 	return ServerDeleted{
-		Base:      events.NewBase("server", uuid.UUID(s.Id), EventServerDeleted, ServerDeletedSchemaVersion, nil, nil),
+		Base:      events.NewBase("server", uuid.UUID(s.Id), EventServerDeleted, ServerDeletedSchemaVersion),
 		DeletedAt: deletedAt,
 	}
 }
@@ -179,4 +179,3 @@ func init() {
 	events.Register(EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion, func() events.DomainEvent { return &ServerDefaultPermissionChanged{} })
 	events.Register(EventServerDeleted, ServerDeletedSchemaVersion, func() events.DomainEvent { return &ServerDeleted{} })
 }
-

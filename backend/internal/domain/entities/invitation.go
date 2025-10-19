@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/internal/domain/events"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,8 @@ import (
 type InvitationId uuid.UUID
 
 type Invitation struct {
+	events.Recorder
+
 	Id             InvitationId
 	ServerId       ServerId
 	CreatedAt      time.Time
@@ -19,33 +22,52 @@ type Invitation struct {
 }
 
 func (i *Invitation) UpdateExpiresAt(expiresAt *time.Time) error {
-	i.ExpiresAt = expiresAt
+	changed := (i.ExpiresAt != nil && expiresAt == nil) || (i.ExpiresAt == nil && expiresAt != nil) || (i.ExpiresAt != nil && expiresAt != nil && !i.ExpiresAt.Equal(*expiresAt))
+	if changed {
+		old := i.ExpiresAt
+		i.ExpiresAt = expiresAt
+		i.Record(NewInvitationUpdateExpiresAt(i, old))
+	}
 	return nil
 }
 
 func (i *Invitation) UpdateBypassApproval(bypass bool) error {
-	i.BypassApproval = bypass
+	if i.BypassApproval != bypass {
+		old := i.BypassApproval
+		i.BypassApproval = bypass
+		i.Record(NewInvitationUpdateBypassApproval(i, old))
+	}
 	return nil
 }
 
 func (i *Invitation) UpdateJoinLimit(joinLimit int32) error {
-	i.JoinLimit = joinLimit
+	if joinLimit != i.JoinLimit {
+		old := i.JoinLimit
+		i.JoinLimit = joinLimit
+		i.Record(NewInvitationUpdateJoinLimit(i, old))
+	}
 	return nil
 }
 
 func (i *Invitation) UpdateJoinCount(joinCount int32) error {
-	i.JoinCount = joinCount
+	if i.JoinCount != joinCount {
+		old := i.JoinCount
+		i.JoinCount = joinCount
+		i.Record(NewInvitationUpdateJoinCount(i, old))
+	}
 	return nil
 }
 
 func (i *Invitation) Invalidate() error {
 	now := time.Now()
+	old := i.ExpiresAt
 	i.ExpiresAt = &now
+	i.Record(NewInvitationInvalidated(i, now, old))
 	return nil
 }
 
 func NewInvitation(serverId ServerId, expiresAt *time.Time, bypass bool, joinLimit int32) *Invitation {
-	return &Invitation{
+	i := &Invitation{
 		Id:             InvitationId(uuid.New()),
 		ServerId:       serverId,
 		CreatedAt:      time.Now(),
@@ -54,4 +76,6 @@ func NewInvitation(serverId ServerId, expiresAt *time.Time, bypass bool, joinLim
 		JoinLimit:      joinLimit,
 		JoinCount:      0,
 	}
+	i.Record(NewInvitationCreatedAt(i))
+	return i
 }

@@ -27,7 +27,7 @@ func (q *Queries) DeleteMembership(ctx context.Context, arg DeleteMembershipPara
 }
 
 const findMembership = `-- name: FindMembership :one
-SELECT server_id, user_id, created_at, nickname FROM memberships WHERE server_id = $1 AND user_id = $2
+SELECT id, server_id, user_id, created_at, nickname FROM memberships WHERE server_id = $1 AND user_id = $2
 `
 
 type FindMembershipParams struct {
@@ -39,6 +39,7 @@ func (q *Queries) FindMembership(ctx context.Context, arg FindMembershipParams) 
 	row := q.db.QueryRow(ctx, findMembership, arg.ServerID, arg.UserID)
 	var i Membership
 	err := row.Scan(
+		&i.ID,
 		&i.ServerID,
 		&i.UserID,
 		&i.CreatedAt,
@@ -48,7 +49,7 @@ func (q *Queries) FindMembership(ctx context.Context, arg FindMembershipParams) 
 }
 
 const findMembershipsByServerId = `-- name: FindMembershipsByServerId :many
-SELECT server_id, user_id, created_at, nickname FROM memberships WHERE server_id = $1
+SELECT id, server_id, user_id, created_at, nickname FROM memberships WHERE server_id = $1
 `
 
 func (q *Queries) FindMembershipsByServerId(ctx context.Context, serverID uuid.UUID) ([]Membership, error) {
@@ -61,6 +62,7 @@ func (q *Queries) FindMembershipsByServerId(ctx context.Context, serverID uuid.U
 	for rows.Next() {
 		var i Membership
 		if err := rows.Scan(
+			&i.ID,
 			&i.ServerID,
 			&i.UserID,
 			&i.CreatedAt,
@@ -77,7 +79,7 @@ func (q *Queries) FindMembershipsByServerId(ctx context.Context, serverID uuid.U
 }
 
 const findMembershipsByUserId = `-- name: FindMembershipsByUserId :many
-SELECT server_id, user_id, created_at, nickname FROM memberships WHERE user_id = $1
+SELECT id, server_id, user_id, created_at, nickname FROM memberships WHERE user_id = $1
 `
 
 func (q *Queries) FindMembershipsByUserId(ctx context.Context, userID uuid.UUID) ([]Membership, error) {
@@ -90,6 +92,7 @@ func (q *Queries) FindMembershipsByUserId(ctx context.Context, userID uuid.UUID)
 	for rows.Next() {
 		var i Membership
 		if err := rows.Scan(
+			&i.ID,
 			&i.ServerID,
 			&i.UserID,
 			&i.CreatedAt,
@@ -120,7 +123,7 @@ INSERT INTO memberships (
 ON CONFLICT (server_id, user_id)
 DO UPDATE SET
   nickname = $4
-RETURNING server_id, user_id, created_at, nickname
+RETURNING id, server_id, user_id, created_at, nickname
 `
 
 type SaveMembershipParams struct {
@@ -139,6 +142,7 @@ func (q *Queries) SaveMembership(ctx context.Context, arg SaveMembershipParams) 
 	)
 	var i Membership
 	err := row.Scan(
+		&i.ID,
 		&i.ServerID,
 		&i.UserID,
 		&i.CreatedAt,

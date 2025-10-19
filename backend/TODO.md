@@ -14,9 +14,9 @@
         - [ ] Proper parsing of validator error
 - [ ] Server service
     - [x] Implement repo
-        - [ ] Save server
+        - [x] Save server
             - [x] Update the change
-            - [ ] Add event to outbox
+            - [x] Add event to outbox
         - [x] Find server by id
         - [x] Find servers by ids
         <!-- - [ ] Delete servers -->
@@ -83,9 +83,9 @@
     - [x] Implement repo
         - [x] Get invitations by server id
         - [x] Get invitation by id
-        - [ ] Save invitation
+        - [x] Save invitation
             - [x] Update the change
-            - [ ] Add event to outbox
+            - [x] Add event to outbox
     - [x] Implement service
         - [x] Get invitations by server ID
         - [x] Get invitation by ID

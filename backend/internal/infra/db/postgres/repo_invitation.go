@@ -58,6 +58,10 @@ func (r *PGInvitationRepo) Save(ctx context.Context, invite *e.Invitation) (*e.I
 		return nil, err
 	}
 
+	if err = pullAndPushEvents(ctx, r.repo, invite.PullsEvents()); err != nil {
+		return nil, err
+	}
+
 	return fromDbInvitation(i), nil
 }
 

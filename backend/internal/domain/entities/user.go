@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/internal/domain/events"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +22,8 @@ const (
 )
 
 type User struct {
+	events.Recorder
+
 	Id          UserId
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -107,6 +110,145 @@ func NewUser(param NewUserParam) *User {
 		BannerUrl:   param.BannerUrl,
 		Flags:       param.Flags,
 	}
+}
+
+type UpdateUserParam struct {
+	Username    *string
+	DisplayName *string
+	AboutMe     *string
+	Email       *string
+	Password    *string
+	AvatarUrl   *string
+	BannerUrl   *string
+	Flags       *UserFlags
+	Disabled    *bool
+	Verified    *bool
+}
+
+func (u *User) Update(p UpdateUserParam) error {
+	changed := false
+
+	// Username
+	if p.Username != nil && *p.Username != u.Username {
+		old := u.Username
+		u.Username = *p.Username
+		if err := u.Validate(); err != nil { // validate new state
+			u.Username = old
+			return err
+		}
+		u.Record(NewUserUsernameUpdated(u, old))
+		changed = true
+	}
+
+	// DisplayName
+	if p.DisplayName != nil && *p.DisplayName != u.DisplayName {
+		old := u.DisplayName
+		u.DisplayName = *p.DisplayName
+		if err := u.Validate(); err != nil {
+			u.DisplayName = old
+			return err
+		}
+		u.Record(NewUserDisplayNameUpdated(u, old))
+		changed = true
+	}
+
+	// AboutMe
+	if p.AboutMe != nil && *p.AboutMe != u.AboutMe {
+		old := u.AboutMe
+		u.AboutMe = *p.AboutMe
+		if err := u.Validate(); err != nil {
+			u.AboutMe = old
+			return err
+		}
+		u.Record(NewUserAboutMeUpdated(u, old))
+		changed = true
+	}
+
+	// Email
+	if p.Email != nil && *p.Email != u.Email {
+		old := u.Email
+		u.Email = *p.Email
+		if err := u.Validate(); err != nil {
+			u.Email = old
+			return err
+		}
+		u.Record(NewUserEmailUpdated(u, old))
+		changed = true
+	}
+
+	// Password (usually hashed upstream)
+	if p.Password != nil && *p.Password != u.Password {
+		old := u.Password
+		u.Password = *p.Password
+		// no Validate() needed here (policy-specific), but keep if you have rules
+		u.Record(NewUserPasswordUpdated(u, old))
+		changed = true
+	}
+
+	// AvatarUrl
+	if p.AvatarUrl != nil && *p.AvatarUrl != u.AvatarUrl {
+		old := u.AvatarUrl
+		u.AvatarUrl = *p.AvatarUrl
+		if err := u.Validate(); err != nil {
+			u.AvatarUrl = old
+			return err
+		}
+		u.Record(NewUserAvatarURLUpdated(u, old))
+		changed = true
+	}
+
+	// BannerUrl
+	if p.BannerUrl != nil && *p.BannerUrl != u.BannerUrl {
+		old := u.BannerUrl
+		u.BannerUrl = *p.BannerUrl
+		if err := u.Validate(); err != nil {
+			u.BannerUrl = old
+			return err
+		}
+		u.Record(NewUserBannerURLUpdated(u, old))
+		changed = true
+	}
+
+	// Flags
+	if p.Flags != nil && *p.Flags != u.Flags {
+		old := u.Flags
+		u.Flags = *p.Flags
+		u.Record(NewUserFlagsChanged(u, old))
+		changed = true
+	}
+
+	// Disabled
+	if p.Disabled != nil && *p.Disabled != u.Disabled {
+		old := u.Disabled
+		u.Disabled = *p.Disabled
+		u.Record(NewUserDisabledChanged(u, old))
+		changed = true
+	}
+
+	// Verified
+	if p.Verified != nil && *p.Verified != u.Verified {
+		old := u.Verified
+		u.Verified = *p.Verified
+		u.Record(NewUserVerifiedChanged(u, old))
+		changed = true
+	}
+
+	if changed {
+		u.UpdatedAt = time.Now()
+	}
+	return nil
+}
+
+// Soft delete. Idempotent.
+func (u *User) Delete() {
+	now := time.Now()
+	var old *time.Time
+	if u.DeletedAt != nil {
+		// already deleted; keep old for event payload and refresh timestamp if you want
+		old = u.DeletedAt
+	}
+	u.DeletedAt = &now
+	u.Record(NewUserDeleted(u, old))
 }
 
 type Theme string

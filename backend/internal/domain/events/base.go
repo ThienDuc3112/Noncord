@@ -22,7 +22,7 @@ type Base struct {
 func (b Base) GetBase() Base { return b }
 
 // NewBase builds a Base with sensible defaults. Call from your event constructors.
-func NewBase(aggregateName string, aggregateID uuid.UUID, eventType string, schemaVersion int, actorID *uuid.UUID, corrID *string) Base {
+func NewBase(aggregateName string, aggregateID uuid.UUID, eventType string, schemaVersion int) Base {
 	return Base{
 		EventID:       uuid.New(),
 		AggregateName: aggregateName,

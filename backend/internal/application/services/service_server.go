@@ -29,8 +29,12 @@ func NewServerService(sr repositories.ServerRepo, mr repositories.MemberRepo, cr
 }
 
 func (s *ServerService) Create(ctx context.Context, params command.CreateServerCommand) (command.CreateServerCommandResult, error) {
-	server := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
-	server, err := s.sr.Save(ctx, server)
+	server, err := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
+	if err != nil {
+		return command.CreateServerCommandResult{}, err
+	}
+
+	server, err = s.sr.Save(ctx, server)
 	if err != nil {
 		return command.CreateServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 	}

@@ -58,7 +58,7 @@ func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
 		}
 	}
 
-	return err
+	return pullAndPushEvents(ctx, r.q, user.PullsEvents())
 }
 
 func (r *PGUserRepo) Find(ctx context.Context, id e.UserId) (*e.User, error) {

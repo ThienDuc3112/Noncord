@@ -207,6 +207,7 @@ type JoinRequest struct {
 }
 
 type Membership struct {
+	ID        uuid.UUID
 	ServerID  uuid.UUID
 	UserID    uuid.UUID
 	CreatedAt time.Time
@@ -235,7 +236,7 @@ type Outbox struct {
 	Status        string
 	Attempts      int32
 	ClaimedAt     *time.Time
-	WorkerID      pgtype.Text
+	PublishedAt   *time.Time
 }
 
 type Reaction struct {
@@ -258,10 +259,8 @@ type Role struct {
 }
 
 type RoleAssignment struct {
-	ServerID  uuid.UUID
-	UserID    uuid.UUID
-	RoleID    uuid.UUID
-	CreatedAt time.Time
+	MembershipID uuid.UUID
+	RoleID       uuid.UUID
 }
 
 type Server struct {

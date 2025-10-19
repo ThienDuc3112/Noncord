@@ -1,8 +1,18 @@
 package entities
 
-import "time"
+import (
+	"backend/internal/domain/events"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type MembershipId uuid.UUID
 
 type Membership struct {
+	events.Recorder
+
+	Id        MembershipId
 	ServerId  ServerId
 	UserId    UserId
 	Nickname  string
@@ -19,17 +29,13 @@ func NewMembership(sid ServerId, uid UserId, nickname string) *Membership {
 }
 
 type RoleAssignment struct {
-	UserId    UserId
-	ServerId  ServerId
-	RoleId    RoleId
-	CreatedAt time.Time
+	MembershipId MembershipId
+	RoleId       RoleId
 }
 
-func NewRoleAssignment(sid ServerId, uid UserId, rid RoleId) *RoleAssignment {
+func NewRoleAssignment(mid MembershipId, rid RoleId) *RoleAssignment {
 	return &RoleAssignment{
-		UserId:    uid,
-		ServerId:  sid,
-		RoleId:    rid,
-		CreatedAt: time.Now(),
+		MembershipId: mid,
+		RoleId:       rid,
 	}
 }

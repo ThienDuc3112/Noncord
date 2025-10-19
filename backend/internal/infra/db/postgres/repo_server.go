@@ -5,6 +5,7 @@ import (
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/google/uuid"
@@ -12,13 +13,20 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type PGServerRepo struct {
-	repo *gen.Queries
+type Pool interface {
+	gen.DBTX
+	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
-func NewPGServerRepo(db gen.DBTX) repositories.ServerRepo {
+type PGServerRepo struct {
+	repo *gen.Queries
+	conn Pool
+}
+
+func NewPGServerRepo(db Pool) repositories.ServerRepo {
 	return &PGServerRepo{
 		repo: gen.New(db),
+		conn: db,
 	}
 }
 
@@ -37,6 +45,10 @@ func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, e
 		Owner:               uuid.UUID(server.Owner),
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	if err = pullAndPushEvents(ctx, r.repo, server.PullsEvents()); err != nil {
 		return nil, err
 	}
 
@@ -66,10 +78,6 @@ func (r *PGServerRepo) FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.Se
 	return arrutil.Map(servers, func(s gen.Server) (target *e.Server, find bool) {
 		return fromDbServer(s), true
 	}), nil
-}
-
-func (r *PGServerRepo) Delete(ctx context.Context, id e.ServerId) error {
-	return r.repo.DeleteServer(ctx, uuid.UUID(id))
 }
 
 func (r *PGServerRepo) FindByInvitationId(ctx context.Context, id e.InvitationId) (*e.Server, error) {
