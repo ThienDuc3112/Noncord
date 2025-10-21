@@ -19,9 +19,6 @@
             - [x] Add event to outbox
         - [x] Find server by id
         - [x] Find servers by ids
-        <!-- - [ ] Delete servers -->
-        <!--     - [x] Update the change -->
-        <!--     - [ ] Add event to outbox -->
     - [ ] Implement service
         - [ ] Create new server
             - [x] Create server
