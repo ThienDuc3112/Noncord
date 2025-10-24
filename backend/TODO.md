@@ -172,8 +172,6 @@
         - [ ] Delete role
         - [ ] Update channel role permission
     - [ ] Implement controller
-- [ ] Invite service
-    - [ ] ?
 - [ ] Message service
     - [ ] Implement repo
     - [ ] Implement service

@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/internal/domain/events"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,8 @@ import (
 type ChannelId uuid.UUID
 
 type Channel struct {
+	events.Recorder
+
 	Id             ChannelId
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
@@ -33,6 +36,42 @@ func (c *Channel) Validate() error {
 	return nil
 }
 
+func (c *Channel) UpdateName(newName string) error {
+	if len(newName) == 0 {
+		return NewError(ErrCodeValidationError, "channel name cannot be empty", nil)
+	}
+	if len(newName) > 64 {
+		return NewError(ErrCodeValidationError, "channel name cannot exceed 64 characters", nil)
+	}
+	if c.Name != newName {
+		old := c.Name
+		c.Name = newName
+		c.UpdatedAt = time.Now()
+		c.Record(NewChannelNameUpdated(c, old))
+	}
+	return nil
+}
+
+func (c *Channel) UpdateDescription(newDesc string) error {
+	if len(newDesc) > 256 {
+		return NewError(ErrCodeValidationError, "channel description cannot exceed 256 characters", nil)
+	}
+	if c.Description != newDesc {
+		old := c.Description
+		c.Description = newDesc
+		c.UpdatedAt = time.Now()
+		c.Record(NewChannelDescriptionUpdated(c, old))
+	}
+	return nil
+}
+
+func (c *Channel) Delete() error {
+	now := time.Now()
+	c.DeletedAt = &now
+	c.Record(NewChannelDeleted(c))
+	return nil
+}
+
 func NewChannel(name, desc string, serverId ServerId, order uint16, parent *CategoryId) *Channel {
 	return &Channel{
 		Id:             ChannelId(uuid.New()),
@@ -45,12 +84,6 @@ func NewChannel(name, desc string, serverId ServerId, order uint16, parent *Cate
 		Order:          order,
 		ParentCategory: parent,
 	}
-}
-
-func (c *Channel) Delete() error {
-	now := time.Now()
-	c.DeletedAt = &now
-	return nil
 }
 
 type OverwriteTarget string

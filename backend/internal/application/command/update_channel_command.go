@@ -1,5 +1,16 @@
 package command
 
-type UpdateChannelCommand struct{}
+import (
+	"backend/internal/application/common"
 
-type UpdateChannelCommandResult struct{}
+	"github.com/google/uuid"
+)
+
+type UpdateChannelCommand struct {
+	UserId    uuid.UUID
+	ChannelId uuid.UUID
+}
+
+type UpdateChannelCommandResult struct {
+	Result *common.Channel
+}

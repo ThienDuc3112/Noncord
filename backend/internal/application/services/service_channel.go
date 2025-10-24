@@ -84,7 +84,8 @@ func (s *ChannelService) GetChannelsByServer(ctx context.Context, params query.G
 	}, nil
 }
 
-func (s *ChannelService) Update(context.Context, command.UpdateChannelCommand) (command.UpdateChannelCommandResult, error) {
+func (s *ChannelService) Update(ctx context.Context, params command.UpdateChannelCommand) (command.UpdateChannelCommandResult, error) {
+
 	return command.UpdateChannelCommandResult{}, nil
 }
 
