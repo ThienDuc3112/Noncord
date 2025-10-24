@@ -3,6 +3,7 @@ package main
 import (
 	_ "backend/docs"
 	"backend/internal/application/services"
+	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres"
 	"backend/internal/interface/api/rest"
 	"context"
@@ -27,18 +28,15 @@ func main() {
 		log.Fatalf("Cannot connect to db: %v", err)
 	}
 
-	userRepo := postgres.NewPGUserRepo(conn)
-	sessionRepo := postgres.NewPGSessionRepo(conn)
-	serverRepo := postgres.NewPGServerRepo(conn)
-	invitationRepo := postgres.NewPGInvitationRepo(conn)
-	memberRepo := postgres.NewPGMemberRepo(conn)
-	channelRepo := postgres.NewPGChannelRepo(conn)
+	uow := postgres.NewBaseUoW(conn)
 
-	authService := services.NewAuthService(userRepo, sessionRepo, conn, os.Getenv("SECRET"))
-	serverService := services.NewServerService(serverRepo, memberRepo, channelRepo)
-	invitationService := services.NewInvitationService(serverRepo, invitationRepo)
-	membershipService := services.NewMemberService(memberRepo, invitationRepo, serverRepo, userRepo)
-	channelService := services.NewChannelService(channelRepo, serverRepo, memberRepo)
+	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos {
+		return rb
+	}), os.Getenv("SECRET"))
+	serverService := services.NewServerService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ServerRepos { return rb }))
+	invitationService := services.NewInvitationService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.InvitationRepos { return rb }))
+	membershipService := services.NewMemberService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MemberRepos { return rb }))
+	channelService := services.NewChannelService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
 
 	port := os.Getenv("PORT")
 	if port == "" {

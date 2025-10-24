@@ -11,7 +11,7 @@ import (
 )
 
 type PGUserNotiRepo struct {
-	db gen.DBTX
+	q *gen.Queries
 }
 
 func (r *PGUserNotiRepo) Find(ctx context.Context, userId e.UserId, refId uuid.UUID) (*e.UserNotification, error) {

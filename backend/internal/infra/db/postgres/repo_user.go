@@ -20,12 +20,6 @@ type PGUserRepo struct {
 	q *gen.Queries
 }
 
-func NewPGUserRepo(conn gen.DBTX) repositories.UserRepo {
-	return &PGUserRepo{
-		q: gen.New(conn),
-	}
-}
-
 func (r *PGUserRepo) Save(ctx context.Context, user *e.User) error {
 	password := pgtype.Text{}
 	if len(user.Password) == 0 {
@@ -120,12 +114,6 @@ func (r *PGUserRepo) SaveSettings(ctx context.Context, settings *e.UserSettings)
 
 func (r *PGUserRepo) Delete(ctx context.Context, id e.UserId) error {
 	return fmt.Errorf("Not implemented")
-}
-
-func (r *PGUserRepo) WithTx(tx repositories.DBTX) repositories.UserRepo {
-	return &PGUserRepo{
-		q: gen.New(tx),
-	}
 }
 
 var _ repositories.UserRepo = &PGUserRepo{}

@@ -5,7 +5,6 @@ import (
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
-	"encoding/json"
 	"errors"
 
 	"github.com/google/uuid"
@@ -13,21 +12,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type Pool interface {
-	gen.DBTX
-	Begin(ctx context.Context) (pgx.Tx, error)
-}
-
 type PGServerRepo struct {
 	repo *gen.Queries
-	conn Pool
-}
-
-func NewPGServerRepo(db Pool) repositories.ServerRepo {
-	return &PGServerRepo{
-		repo: gen.New(db),
-		conn: db,
-	}
 }
 
 func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, error) {

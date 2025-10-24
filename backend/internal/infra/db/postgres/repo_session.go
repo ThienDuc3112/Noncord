@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"backend/internal/domain/entities"
-	"backend/internal/domain/ports"
+	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres/gen"
 	"context"
 	"errors"
@@ -16,13 +16,7 @@ type PGSessionRepo struct {
 	repo *gen.Queries
 }
 
-func NewPGSessionRepo(db gen.DBTX) ports.SessionRepository {
-	return &PGSessionRepo{
-		repo: gen.New(db),
-	}
-}
-
-func (r *PGSessionRepo) Save(ctx context.Context, session *ports.Session) error {
+func (r *PGSessionRepo) Save(ctx context.Context, session *entities.Session) error {
 	_, err := r.repo.CreateSession(ctx, gen.CreateSessionParams{
 		ID:            session.Id,
 		RotationCount: session.RotationCount,
@@ -36,14 +30,14 @@ func (r *PGSessionRepo) Save(ctx context.Context, session *ports.Session) error 
 	return err
 }
 
-func (r *PGSessionRepo) FindById(ctx context.Context, id uuid.UUID) (*ports.Session, error) {
+func (r *PGSessionRepo) FindById(ctx context.Context, id uuid.UUID) (*entities.Session, error) {
 	session, err := r.repo.FindSessionById(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no session by this id", err)
 	} else if err != nil {
 		return nil, err
 	}
-	return &ports.Session{
+	return &entities.Session{
 		Id:            session.ID,
 		RotationCount: session.RotationCount,
 		CreatedAt:     session.CreatedAt,
@@ -55,14 +49,14 @@ func (r *PGSessionRepo) FindById(ctx context.Context, id uuid.UUID) (*ports.Sess
 	}, nil
 }
 
-func (r *PGSessionRepo) FindByToken(ctx context.Context, token string) (*ports.Session, error) {
+func (r *PGSessionRepo) FindByToken(ctx context.Context, token string) (*entities.Session, error) {
 	session, err := r.repo.FindSessionByToken(ctx, token)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, entities.NewError(entities.ErrCodeNoObject, "no session by this id", err)
 	} else if err != nil {
 		return nil, err
 	}
-	return &ports.Session{
+	return &entities.Session{
 		Id:            session.ID,
 		RotationCount: session.RotationCount,
 		CreatedAt:     session.CreatedAt,
@@ -74,13 +68,13 @@ func (r *PGSessionRepo) FindByToken(ctx context.Context, token string) (*ports.S
 	}, nil
 }
 
-func (r *PGSessionRepo) FindByUserId(ctx context.Context, id entities.UserId) ([]*ports.Session, error) {
+func (r *PGSessionRepo) FindByUserId(ctx context.Context, id entities.UserId) ([]*entities.Session, error) {
 	sessions, err := r.repo.FindSessionsByUserId(ctx, uuid.UUID(id))
 	if err != nil {
 		return nil, err
 	}
-	return arrutil.Map(sessions, func(session gen.Session) (target *ports.Session, find bool) {
-		return &ports.Session{
+	return arrutil.Map(sessions, func(session gen.Session) (target *entities.Session, find bool) {
+		return &entities.Session{
 			Id:            session.ID,
 			RotationCount: session.RotationCount,
 			CreatedAt:     session.CreatedAt,
@@ -93,4 +87,4 @@ func (r *PGSessionRepo) FindByUserId(ctx context.Context, id entities.UserId) ([
 	}), nil
 }
 
-var _ ports.SessionRepository = &PGSessionRepo{}
+var _ repositories.SessionRepo = &PGSessionRepo{}

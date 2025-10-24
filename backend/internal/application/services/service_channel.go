@@ -9,103 +9,120 @@ import (
 	"backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"context"
+	"fmt"
 
 	"github.com/gookit/goutil/arrutil"
 )
 
+type ChannelRepos interface {
+	Channel() repositories.ChannelRepo
+	Server() repositories.ServerRepo
+	Member() repositories.MemberRepo
+}
+
 type ChannelService struct {
-	cr repositories.ChannelRepo
-	sr repositories.ServerRepo
-	mr repositories.MemberRepo
+	uow repositories.UnitOfWork[ChannelRepos]
 }
 
-func NewChannelService(cr repositories.ChannelRepo, sr repositories.ServerRepo, mr repositories.MemberRepo) interfaces.ChannelService {
-	return &ChannelService{
-		cr: cr,
-		sr: sr,
-		mr: mr,
-	}
+func NewChannelService(uow repositories.UnitOfWork[ChannelRepos]) interfaces.ChannelService {
+	return &ChannelService{uow: uow}
 }
 
-func (s *ChannelService) Create(ctx context.Context, params command.CreateChannelCommand) (command.CreateChannelCommandResult, error) {
-	server, err := s.sr.Find(ctx, entities.ServerId(params.ServerId))
-	if err != nil {
-		return command.CreateChannelCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details")
-	}
+func (s *ChannelService) Create(ctx context.Context, params command.CreateChannelCommand) (res command.CreateChannelCommandResult, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
+		server, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details")
+		}
 
-	// TODO: Add role check
-	if !server.IsOwner(entities.UserId(params.UserId)) {
-		return command.CreateChannelCommandResult{}, entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
-	}
+		// TODO: Add role check
+		if !server.IsOwner(entities.UserId(params.UserId)) {
+			return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
+		}
 
-	maxOrder, err := s.cr.GetServerMaxChannelOrder(ctx, entities.ServerId(params.ServerId))
-	if err != nil {
-		return command.CreateChannelCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details (max ordering)")
-	}
+		maxOrder, err := repos.Channel().GetServerMaxChannelOrder(ctx, entities.ServerId(params.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details (max ordering)")
+		}
 
-	channel, err := s.cr.Save(ctx,
-		entities.NewChannel(params.Name, params.Description, entities.ServerId(params.ServerId), uint16(maxOrder)+1, (*entities.CategoryId)(params.ParentCategory)))
-	if err != nil {
-		return command.CreateChannelCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save channel")
-	}
+		channel, err := repos.Channel().Save(ctx,
+			entities.NewChannel(params.Name, params.Description, entities.ServerId(params.ServerId), uint16(maxOrder)+1, (*entities.CategoryId)(params.ParentCategory)))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save channel")
+		}
 
-	return command.CreateChannelCommandResult{
-		Result: mapper.ChannelToResult(channel),
-	}, nil
+		res = command.CreateChannelCommandResult{
+			Result: mapper.ChannelToResult(channel),
+		}
+		return nil
+	})
+
+	return res, err
 }
 
-func (s *ChannelService) Get(ctx context.Context, params query.GetChannel) (query.GetChannelResult, error) {
-	channel, err := s.cr.Find(ctx, entities.ChannelId(params.ChannelId))
-	if err != nil {
-		return query.GetChannelResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channel")
-	}
+func (s *ChannelService) Get(ctx context.Context, params query.GetChannel) (res query.GetChannelResult, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
+		channel, err := repos.Channel().Find(ctx, entities.ChannelId(params.ChannelId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channel")
+		}
 
-	// TODO: Check view permission
-	_, err = s.mr.Find(ctx, entities.UserId(params.UserId), channel.ServerId)
-	if err != nil {
-		return query.GetChannelResult{}, entities.GetErrOrDefault(err, entities.ErrCodeNoObject, "channel not found")
-	}
+		// TODO: Check view permission
+		_, err = repos.Member().Find(ctx, entities.UserId(params.UserId), channel.ServerId)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeNoObject, "channel not found")
+		}
 
-	return query.GetChannelResult{
-		Result: mapper.ChannelToResult(channel),
-	}, nil
+		res = query.GetChannelResult{
+			Result: mapper.ChannelToResult(channel),
+		}
+		return nil
+	})
+
+	return res, err
 }
 
-func (s *ChannelService) GetChannelsByServer(ctx context.Context, params query.GetChannelsByServer) (query.GetChannelsByServerResult, error) {
-	channels, err := s.cr.FindByServerId(ctx, entities.ServerId(params.ServerId))
-	if err != nil {
-		return query.GetChannelsByServerResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channels")
-	}
+func (s *ChannelService) GetChannelsByServer(ctx context.Context, params query.GetChannelsByServer) (res query.GetChannelsByServerResult, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
+		channels, err := repos.Channel().FindByServerId(ctx, entities.ServerId(params.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channels")
+		}
 
-	return query.GetChannelsByServerResult{
-		Result: arrutil.Map(channels, func(channel *entities.Channel) (target *common.Channel, find bool) {
-			return mapper.ChannelToResult(channel), true
-		}),
-	}, nil
+		res = query.GetChannelsByServerResult{
+			Result: arrutil.Map(channels, func(channel *entities.Channel) (target *common.Channel, find bool) {
+				return mapper.ChannelToResult(channel), true
+			}),
+		}
+		return nil
+	})
+
+	return res, err
 }
 
 func (s *ChannelService) Update(ctx context.Context, params command.UpdateChannelCommand) (command.UpdateChannelCommandResult, error) {
-
-	return command.UpdateChannelCommandResult{}, nil
+	return command.UpdateChannelCommandResult{}, fmt.Errorf("not implemented")
 }
 
 func (s *ChannelService) Delete(ctx context.Context, params command.DeleteChannelCommand) error {
-	channel, err := s.cr.Find(ctx, entities.ChannelId(params.ChannelId))
-	if err != nil {
-		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channel")
-	}
+	return s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
+		channel, err := repos.Channel().Find(ctx, entities.ChannelId(params.ChannelId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channel")
+		}
 
-	server, err := s.sr.Find(ctx, channel.ServerId)
-	if err != nil {
-		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details")
-	}
+		server, err := repos.Server().Find(ctx, channel.ServerId)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details")
+		}
 
-	// TODO: Add role check
-	if !server.IsOwner(entities.UserId(params.UserId)) {
-		return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
-	}
+		// TODO: Add role check
+		if !server.IsOwner(entities.UserId(params.UserId)) {
+			return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
+		}
 
-	channel.Delete()
-	channel, err = s.cr.Save(ctx, channel)
-	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot delete server")
+		channel.Delete()
+		channel, err = repos.Channel().Save(ctx, channel)
+		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot delete server")
+	})
 }

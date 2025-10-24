@@ -9,7 +9,7 @@ import (
 )
 
 type PGRoleRepo struct {
-	db gen.DBTX
+	q *gen.Queries
 }
 
 func (r *PGRoleRepo) Find(ctx context.Context, id e.RoleId) (*e.Role, error) {

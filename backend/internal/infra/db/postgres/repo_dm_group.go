@@ -9,7 +9,7 @@ import (
 )
 
 type PGDMGroupRepo struct {
-	db gen.DBTX
+	q *gen.Queries
 }
 
 func (r *PGDMGroupRepo) Find(ctx context.Context, id e.DMGroupId) (*e.DMGroup, error) {

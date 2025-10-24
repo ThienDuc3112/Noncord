@@ -19,6 +19,4 @@ type UserRepo interface {
 
 	Save(ctx context.Context, user *e.User) error
 	SaveSettings(ctx context.Context, settings *e.UserSettings) (*e.UserSettings, error)
-
-	WithTx(DBTX) UserRepo
 }

@@ -9,65 +9,72 @@ import (
 	"context"
 )
 
+type MemberRepos interface {
+	Member() repositories.MemberRepo
+	Invitation() repositories.InvitationRepo
+	Server() repositories.ServerRepo
+	User() repositories.UserRepo
+}
+
 type MemberService struct {
-	mr repositories.MemberRepo
-	ir repositories.InvitationRepo
-	sr repositories.ServerRepo
-	ur repositories.UserRepo
+	uow repositories.UnitOfWork[MemberRepos]
 }
 
-func NewMemberService(mr repositories.MemberRepo, ir repositories.InvitationRepo, sr repositories.ServerRepo, ur repositories.UserRepo) interfaces.MembershipService {
-	return &MemberService{
-		mr: mr,
-		ir: ir,
-		sr: sr,
-		ur: ur,
-	}
+func NewMemberService(uow repositories.UnitOfWork[MemberRepos]) interfaces.MembershipService {
+	return &MemberService{uow}
 }
 
-func (s *MemberService) JoinServer(ctx context.Context, params command.JoinServerCommand) (command.JoinServerCommandResult, error) {
-	user, err := s.ur.Find(ctx, entities.UserId(params.UserId))
-	if err != nil {
-		return command.JoinServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user")
-	}
+func (s *MemberService) JoinServer(ctx context.Context, params command.JoinServerCommand) (res command.JoinServerCommandResult, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos MemberRepos) error {
+		user, err := repos.User().Find(ctx, entities.UserId(params.UserId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user")
+		}
 
-	inv, err := s.ir.Find(ctx, entities.InvitationId(params.InvitationId))
-	if err != nil {
-		return command.JoinServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get invitation")
-	}
+		inv, err := repos.Invitation().Find(ctx, entities.InvitationId(params.InvitationId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get invitation")
+		}
 
-	server, err := s.sr.Find(ctx, inv.ServerId)
-	if err != nil {
-		return command.JoinServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server, server may be deleted")
-	}
+		server, err := repos.Server().Find(ctx, inv.ServerId)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server, server may be deleted")
+		}
 
-	if server.NeedApproval && !inv.BypassApproval {
-		return command.JoinServerCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "approval is not supported yet", nil)
-	}
+		if server.NeedApproval && !inv.BypassApproval {
+			return entities.NewError(entities.ErrCodeDepFail, "approval is not supported yet", nil)
+		}
 
-	if inv.JoinCount >= inv.JoinLimit && inv.JoinLimit > 0 {
-		return command.JoinServerCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "Invitation expired", nil)
-	}
+		if inv.JoinCount >= inv.JoinLimit && inv.JoinLimit > 0 {
+			return entities.NewError(entities.ErrCodeDepFail, "Invitation expired", nil)
+		}
 
-	inv.JoinCount++
-	membership := entities.NewMembership(server.Id, user.Id, user.DisplayName)
-	membership, err = s.mr.Save(ctx, membership)
-	if err != nil {
-		return command.JoinServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
-	}
-	inv, err = s.ir.Save(ctx, inv)
-	if err != nil {
-		return command.JoinServerCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save invitation")
-	}
+		inv.JoinCount++
+		membership := entities.NewMembership(server.Id, user.Id, user.DisplayName)
+		membership, err = repos.Member().Save(ctx, membership)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
+		}
+		inv, err = repos.Invitation().Save(ctx, inv)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save invitation")
+		}
 
-	return command.JoinServerCommandResult{
-		Result: mapper.MembershipToResult(membership),
-	}, nil
+		res = command.JoinServerCommandResult{
+			Result: mapper.MembershipToResult(membership),
+		}
+		return nil
+	})
+
+	return res, err
 }
 
 func (s *MemberService) LeaveServer(ctx context.Context, params command.LeaveServerCommand) error {
-	err := s.mr.Delete(ctx, entities.UserId(params.UserId), entities.ServerId(params.ServerId))
-	return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "Cannot leave server")
+	return s.uow.Do(ctx, func(ctx context.Context, repos MemberRepos) error {
+		err := repos.Member().Delete(ctx, entities.UserId(params.UserId), entities.ServerId(params.ServerId))
+		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "Cannot leave server")
+
+	})
 }
 
 func (s *MemberService) Kick(context.Context, command.KickCommand) error {

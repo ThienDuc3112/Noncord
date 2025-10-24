@@ -17,12 +17,6 @@ type PGMemberRepo struct {
 	q *gen.Queries
 }
 
-func NewPGMemberRepo(conn gen.DBTX) repositories.MemberRepo {
-	return &PGMemberRepo{
-		q: gen.New(conn),
-	}
-}
-
 func (r *PGMemberRepo) Find(ctx context.Context, userId e.UserId, serverId e.ServerId) (*e.Membership, error) {
 	membership, err := r.q.FindMembership(ctx, gen.FindMembershipParams{
 		UserID:   uuid.UUID(userId),

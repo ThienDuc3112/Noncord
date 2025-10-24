@@ -9,7 +9,7 @@ import (
 )
 
 type PGBanRepo struct {
-	db gen.DBTX
+	q *gen.Queries
 }
 
 func (r *PGBanRepo) Find(ctx context.Context, serverId e.ServerId, userId e.UserId) (*e.BanEntry, error) {

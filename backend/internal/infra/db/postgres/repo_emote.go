@@ -9,7 +9,7 @@ import (
 )
 
 type PGEmoteRepo struct {
-	db gen.DBTX
+	q *gen.Queries
 }
 
 func (r *PGEmoteRepo) Find(ctx context.Context, id e.EmoteId) (*e.Emote, error) {

@@ -5,7 +5,6 @@ import (
 	"backend/internal/application/interfaces"
 	"backend/internal/application/mapper"
 	"backend/internal/domain/entities"
-	"backend/internal/domain/ports"
 	"backend/internal/domain/repositories"
 	"context"
 	"strings"
@@ -13,34 +12,34 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthService struct {
-	userRepo repositories.UserRepo
-	sessRepo ports.SessionRepository
-	connPool *pgxpool.Pool
-	secret   string
+type AuthRepos interface {
+	User() repositories.UserRepo
+	Session() repositories.SessionRepo
 }
 
-func NewAuthService(ur repositories.UserRepo, sr ports.SessionRepository, connPool *pgxpool.Pool, secret string) interfaces.AuthService {
+type AuthService struct {
+	uow    repositories.UnitOfWork[AuthRepos]
+	secret string
+}
+
+func NewAuthService(uow repositories.UnitOfWork[AuthRepos], secret string) interfaces.AuthService {
 	return &AuthService{
-		userRepo: ur,
-		sessRepo: sr,
-		connPool: connPool,
-		secret:   secret,
+		uow:    uow,
+		secret: secret,
 	}
 }
 
-func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand) (command.RegisterCommandResult, error) {
+func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand) (res command.RegisterCommandResult, err error) {
 	if len(cmd.Password) < 8 || len(cmd.Password) > 72 {
-		return command.RegisterCommandResult{}, entities.NewError(entities.ErrCodeValidationError, "password must be between 8 and 72 characters long", nil)
+		return res, entities.NewError(entities.ErrCodeValidationError, "password must be between 8 and 72 characters long", nil)
 	}
 
 	password, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return command.RegisterCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot create new password", err)
+		return res, entities.NewError(entities.ErrCodeDepFail, "cannot create new password", err)
 	}
 
 	user := entities.NewUser(entities.NewUserParam{
@@ -55,10 +54,12 @@ func (s *AuthService) Register(ctx context.Context, cmd command.RegisterCommand)
 	})
 	err = user.Validate()
 	if err != nil {
-		return command.RegisterCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeValidationError, "validation failed")
+		return res, entities.GetErrOrDefault(err, entities.ErrCodeValidationError, "validation failed")
 	}
 
-	err = s.userRepo.Save(ctx, user)
+	err = s.uow.Do(ctx, func(ctx context.Context, repos AuthRepos) error {
+		return repos.User().Save(ctx, user)
+	})
 	if err != nil {
 		return command.RegisterCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save user")
 	}
@@ -76,109 +77,122 @@ type AccessTokenClaim struct {
 	jwt.RegisteredClaims
 }
 
-func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (command.LoginCommandResult, error) {
-	var user *entities.User
-	var err error
-	if entities.IsValidEmail(param.Username) {
-		user, err = s.userRepo.FindByEmail(ctx, param.Username)
-	} else {
-		user, err = s.userRepo.FindByUsername(ctx, param.Username)
-	}
-	if err != nil {
-		return command.LoginCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save user")
-	}
+func (s *AuthService) Login(ctx context.Context, param command.LoginCommand) (res command.LoginCommandResult, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos AuthRepos) error {
+		var user *entities.User
+		if entities.IsValidEmail(param.Username) {
+			user, err = repos.User().FindByEmail(ctx, param.Username)
+		} else {
+			user, err = repos.User().FindByUsername(ctx, param.Username)
+		}
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user")
+		}
 
-	if user == nil {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeInvalidAssertion, "nil user despite nil error", nil)
-	}
+		if user == nil {
+			return entities.NewError(entities.ErrCodeInvalidAssertion, "nil user despite nil error", nil)
+		}
 
-	if user.Password == "" {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeForbidden, "sso user cannot sign in with password", nil)
-	}
+		if user.Password == "" {
+			return entities.NewError(entities.ErrCodeForbidden, "sso user cannot sign in with password", nil)
+		}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
-	if err != nil {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeUnauth, "invalid password", err)
-	}
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(param.Password))
+		if err != nil {
+			return entities.NewError(entities.ErrCodeUnauth, "invalid password", err)
+		}
 
-	session := ports.NewSession(user.Id, time.Now().Add(time.Hour*24*30), param.UserAgent)
-	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
-		UserId:    uuid.UUID(user.Id).String(),
-		Username:  user.Username,
-		UserFlags: user.Flags,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "Noncord",
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
+		now := time.Now()
+		session := entities.NewSession(user.Id, now.Add(time.Hour*24*30), param.UserAgent)
+		accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
+			UserId:    uuid.UUID(user.Id).String(),
+			Username:  user.Username,
+			UserFlags: user.Flags,
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer:    "Noncord",
+				ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 30)),
+				IssuedAt:  jwt.NewNumericDate(now),
+			},
+		})
+		accessToken, err := accessTokenClaim.SignedString([]byte(s.secret))
+		if err != nil {
+			return entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
+		}
+		err = repos.Session().Save(ctx, session)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save session")
+		}
+
+		res = command.LoginCommandResult{
+			AccessToken:  accessToken,
+			RefreshToken: session.Token,
+		}
+		return nil
 	})
-	accessToken, err := accessTokenClaim.SignedString([]byte(s.secret))
-	if err != nil {
-		return command.LoginCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
-	}
-	err = s.sessRepo.Save(ctx, session)
-	if err != nil {
-		return command.LoginCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save session")
-	}
-
-	return command.LoginCommandResult{
-		AccessToken:  accessToken,
-		RefreshToken: session.Token,
-	}, nil
+	return res, err
 }
 
 func (s *AuthService) Logout(ctx context.Context, param command.LogoutCommand) error {
-	session, err := s.sessRepo.FindByToken(ctx, param.RefreshToken)
-	if err != nil {
-		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get session")
-	}
+	return s.uow.Do(ctx, func(ctx context.Context, repos AuthRepos) error {
+		session, err := repos.Session().FindByToken(ctx, param.RefreshToken)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get session")
+		}
 
-	session.ExpiresAt = time.Now()
+		session.ExpiresAt = time.Now()
 
-	return entities.GetErrOrDefault(s.sessRepo.Save(ctx, session), entities.ErrCodeDepFail, "cannot set session")
-}
+		return entities.GetErrOrDefault(repos.Session().Save(ctx, session), entities.ErrCodeDepFail, "cannot set session")
 
-func (s *AuthService) Refresh(ctx context.Context, param command.RefreshCommand) (command.RefreshCommandResult, error) {
-	session, err := s.sessRepo.FindByToken(ctx, param.RefreshToken)
-	if err != nil {
-		return command.RefreshCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get session")
-	}
-
-	user, err := s.userRepo.Find(ctx, session.UserId)
-	if err != nil {
-		return command.RefreshCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user")
-	}
-
-	session.Token = ports.RandomToken()
-	session.RotationCount += 1
-	session.ExpiresAt = time.Now().Add(30 * 24 * time.Hour)
-
-	accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
-		UserId:    uuid.UUID(user.Id).String(),
-		Username:  user.Username,
-		UserFlags: user.Flags,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "Noncord",
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
 	})
-	accessToken, err := accessTokenClaim.SignedString([]byte(s.secret))
-	if err != nil {
-		return command.RefreshCommandResult{}, entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
-	}
-	err = s.sessRepo.Save(ctx, session)
-	if err != nil {
-		return command.RefreshCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save session")
-	}
-
-	return command.RefreshCommandResult{
-		AccessToken:  accessToken,
-		RefreshToken: session.Token,
-	}, nil
 }
 
-func (s *AuthService) Authenticate(ctx context.Context, param command.AuthenticateCommand) (command.AuthenticateCommandResult, error) {
+func (s *AuthService) Refresh(ctx context.Context, param command.RefreshCommand) (res command.RefreshCommandResult, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos AuthRepos) error {
+		session, err := repos.Session().FindByToken(ctx, param.RefreshToken)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get session")
+		}
+
+		user, err := repos.User().Find(ctx, session.UserId)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user")
+		}
+
+		now := time.Now()
+		session.Token = entities.RandomToken()
+		session.RotationCount += 1
+		session.ExpiresAt = now.Add(30 * 24 * time.Hour)
+
+		accessTokenClaim := jwt.NewWithClaims(jwt.SigningMethodHS256, AccessTokenClaim{
+			UserId:    uuid.UUID(user.Id).String(),
+			Username:  user.Username,
+			UserFlags: user.Flags,
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer:    "Noncord",
+				ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 30)),
+				IssuedAt:  jwt.NewNumericDate(now),
+			},
+		})
+		accessToken, err := accessTokenClaim.SignedString([]byte(s.secret))
+		if err != nil {
+			return entities.NewError(entities.ErrCodeDepFail, "fail to generate access token", err)
+		}
+		err = repos.Session().Save(ctx, session)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save session")
+		}
+
+		res = command.RefreshCommandResult{
+			AccessToken:  accessToken,
+			RefreshToken: session.Token,
+		}
+		return nil
+	})
+
+	return res, err
+}
+
+func (s *AuthService) Authenticate(ctx context.Context, param command.AuthenticateCommand) (res command.AuthenticateCommandResult, err error) {
 	token, err := jwt.ParseWithClaims(param.AccessToken, &AccessTokenClaim{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, entities.NewError(entities.ErrCodeUnauth, "invalid token", nil)
@@ -187,26 +201,31 @@ func (s *AuthService) Authenticate(ctx context.Context, param command.Authentica
 	}, jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {
-		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "cannot verify token")
+		return res, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "cannot verify token")
 	}
 
 	claims, ok := token.Claims.(*AccessTokenClaim)
 	if !ok {
-		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "deformed token structure")
+		return res, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "deformed token structure")
 	} else if !token.Valid {
-		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, potentially expired")
+		return res, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, potentially expired")
 	}
 
 	userId, err := uuid.Parse(claims.UserId)
 	if err != nil {
-		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, invalid user id")
-	}
-	user, err := s.userRepo.Find(ctx, entities.UserId(userId))
-	if err != nil {
-		return command.AuthenticateCommandResult{}, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot find user")
+		return res, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, invalid user id")
 	}
 
-	return command.AuthenticateCommandResult{
-		User: mapper.NewUserResultFromUserEntity(user),
-	}, nil
+	err = s.uow.Do(ctx, func(ctx context.Context, repos AuthRepos) error {
+		user, err := repos.User().Find(ctx, entities.UserId(userId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot find user")
+		}
+
+		res = command.AuthenticateCommandResult{
+			User: mapper.NewUserResultFromUserEntity(user),
+		}
+		return nil
+	})
+	return res, err
 }

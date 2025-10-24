@@ -10,7 +10,7 @@ import (
 )
 
 type PGMessageRepo struct {
-	db gen.DBTX
+	q *gen.Queries
 }
 
 func (r *PGMessageRepo) Find(ctx context.Context, id e.MessageId) (*e.Message, error) {

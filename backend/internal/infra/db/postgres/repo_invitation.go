@@ -16,12 +16,6 @@ type PGInvitationRepo struct {
 	repo *gen.Queries
 }
 
-func NewPGInvitationRepo(db gen.DBTX) repositories.InvitationRepo {
-	return &PGInvitationRepo{
-		repo: gen.New(db),
-	}
-}
-
 func (r *PGInvitationRepo) Find(ctx context.Context, id e.InvitationId) (*e.Invitation, error) {
 	inv, err := r.repo.FindInvitationById(ctx, uuid.UUID(id))
 	if errors.Is(err, pgx.ErrNoRows) {

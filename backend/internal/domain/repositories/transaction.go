@@ -1,14 +1,26 @@
 package repositories
 
-import (
-	"context"
+import "context"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-)
+type UnitOfWork[T any] interface {
+	Do(ctx context.Context, fn func(ctx context.Context, repos T) error) error
+}
 
-type DBTX interface {
-	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
-	Query(context.Context, string, ...any) (pgx.Rows, error)
-	QueryRow(context.Context, string, ...any) pgx.Row
+type RepoBundle interface {
+	Ban() BanRepo
+	Channel() ChannelRepo
+	DMGroup() DMGroupRepo
+	Emote() EmoteRepo
+	Invitation() InvitationRepo
+	Member() MemberRepo
+	Message() MessageRepo
+	Role() RoleRepo
+	Server() ServerRepo
+	Session() SessionRepo
+	UserNotification() UserNotificationRepo
+	User() UserRepo
+}
+
+type BaseUnitOfWork interface {
+	Do(ctx context.Context, fn func(ctx context.Context, repos RepoBundle) error) error
 }

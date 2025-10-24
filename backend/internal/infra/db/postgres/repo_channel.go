@@ -13,17 +13,11 @@ import (
 )
 
 type PGChannelRepo struct {
-	db *gen.Queries
-}
-
-func NewPGChannelRepo(db gen.DBTX) repositories.ChannelRepo {
-	return &PGChannelRepo{
-		db: gen.New(db),
-	}
+	q *gen.Queries
 }
 
 func (r *PGChannelRepo) Find(ctx context.Context, id e.ChannelId) (*e.Channel, error) {
-	channel, err := r.db.FindChannelById(ctx, uuid.UUID(id))
+	channel, err := r.q.FindChannelById(ctx, uuid.UUID(id))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, e.NewError(e.ErrCodeNoObject, "no channel by this id", err)
 	} else if err != nil {
@@ -37,7 +31,7 @@ func (r *PGChannelRepo) FindIds(ctx context.Context, ids []e.ChannelId) ([]*e.Ch
 	var mapper arrutil.MapFn[e.ChannelId, uuid.UUID] = func(input e.ChannelId) (target uuid.UUID, find bool) {
 		return uuid.UUID(input), true
 	}
-	channels, err := r.db.FindChannelsByIds(ctx, arrutil.Map(ids, mapper))
+	channels, err := r.q.FindChannelsByIds(ctx, arrutil.Map(ids, mapper))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +42,7 @@ func (r *PGChannelRepo) FindIds(ctx context.Context, ids []e.ChannelId) ([]*e.Ch
 }
 
 func (r *PGChannelRepo) FindByServerId(ctx context.Context, serverId e.ServerId) ([]*e.Channel, error) {
-	channels, err := r.db.FindChannelsByServerId(ctx, uuid.UUID(serverId))
+	channels, err := r.q.FindChannelsByServerId(ctx, uuid.UUID(serverId))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +53,7 @@ func (r *PGChannelRepo) FindByServerId(ctx context.Context, serverId e.ServerId)
 }
 
 func (r *PGChannelRepo) GetServerMaxChannelOrder(ctx context.Context, serverId e.ServerId) (int32, error) {
-	return r.db.GetServerMaxOrdering(ctx, uuid.UUID(serverId))
+	return r.q.GetServerMaxOrdering(ctx, uuid.UUID(serverId))
 
 }
 
@@ -80,7 +74,7 @@ func (r *PGChannelRepo) GetServerMaxChannelOrder(ctx context.Context, serverId e
 // }
 
 func (r *PGChannelRepo) Save(ctx context.Context, channel *e.Channel) (*e.Channel, error) {
-	c, err := r.db.SaveChannel(ctx, gen.SaveChannelParams{
+	c, err := r.q.SaveChannel(ctx, gen.SaveChannelParams{
 		ID:             uuid.UUID(channel.Id),
 		CreatedAt:      channel.CreatedAt,
 		UpdatedAt:      channel.UpdatedAt,
@@ -107,7 +101,7 @@ func (r *PGChannelRepo) Save(ctx context.Context, channel *e.Channel) (*e.Channe
 // }
 
 func (r *PGChannelRepo) Delete(ctx context.Context, id e.ChannelId) error {
-	return r.db.DeleteChannel(ctx, uuid.UUID(id))
+	return r.q.DeleteChannel(ctx, uuid.UUID(id))
 }
 
 // func (r *PGChannelRepo) DeleteRoleOverride(ctx context.Context, id e.ChannelId, roleId e.RoleId) error {
