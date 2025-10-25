@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/internal/domain/events"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,13 +24,12 @@ const (
 type MessageId uuid.UUID
 
 type Attachment struct {
-	Id        AttachmentId
-	Filetype  Filetype
-	Url       string
-	Filename  string
-	MessageId MessageId
-	UserId    UserId
-	Size      uint32
+	Id       AttachmentId
+	Filetype Filetype
+	Url      string
+	Filename string
+	UserId   UserId
+	Size     uint32
 }
 
 func (a *Attachment) Validate() error {
@@ -46,15 +46,14 @@ func (a *Attachment) Validate() error {
 	return nil
 }
 
-func NewAttachment(filetype Filetype, url, name string, mid MessageId, uid UserId, size uint32) *Attachment {
+func NewAttachment(filetype Filetype, url, name string, uid UserId, size uint32) *Attachment {
 	return &Attachment{
-		Id:        AttachmentId(uuid.New()),
-		Filetype:  filetype,
-		Url:       url,
-		Filename:  name,
-		MessageId: mid,
-		UserId:    uid,
-		Size:      size,
+		Id:       AttachmentId(uuid.New()),
+		Filetype: filetype,
+		Url:      url,
+		Filename: name,
+		UserId:   uid,
+		Size:     size,
 	}
 }
 
@@ -73,6 +72,8 @@ func NewReaction(mid MessageId, uid UserId, eid EmoteId) *Reaction {
 }
 
 type Message struct {
+	events.Recorder
+
 	Id          MessageId
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -103,11 +104,12 @@ func (m *Message) Validate() error {
 	return nil
 }
 
-func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg string, attachments []Attachment) *Message {
-	return &Message{
+func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg string, attachments []Attachment) (*Message, error) {
+	now := time.Now()
+	message := &Message{
 		Id:          MessageId(uuid.New()),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   now,
+		UpdatedAt:   now,
 		DeletedAt:   nil,
 		ChannelId:   channelId,
 		GroupId:     groupId,
@@ -115,4 +117,72 @@ func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg str
 		Message:     msg,
 		Attachments: attachments,
 	}
+
+	if err := message.Validate(); err != nil {
+		return nil, err
+	}
+	message.Record(NewMessageCreated(message))
+	return message, nil
+}
+
+func (m *Message) UpdateContent(newContent string) error {
+	if newContent == m.Message {
+		return nil
+	}
+	if len(newContent) > 4096 {
+		return NewError(ErrCodeValidationError, "message cannot be longer than 4096", nil)
+	}
+	// Cannot be empty if there are no attachments
+	if newContent == "" && len(m.Attachments) == 0 {
+		return NewError(ErrCodeValidationError, "cannot send empty message", nil)
+	}
+
+	old := m.Message
+	m.Message = newContent
+	m.UpdatedAt = time.Now()
+	m.Record(NewMessageEdited(m, old))
+	return nil
+}
+
+func (m *Message) RemoveAttachment(attID AttachmentId) error {
+	idx := -1
+	var removed Attachment
+	for i := range m.Attachments {
+		if m.Attachments[i].Id == attID {
+			idx = i
+			removed = m.Attachments[i]
+			break
+		}
+	}
+	if idx < 0 {
+		return NewError(ErrCodeValidationError, "attachment not found", nil)
+	}
+
+	// Remove while preserving order
+	copy(m.Attachments[idx:], m.Attachments[idx+1:])
+	m.Attachments = m.Attachments[:len(m.Attachments)-1]
+
+	// Ensure message isn't empty after removal
+	if m.Message == "" && len(m.Attachments) == 0 {
+		return NewError(ErrCodeValidationError, "cannot remove last attachment from an empty message", nil)
+	}
+
+	m.UpdatedAt = time.Now()
+	m.Record(NewMessageAttachmentRemoved(m, removed.Id))
+	return nil
+}
+
+func (m *Message) AddReaction(userID UserId, emoteID EmoteId) {
+	m.Record(NewMessageReactionAdded(m, userID, emoteID))
+}
+
+func (m *Message) RemoveReaction(userID UserId, emoteID EmoteId) {
+	m.Record(NewMessageReactionRemoved(m, userID, emoteID))
+}
+
+func (m *Message) Delete() error {
+	now := time.Now()
+	m.DeletedAt = &now
+	m.Record(NewMessageDeleted(m))
+	return nil
 }
