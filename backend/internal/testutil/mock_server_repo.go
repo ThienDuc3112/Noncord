@@ -43,12 +43,7 @@ func (r *MockServerRepo) FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.
 	}), nil
 }
 
-func (r *MockServerRepo) Delete(ctx context.Context, id e.ServerId) error {
-	if _, ok := r.db[id]; !ok {
-		return e.NewError(e.ErrCodeNoObject, "server not found", nil)
-	}
-	delete(r.db, id)
-	return nil
-}
+func (r *MockServerRepo) FindByInvitationId(context.Context, e.InvitationId) (*e.Server, error)
+func (r *MockServerRepo) FindByUser(context.Context, e.UserId) ([]*e.Server, error)
 
 var _ repositories.ServerRepo = &MockServerRepo{}

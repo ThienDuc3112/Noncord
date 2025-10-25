@@ -6,7 +6,6 @@ import (
 	"backend/internal/infra/db/postgres/gen"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"

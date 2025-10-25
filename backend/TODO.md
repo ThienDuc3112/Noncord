@@ -175,7 +175,16 @@
 - [ ] Message service
     - [x] Implement repo
     - [ ] Implement service
-        - [ ] Send message
+        - [ ] Get message
+            - [x] Get message
+            - [ ] Check permission
+        - [x] Get messages by channel id
+            - [x] Get messages
+            - [ ] Check permission
+        - [ ] Get messages by group id
+        - [x] Create message
+            - [x] Create message
+            - [ ] Check permission
         - [ ] Edit message
         - [ ] Delete message
     - [ ] Implement controller

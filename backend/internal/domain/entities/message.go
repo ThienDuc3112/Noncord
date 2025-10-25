@@ -100,6 +100,9 @@ func (m *Message) Validate() error {
 	if noGroup && noChannel {
 		return NewError(ErrCodeValidationError, "cannot have orphan message", nil)
 	}
+	if !noGroup && !noChannel {
+		return NewError(ErrCodeValidationError, "cannot have message in both dm group and channel", nil)
+	}
 
 	return nil
 }
