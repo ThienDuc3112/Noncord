@@ -173,11 +173,15 @@
         - [ ] Update channel role permission
     - [ ] Implement controller
 - [ ] Message service
-    - [ ] Implement repo
+    - [x] Implement repo
     - [ ] Implement service
         - [ ] Send message
         - [ ] Edit message
         - [ ] Delete message
+    - [ ] Implement controller
+- [ ] Attachment service
+    - [ ] Implement repo
+    - [ ] Implement service
     - [ ] Implement controller
 - [ ] User service
 - [ ] User settings service

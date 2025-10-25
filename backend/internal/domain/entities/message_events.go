@@ -60,6 +60,7 @@ func NewMessageCreated(m *Message) MessageCreated {
 			})
 		}
 	}
+
 	return MessageCreated{
 		Base:        events.NewBase("message", uuid.UUID(m.Id), EventMessageCreated, MessageCreatedSchemaVersion),
 		AuthorID:    uuid.UUID(m.Author),
