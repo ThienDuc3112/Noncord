@@ -101,6 +101,12 @@ func (s *MessageService) GetByGroupId(ctx context.Context, params query.GetMessa
 
 func (s *MessageService) GetByChannelId(ctx context.Context, params query.GetMessagesByChannelId) (res query.GetMessagesByChannelIdResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
+		_, _, _, derr := s.getChannelContext(ctx, repos, entities.ChannelId(params.ChannelId), entities.UserId(params.UserId))
+		if derr != nil {
+			return derr
+		}
+		// TODO: Check permission with roles, channel overwrite and stuff
+
 		before := time.Now()
 		if params.Before != nil {
 			before = *params.Before
@@ -114,12 +120,6 @@ func (s *MessageService) GetByChannelId(ctx context.Context, params query.GetMes
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get messages")
 		}
-
-		_, _, _, derr := s.getChannelContext(ctx, repos, entities.ChannelId(params.ChannelId), entities.UserId(params.UserId))
-		if derr != nil {
-			return derr
-		}
-		// TODO: Check permission with roles, channel overwrite and stuff
 
 		res = query.GetMessagesByChannelIdResult{
 			Result: arrutil.Map(msgs, func(m *entities.Message) (target *common.Message, find bool) {
@@ -159,9 +159,40 @@ func (s *MessageService) Create(ctx context.Context, params command.CreateMessag
 }
 
 func (s *MessageService) Update(context.Context, command.UpdateMessageCommand) (res command.UpdateMessageCommandResult, err error) {
+
 	return res, err
 }
 
-func (s *MessageService) Delete(context.Context, command.DeleteMessageCommand) error {
-	return nil
+func (s *MessageService) Delete(ctx context.Context, params command.DeleteMessageCommand) error {
+	return s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
+		msg, err := repos.Message().Find(ctx, entities.MessageId(params.MessageId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message")
+		}
+
+		if msg.ChannelId != nil {
+			_, server, membership, derr := s.getChannelContext(ctx, repos, *msg.ChannelId, entities.UserId(params.UserId))
+			if derr != nil {
+				return derr
+			}
+
+			if !server.IsOwner(membership.UserId) && !msg.IsAuthor(membership.UserId) {
+				return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete message", nil)
+			}
+			// TODO: Add other permission check later
+
+			err = msg.Delete()
+			if err != nil {
+				return err
+			}
+
+			msg, err = repos.Message().Save(ctx, msg)
+			if err != nil {
+				return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot delete message")
+			}
+			return nil
+		} else {
+			return entities.NewError(entities.ErrCodeForbidden, "dm group not implemented", nil)
+		}
+	})
 }

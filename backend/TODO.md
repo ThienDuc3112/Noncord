@@ -187,7 +187,10 @@
             - [ ] Check permission
         - [ ] Edit message
         - [ ] Delete message
+            - [x] Delete message
+            - [ ] Check permission
     - [ ] Implement controller
+- [ ] Permission service
 - [ ] Attachment service
     - [ ] Implement repo
     - [ ] Implement service

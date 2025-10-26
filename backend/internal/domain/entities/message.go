@@ -128,6 +128,10 @@ func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg str
 	return message, nil
 }
 
+func (m *Message) IsAuthor(userId UserId) bool {
+	return userId == m.Author
+}
+
 func (m *Message) UpdateContent(newContent string) error {
 	if newContent == m.Message {
 		return nil
