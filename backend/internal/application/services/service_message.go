@@ -29,7 +29,7 @@ func NewMessageService(uow repositories.UnitOfWork[MessageRepos]) interfaces.Mes
 	return &MessageService{uow}
 }
 
-func (s *MessageService) getChannelContext(ctx context.Context, repos MessageRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, *entities.ChatError) {
+func (s *MessageService) getChannelContext(ctx context.Context, repos MessageRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
 	channel, err := repos.Channel().Find(ctx, channelId)
 	if err != nil {
 		return nil, nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's channel")
@@ -133,29 +133,35 @@ func (s *MessageService) GetByChannelId(ctx context.Context, params query.GetMes
 }
 
 func (s *MessageService) Create(ctx context.Context, params command.CreateMessageCommand) (res command.CreateMessageCommandResult, err error) {
-	msg, err := entities.NewMessage((*entities.ChannelId)(params.ChannelId), (*entities.DMGroupId)(params.GroupId), entities.UserId(params.UserId), params.Content, nil)
-	if err != nil {
-		return res, err
-	}
+	if params.IsTargetChannel {
+		msg, err := entities.NewMessage((*entities.ChannelId)(&params.TargetId), nil, entities.UserId(params.UserId), params.Content, nil)
+		if err != nil {
+			return res, err
+		}
 
-	err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
-		if msg.ChannelId != nil {
-			_, _, _, err = s.getChannelContext(ctx, repos, *msg.ChannelId, msg.Author)
+		err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
+			_, _, _, err = s.getChannelContext(ctx, repos, entities.ChannelId(params.TargetId), msg.Author)
 			if err != nil {
 				return err
 			}
 			// TODO: Check permission with roles, channel overwrite and stuff
 
+			msg, err = repos.Message().Save(ctx, msg)
+			if err != nil {
+				return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "failed to save message")
+			}
+
 			res = command.CreateMessageCommandResult{
 				Result: mapper.MessageToResult(msg),
 			}
 			return nil
-		} else {
-			return entities.NewError(entities.ErrCodeForbidden, "dm group not implemented", nil)
-		}
-	})
+		})
 
-	return res, err
+		return res, err
+	} else {
+		return res, entities.NewError(entities.ErrCodeForbidden, "dm group not implemented", nil)
+	}
+
 }
 
 func (s *MessageService) Update(context.Context, command.UpdateMessageCommand) (res command.UpdateMessageCommandResult, err error) {

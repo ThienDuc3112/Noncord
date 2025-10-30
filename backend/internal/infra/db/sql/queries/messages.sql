@@ -1,11 +1,11 @@
 -- name: FindMessageById :one
-SELECT * FROM messages WHERE id = $1 AND deleted_at IS NOT NULL;
+SELECT * FROM messages WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: FindMessagesByChannelId :many
-SELECT * FROM messages WHERE channel_id = $1 AND created_at < $2 AND deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $3;
+SELECT * FROM messages WHERE channel_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3;
 
 -- name: FindMessagesByGroupId :many
-SELECT * FROM messages WHERE group_id = $1 AND created_at < $2 AND deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $3;
+SELECT * FROM messages WHERE group_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3;
 
 -- name: SaveMessage :one
 INSERT INTO messages (

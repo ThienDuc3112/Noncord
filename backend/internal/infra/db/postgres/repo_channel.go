@@ -89,6 +89,10 @@ func (r *PGChannelRepo) Save(ctx context.Context, channel *e.Channel) (*e.Channe
 		return nil, err
 	}
 
+	if err = pullAndPushEvents(ctx, r.q, channel.PullsEvents()); err != nil {
+		return nil, err
+	}
+
 	return fromDbChannel(c), nil
 }
 

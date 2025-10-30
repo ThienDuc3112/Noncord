@@ -32,7 +32,8 @@ func (c *InvitationController) RegisterRoute(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware(c.authService))
 
-			r.Post("/{invitation_id}/join", c.GetInvitationController)
+			r.Get("/{invitation_id}", c.GetInvitationController)
+			r.Post("/{invitation_id}/join", c.JoinServerController)
 			r.Put("/{invitation_id}", c.UpdateInvitationController)
 			r.Patch("/{invitation_id}", c.UpdateInvitationController)
 			r.Delete("/{invitation_id}", c.DeleteInvitationController)

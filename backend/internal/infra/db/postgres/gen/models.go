@@ -275,7 +275,7 @@ type Server struct {
 	NeedApproval        bool
 	AnnouncementChannel *uuid.UUID
 	Owner               uuid.UUID
-	DefaultPermssion    int64
+	DefaultPermission   int64
 }
 
 type Session struct {

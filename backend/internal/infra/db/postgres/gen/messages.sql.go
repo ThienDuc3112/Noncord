@@ -13,7 +13,7 @@ import (
 )
 
 const findMessageById = `-- name: FindMessageById :one
-SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE id = $1 AND deleted_at IS NOT NULL
+SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) FindMessageById(ctx context.Context, id uuid.UUID) (Message, error) {
@@ -33,7 +33,7 @@ func (q *Queries) FindMessageById(ctx context.Context, id uuid.UUID) (Message, e
 }
 
 const findMessagesByChannelId = `-- name: FindMessagesByChannelId :many
-SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE channel_id = $1 AND created_at < $2 AND deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $3
+SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE channel_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3
 `
 
 type FindMessagesByChannelIdParams struct {
@@ -72,7 +72,7 @@ func (q *Queries) FindMessagesByChannelId(ctx context.Context, arg FindMessagesB
 }
 
 const findMessagesByGroupId = `-- name: FindMessagesByGroupId :many
-SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE group_id = $1 AND created_at < $2 AND deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $3
+SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE group_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3
 `
 
 type FindMessagesByGroupIdParams struct {

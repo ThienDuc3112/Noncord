@@ -883,7 +883,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.Register"
+                            "$ref": "#/definitions/request.CreateMessage"
                         }
                     },
                     {
@@ -896,7 +896,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Message sent"
+                        "description": "Message sent",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
                     },
                     "400": {
                         "description": "Invalid request body",
@@ -1112,7 +1115,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
                     },
                     "400": {
                         "description": "Invalid message id",
@@ -1668,6 +1674,24 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateMessage": {
+            "type": "object",
+            "required": [
+                "content",
+                "targetId"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "isTargetChannel": {
+                    "type": "boolean"
+                },
+                "targetId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Login": {
             "type": "object",
             "required": [
@@ -1943,6 +1967,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Message": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "channelId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

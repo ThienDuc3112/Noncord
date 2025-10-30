@@ -37,6 +37,7 @@ func main() {
 	invitationService := services.NewInvitationService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.InvitationRepos { return rb }))
 	membershipService := services.NewMemberService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MemberRepos { return rb }))
 	channelService := services.NewChannelService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
+	messageService := services.NewMessageService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MessageRepos { return rb }))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -60,6 +61,7 @@ func main() {
 		rest.NewAuthController(authService).RegisterRoute(r)
 		rest.NewServerController(serverService, authService, invitationService, channelService).RegisterRoute(r)
 		rest.NewInvitationController(serverService, authService, invitationService, membershipService).RegisterRoute(r)
+		rest.NewMessageController(messageService, authService).RegisterRoute(r)
 	})
 
 	log.Printf("listening on port %v", port)

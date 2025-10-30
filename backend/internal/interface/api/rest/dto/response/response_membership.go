@@ -7,8 +7,8 @@ import (
 )
 
 type Membership struct {
-	ServerId  uuid.UUID
-	UserId    uuid.UUID
-	Nickname  string
-	CreatedAt time.Time
+	ServerId  uuid.UUID `json:"serverId"`
+	UserId    uuid.UUID `json:"userId"`
+	Nickname  string    `json:"nickname"`
+	CreatedAt time.Time `json:"createdAt"`
 }

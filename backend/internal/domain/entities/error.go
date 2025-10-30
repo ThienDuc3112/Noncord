@@ -34,7 +34,7 @@ func (e *ChatError) Unwrap() error {
 	return e.Err
 }
 
-func NewError(code ChatErrorCode, message string, err error) *ChatError {
+func NewError(code ChatErrorCode, message string, err error) error {
 	return &ChatError{
 		Code:    code,
 		Message: message,
@@ -43,7 +43,7 @@ func NewError(code ChatErrorCode, message string, err error) *ChatError {
 }
 
 // Get underlying ChatError or if not exist, wrap the err and return it
-func GetErrOrDefault(err error, code ChatErrorCode, message string) *ChatError {
+func GetErrOrDefault(err error, code ChatErrorCode, message string) error {
 	if err == nil {
 		return nil
 	}

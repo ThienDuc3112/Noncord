@@ -7,10 +7,10 @@ import (
 )
 
 type CreateMessageCommand struct {
-	UserId    uuid.UUID
-	ChannelId *uuid.UUID
-	GroupId   *uuid.UUID
-	Content   string
+	UserId          uuid.UUID
+	TargetId        uuid.UUID
+	Content         string
+	IsTargetChannel bool
 	// Attachments []Attachment
 }
 

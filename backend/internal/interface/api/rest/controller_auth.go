@@ -107,6 +107,7 @@ func (ac *AuthController) LoginController(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		var e *entities.ChatError
 		if errors.As(err, &e) {
+			log.Printf("[LoginController] Error: %v\tfrom: %v", e, err)
 			switch e.Code {
 			case entities.ErrCodeValidationError:
 				render.Render(w, r, response.ParseErrorResponse(e.Message, http.StatusBadRequest, e))

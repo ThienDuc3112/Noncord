@@ -73,7 +73,7 @@ func (c *Channel) Delete() error {
 }
 
 func NewChannel(name, desc string, serverId ServerId, order uint16, parent *CategoryId) *Channel {
-	return &Channel{
+	c := &Channel{
 		Id:             ChannelId(uuid.New()),
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
@@ -84,6 +84,10 @@ func NewChannel(name, desc string, serverId ServerId, order uint16, parent *Cate
 		Order:          order,
 		ParentCategory: parent,
 	}
+
+	c.Record(NewChannelCreated(c))
+
+	return c
 }
 
 type OverwriteTarget string

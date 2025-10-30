@@ -140,9 +140,9 @@
         - [ ] Find channels by server id
             - [x] Fetch channels
             - [ ] Fetch overwrites
-        - [ ] Save channel
+        - [x] Save channel
             - [x] Update the change
-            - [ ] Add event to outbox
+            - [x] Add event to outbox
 
         - [x] Get server max ordering
 
@@ -190,6 +190,10 @@
             - [x] Delete message
             - [ ] Check permission
     - [ ] Implement controller
+        - [x] Create message controller
+        - [x] Get message controller
+        - [ ] Get messages by channel id controller
+        - [ ] Get messages by group id controller
 - [ ] Permission service
 - [ ] Attachment service
     - [ ] Implement repo

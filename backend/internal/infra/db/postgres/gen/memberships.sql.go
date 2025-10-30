@@ -110,6 +110,7 @@ func (q *Queries) FindMembershipsByUserId(ctx context.Context, userID uuid.UUID)
 
 const saveMembership = `-- name: SaveMembership :one
 INSERT INTO memberships (
+  id,
   server_id,
   user_id,
   created_at,
@@ -118,15 +119,17 @@ INSERT INTO memberships (
   $1,
   $2,
   $3,
-  $4
+  $4,
+  $5
 )
-ON CONFLICT (server_id, user_id)
+ON CONFLICT (id)
 DO UPDATE SET
-  nickname = $4
+  nickname = $5
 RETURNING id, server_id, user_id, created_at, nickname
 `
 
 type SaveMembershipParams struct {
+	ID        uuid.UUID
 	ServerID  uuid.UUID
 	UserID    uuid.UUID
 	CreatedAt time.Time
@@ -135,6 +138,7 @@ type SaveMembershipParams struct {
 
 func (q *Queries) SaveMembership(ctx context.Context, arg SaveMembershipParams) (Membership, error) {
 	row := q.db.QueryRow(ctx, saveMembership,
+		arg.ID,
 		arg.ServerID,
 		arg.UserID,
 		arg.CreatedAt,

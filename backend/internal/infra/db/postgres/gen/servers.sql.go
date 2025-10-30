@@ -73,7 +73,7 @@ func (q *Queries) FindInvitationsByServerId(ctx context.Context, serverID uuid.U
 }
 
 const findServerById = `-- name: FindServerById :one
-SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, announcement_channel, owner, default_permssion FROM servers WHERE id = $1 AND deleted_at IS NULL
+SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, announcement_channel, owner, default_permission FROM servers WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) FindServerById(ctx context.Context, id uuid.UUID) (Server, error) {
@@ -91,13 +91,13 @@ func (q *Queries) FindServerById(ctx context.Context, id uuid.UUID) (Server, err
 		&i.NeedApproval,
 		&i.AnnouncementChannel,
 		&i.Owner,
-		&i.DefaultPermssion,
+		&i.DefaultPermission,
 	)
 	return i, err
 }
 
 const findServerFromInviteId = `-- name: FindServerFromInviteId :one
-SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.announcement_channel, s.owner, s.default_permssion 
+SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.announcement_channel, s.owner, s.default_permission 
 FROM servers s 
 JOIN invitations i ON s.id = i.server_id
 WHERE i.id = $1 AND (i.expired_at IS NULL OR i.expired_at > NOW()) AND (i.join_limit <= 0 OR i.join_limit > i.join_count)
@@ -118,13 +118,13 @@ func (q *Queries) FindServerFromInviteId(ctx context.Context, id uuid.UUID) (Ser
 		&i.NeedApproval,
 		&i.AnnouncementChannel,
 		&i.Owner,
-		&i.DefaultPermssion,
+		&i.DefaultPermission,
 	)
 	return i, err
 }
 
 const findServersByIds = `-- name: FindServersByIds :many
-SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, announcement_channel, owner, default_permssion FROM servers WHERE id = ANY($1::UUID[]) AND deleted_at IS NULL
+SELECT id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, announcement_channel, owner, default_permission FROM servers WHERE id = ANY($1::UUID[]) AND deleted_at IS NULL
 `
 
 func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Server, error) {
@@ -148,7 +148,7 @@ func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Serv
 			&i.NeedApproval,
 			&i.AnnouncementChannel,
 			&i.Owner,
-			&i.DefaultPermssion,
+			&i.DefaultPermission,
 		); err != nil {
 			return nil, err
 		}
@@ -161,7 +161,7 @@ func (q *Queries) FindServersByIds(ctx context.Context, ids []uuid.UUID) ([]Serv
 }
 
 const findServersFromUserId = `-- name: FindServersFromUserId :many
-SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.announcement_channel, s.owner, s.default_permssion 
+SELECT s.id, s.created_at, s.updated_at, s.deleted_at, s.name, s.description, s.icon_url, s.banner_url, s.need_approval, s.announcement_channel, s.owner, s.default_permission 
 FROM servers s
 JOIN memberships m ON m.server_id = s.id
 WHERE m.user_id = $1 AND s.deleted_at IS NULL
@@ -188,7 +188,7 @@ func (q *Queries) FindServersFromUserId(ctx context.Context, userID uuid.UUID) (
 			&i.NeedApproval,
 			&i.AnnouncementChannel,
 			&i.Owner,
-			&i.DefaultPermssion,
+			&i.DefaultPermission,
 		); err != nil {
 			return nil, err
 		}
@@ -272,7 +272,7 @@ INSERT INTO servers (
 	icon_url,
   banner_url,
 	need_approval,
-	default_permssion,
+	default_permission,
 	announcement_channel,
   owner
 ) VALUES (
@@ -297,10 +297,10 @@ DO UPDATE SET
 	icon_url = $6,
   banner_url = $7,
 	need_approval = $8,
-	default_role = $9,
+	default_permission = $9,
 	announcement_channel = $10,
   owner = $11
-RETURNING id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, announcement_channel, owner, default_permssion
+RETURNING id, created_at, updated_at, deleted_at, name, description, icon_url, banner_url, need_approval, announcement_channel, owner, default_permission
 `
 
 type SaveServerParams struct {
@@ -312,7 +312,7 @@ type SaveServerParams struct {
 	IconUrl             string
 	BannerUrl           string
 	NeedApproval        bool
-	DefaultPermssion    int64
+	DefaultPermission   int64
 	AnnouncementChannel *uuid.UUID
 	Owner               uuid.UUID
 }
@@ -327,7 +327,7 @@ func (q *Queries) SaveServer(ctx context.Context, arg SaveServerParams) (Server,
 		arg.IconUrl,
 		arg.BannerUrl,
 		arg.NeedApproval,
-		arg.DefaultPermssion,
+		arg.DefaultPermission,
 		arg.AnnouncementChannel,
 		arg.Owner,
 	)
@@ -344,7 +344,7 @@ func (q *Queries) SaveServer(ctx context.Context, arg SaveServerParams) (Server,
 		&i.NeedApproval,
 		&i.AnnouncementChannel,
 		&i.Owner,
-		&i.DefaultPermssion,
+		&i.DefaultPermission,
 	)
 	return i, err
 }

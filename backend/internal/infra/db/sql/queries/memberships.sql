@@ -1,5 +1,6 @@
 -- name: SaveMembership :one
 INSERT INTO memberships (
+  id,
   server_id,
   user_id,
   created_at,
@@ -8,11 +9,12 @@ INSERT INTO memberships (
   $1,
   $2,
   $3,
-  $4
+  $4,
+  $5
 )
-ON CONFLICT (server_id, user_id)
+ON CONFLICT (id)
 DO UPDATE SET
-  nickname = $4
+  nickname = $5
 RETURNING *;
 
 -- name: FindMembership :one

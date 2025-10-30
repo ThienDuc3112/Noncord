@@ -13,6 +13,18 @@ definitions:
     - name
     - serverId
     type: object
+  request.CreateMessage:
+    properties:
+      content:
+        type: string
+      isTargetChannel:
+        type: boolean
+      targetId:
+        type: string
+    required:
+    - content
+    - targetId
+    type: object
   request.Login:
     properties:
       password:
@@ -196,6 +208,23 @@ definitions:
       serverId:
         type: string
       userId:
+        type: string
+    type: object
+  response.Message:
+    properties:
+      author:
+        type: string
+      channelId:
+        type: string
+      createdAt:
+        type: string
+      groupId:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      updatedAt:
         type: string
     type: object
   response.NewServerResponse:
@@ -823,7 +852,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/request.Register'
+          $ref: '#/definitions/request.CreateMessage'
       - description: Bearer token
         in: header
         name: Authorization
@@ -834,6 +863,8 @@ paths:
       responses:
         "201":
           description: Message sent
+          schema:
+            $ref: '#/definitions/response.Message'
         "400":
           description: Invalid request body
           schema:
@@ -878,6 +909,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.Message'
         "400":
           description: Invalid message id
           schema:
