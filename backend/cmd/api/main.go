@@ -5,7 +5,7 @@ import (
 	"backend/internal/application/services"
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres"
-	"backend/internal/interface/api/rest"
+	"backend/internal/interface/rest"
 	"context"
 	"fmt"
 	"log"

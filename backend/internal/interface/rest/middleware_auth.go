@@ -3,7 +3,7 @@ package rest
 import (
 	"backend/internal/application/command"
 	"backend/internal/application/interfaces"
-	"backend/internal/interface/api/rest/dto/response"
+	"backend/internal/interface/rest/dto/response"
 	"context"
 	"log"
 	"net/http"

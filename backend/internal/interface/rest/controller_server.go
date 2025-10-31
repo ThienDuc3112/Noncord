@@ -6,8 +6,8 @@ import (
 	"backend/internal/application/interfaces"
 	"backend/internal/application/query"
 	"backend/internal/domain/entities"
-	"backend/internal/interface/api/rest/dto/request"
-	"backend/internal/interface/api/rest/dto/response"
+	"backend/internal/interface/rest/dto/request"
+	"backend/internal/interface/rest/dto/response"
 	"log"
 	"net/http"
 
