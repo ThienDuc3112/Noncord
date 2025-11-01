@@ -16,7 +16,7 @@ WITH candidates AS (
   SELECT id
   FROM outbox
   WHERE status IN ('pending', 'inflight')
-    AND (COALESCE(claimed_at, '-infinity'::timestamptz) < now() - INTERVAL '2 minutes')
+    AND (status = 'pending' OR claimed_at < now() - INTERVAL '2 minutes')
   ORDER BY occurred_at
   FOR UPDATE SKIP LOCKED
   LIMIT $1
@@ -28,3 +28,12 @@ SET status     = 'inflight',
 FROM candidates c
 WHERE o.id = c.id
 RETURNING o.*;
+
+-- name: MarkedOutboxDispatched :exec
+UPDATE outbox SET status = 'dispatched', published_at = NOW() WHERE id = $1;
+
+-- name: MarkedOutboxFailed :exec
+UPDATE outbox SET status = 'failed' WHERE id = $1;
+
+-- name: RequeueOutbox :exec
+UPDATE outbox SET status = 'pending', claimed_at = NULL WHERE id = $1;

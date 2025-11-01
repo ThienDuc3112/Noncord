@@ -17,7 +17,7 @@ WITH candidates AS (
   SELECT id
   FROM outbox
   WHERE status IN ('pending', 'inflight')
-    AND (COALESCE(claimed_at, '-infinity'::timestamptz) < now() - INTERVAL '2 minutes')
+    AND (status = 'pending' OR claimed_at < now() - INTERVAL '2 minutes')
   ORDER BY occurred_at
   FOR UPDATE SKIP LOCKED
   LIMIT $1
@@ -112,4 +112,31 @@ func (q *Queries) InsertEventToOutbox(ctx context.Context, arg InsertEventToOutb
 		&i.PublishedAt,
 	)
 	return i, err
+}
+
+const markedOutboxDispatched = `-- name: MarkedOutboxDispatched :exec
+UPDATE outbox SET status = 'dispatched', published_at = NOW() WHERE id = $1
+`
+
+func (q *Queries) MarkedOutboxDispatched(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markedOutboxDispatched, id)
+	return err
+}
+
+const markedOutboxFailed = `-- name: MarkedOutboxFailed :exec
+UPDATE outbox SET status = 'failed' WHERE id = $1
+`
+
+func (q *Queries) MarkedOutboxFailed(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, markedOutboxFailed, id)
+	return err
+}
+
+const requeueOutbox = `-- name: RequeueOutbox :exec
+UPDATE outbox SET status = 'pending', claimed_at = NULL WHERE id = $1
+`
+
+func (q *Queries) RequeueOutbox(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, requeueOutbox, id)
+	return err
 }
