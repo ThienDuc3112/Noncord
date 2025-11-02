@@ -13,11 +13,11 @@ RETURNING *;
 
 -- name: ClaimOutboxBatch :many
 WITH candidates AS (
-  SELECT id
-  FROM outbox
-  WHERE status IN ('pending', 'inflight')
-    AND (status = 'pending' OR claimed_at < now() - INTERVAL '2 minutes')
-  ORDER BY occurred_at
+  SELECT o.id
+  FROM outbox o
+  WHERE o.status IN ('pending', 'inflight')
+    AND (o.status = 'pending' OR o.claimed_at < now() - INTERVAL @stale_after::interval)
+  ORDER BY o.occurred_at
   FOR UPDATE SKIP LOCKED
   LIMIT $1
 )

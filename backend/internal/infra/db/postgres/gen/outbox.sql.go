@@ -14,11 +14,11 @@ import (
 
 const claimOutboxBatch = `-- name: ClaimOutboxBatch :many
 WITH candidates AS (
-  SELECT id
-  FROM outbox
-  WHERE status IN ('pending', 'inflight')
-    AND (status = 'pending' OR claimed_at < now() - INTERVAL '2 minutes')
-  ORDER BY occurred_at
+  SELECT o.id
+  FROM outbox o
+  WHERE o.status IN ('pending', 'inflight')
+    AND (o.status = 'pending' OR o.claimed_at < now() - INTERVAL $2::interval)
+  ORDER BY o.occurred_at
   FOR UPDATE SKIP LOCKED
   LIMIT $1
 )
@@ -31,8 +31,13 @@ WHERE o.id = c.id
 RETURNING o.id, o.aggregate_name, o.aggregate_id, o.event_type, o.schema_version, o.occurred_at, o.payload, o.status, o.attempts, o.claimed_at, o.published_at
 `
 
-func (q *Queries) ClaimOutboxBatch(ctx context.Context, limit int32) ([]Outbox, error) {
-	rows, err := q.db.Query(ctx, claimOutboxBatch, limit)
+type ClaimOutboxBatchParams struct {
+	Limit      int32
+	StaleAfter time.Duration
+}
+
+func (q *Queries) ClaimOutboxBatch(ctx context.Context, arg ClaimOutboxBatchParams) ([]Outbox, error) {
+	rows, err := q.db.Query(ctx, claimOutboxBatch, arg.Limit, arg.StaleAfter)
 	if err != nil {
 		return nil, err
 	}

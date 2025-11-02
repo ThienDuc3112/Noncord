@@ -21,7 +21,10 @@ func NewPGOutboxReader(pool *pgxpool.Pool) ports.OutboxReader {
 }
 
 func (r *PGOutboxReader) ClaimBatch(ctx context.Context, limit int32, staleAfter time.Duration) ([]ports.OutboxRecord, error) {
-	batch, err := r.q.ClaimOutboxBatch(ctx, limit)
+	batch, err := r.q.ClaimOutboxBatch(ctx, gen.ClaimOutboxBatchParams{
+		StaleAfter: staleAfter,
+		Limit:      limit,
+	})
 	if err != nil {
 		return nil, err
 	}
