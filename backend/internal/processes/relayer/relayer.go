@@ -20,11 +20,11 @@ type Config struct {
 type Relayer struct {
 	log    *slog.Logger
 	reader ports.OutboxReader
-	broker ports.EventsBroker
+	broker ports.EventPublisher
 	cfg    Config
 }
 
-func New(log *slog.Logger, reader ports.OutboxReader, broker ports.EventsBroker, config Config) *Relayer {
+func New(log *slog.Logger, reader ports.OutboxReader, broker ports.EventPublisher, config Config) *Relayer {
 	return &Relayer{log, reader, broker, config}
 }
 
@@ -39,7 +39,7 @@ func (r *Relayer) step(ctx context.Context) error {
 	}
 
 	for _, rec := range records {
-		header := map[string]string{
+		header := map[string]any{
 			"event_type":     rec.EventType,
 			"aggregate_name": rec.AggregateName,
 			"schema_version": strconv.Itoa(int(rec.SchemaVersion)),
@@ -50,6 +50,7 @@ func (r *Relayer) step(ctx context.Context) error {
 
 		err = r.broker.Publish(ctx, ports.EventMessage{
 			AggregateId: rec.AggregateID,
+			EventType:   rec.EventType,
 			Payload:     rec.Payload,
 			Headers:     header,
 		})
@@ -70,12 +71,12 @@ func (r *Relayer) step(ctx context.Context) error {
 }
 
 func (r *Relayer) Run(ctx context.Context) error {
+	defer r.broker.Close(ctx)
 	tickerCh := time.Tick(r.cfg.PollInterval)
 
 	for {
 		select {
 		case <-ctx.Done():
-			r.broker.Close(ctx)
 			return ctx.Err()
 		case <-tickerCh:
 			if err := r.step(ctx); err != nil {

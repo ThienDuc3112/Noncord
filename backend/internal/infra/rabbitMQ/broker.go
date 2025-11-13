@@ -3,23 +3,41 @@ package rabbitmq
 import (
 	"backend/internal/application/ports"
 	"context"
-	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type RMQEventBroker struct {
+const EXCHANGE_NAME = "noncord.event"
+
+type RMQEventPublisher struct {
 	conn *amqp.Connection
 }
 
-func NewRMQEventBroker(conn *amqp.Connection) ports.EventsBroker {
-	return &RMQEventBroker{conn}
+func NewRMQEventBroker(conn *amqp.Connection) ports.EventPublisher {
+	return &RMQEventPublisher{conn}
 }
 
-func (mq *RMQEventBroker) Publish(ctx context.Context, msg ports.EventMessage) error {
-	return fmt.Errorf("not implemented")
+func (mq *RMQEventPublisher) Publish(ctx context.Context, msg ports.EventMessage) error {
+	c, err := mq.conn.Channel()
+	if err != nil {
+		return err
+	}
+
+	if err = c.ExchangeDeclare(EXCHANGE_NAME, "topic", true, false, false, false, nil); err != nil {
+		return err
+	}
+
+	if err = c.Publish(EXCHANGE_NAME, msg.EventType, false, false, amqp.Publishing{
+		Headers:     msg.Headers,
+		ContentType: "application/json",
+		Body:        msg.Payload,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (mq *RMQEventBroker) Close(ctx context.Context) error {
-	return fmt.Errorf("not implemented")
+func (mq *RMQEventPublisher) Close(ctx context.Context) error {
+	return mq.conn.Close()
 }

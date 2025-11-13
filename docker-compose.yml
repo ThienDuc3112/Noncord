@@ -12,6 +12,32 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_USER=noncord
 
+  mq:
+    image: rabbitmq:4.2.0-management
+    container_name: noncord_message_queue
+    environment:
+      RABBITMQ_DEFAULT_USER: "noncord"
+      RABBITMQ_DEFAULT_PASS: "noncord"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  relayer:
+    container_name: noncord_relayer
+    build:
+      context: ./backend
+      dockerfile: relayer.dockerfile
+    volumes:
+      - ./backend/internal:/app/internal
+      - ./backend/cmd:/app/cmd
+      - ./backend/docs:/app/docs
+    environment:
+      DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
+      AMQP_URI: "amqp://noncord:noncord@mq:5672/"
+    depends_on:
+      - db
+      - mq
+
   api:
     container_name: noncord_backend
     build:
@@ -32,6 +58,7 @@ services:
       AIR_ENV: "dev"
     depends_on:
       - db 
+      - mq
 
   frontend:
     container_name: noncord_frontend

@@ -17,10 +17,10 @@ WITH candidates AS (
   SELECT o.id
   FROM outbox o
   WHERE o.status IN ('pending', 'inflight')
-    AND (o.status = 'pending' OR o.claimed_at < now() - INTERVAL $2::interval)
+    AND (o.status = 'pending' OR o.claimed_at < now() - INTERVAL $1::interval)
   ORDER BY o.occurred_at
   FOR UPDATE SKIP LOCKED
-  LIMIT $1
+  LIMIT $2
 )
 UPDATE outbox AS o
 SET status     = 'inflight',
@@ -32,12 +32,12 @@ RETURNING o.id, o.aggregate_name, o.aggregate_id, o.event_type, o.schema_version
 `
 
 type ClaimOutboxBatchParams struct {
-	Limit      int32
-	StaleAfter time.Duration
+	Column1 time.Duration
+	Limit   int32
 }
 
 func (q *Queries) ClaimOutboxBatch(ctx context.Context, arg ClaimOutboxBatchParams) ([]Outbox, error) {
-	rows, err := q.db.Query(ctx, claimOutboxBatch, arg.Limit, arg.StaleAfter)
+	rows, err := q.db.Query(ctx, claimOutboxBatch, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
