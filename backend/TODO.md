@@ -195,6 +195,12 @@
         - [ ] Get messages by channel id controller
         - [ ] Get messages by group id controller
 - [ ] Permission service
+    - [ ] Check by permission bit
+        - [ ] Calculate server effective bit
+        - [ ] Calculate channel effective bit
+        - [x] Return result
+    - [ ] Get all visible channels
+    
 - [ ] Attachment service
     - [ ] Implement repo
     - [ ] Implement service

@@ -28,17 +28,17 @@ func New(log *slog.Logger, reader ports.OutboxReader, broker ports.EventPublishe
 	return &Relayer{log, reader, broker, config}
 }
 
-func (r *Relayer) step(ctx context.Context) error {
+func (r *Relayer) step(ctx context.Context) (int32, error) {
 	records, err := r.reader.ClaimBatch(ctx, r.cfg.BatchSize, r.cfg.StaleAfter)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if len(records) == 0 {
-		return nil
+		return 0, nil
 	}
 
-	for _, rec := range records {
+	for i, rec := range records {
 		header := map[string]any{
 			"event_type":     rec.EventType,
 			"aggregate_name": rec.AggregateName,
@@ -58,16 +58,16 @@ func (r *Relayer) step(ctx context.Context) error {
 			if rec.Attempts >= r.cfg.MaxAttempts {
 				r.reader.MarkFailed(ctx, rec.ID)
 			}
-			return err
+			return int32(i), err
 		}
 
 		err = r.reader.MarkDispatched(ctx, rec.ID)
 		if err != nil {
-			return err
+			return int32(i), err
 		}
 	}
 
-	return nil
+	return int32(len(records)), nil
 }
 
 func (r *Relayer) Run(ctx context.Context) error {
@@ -79,8 +79,11 @@ func (r *Relayer) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-tickerCh:
-			if err := r.step(ctx); err != nil {
-				r.log.Error("relayer step failed", "err", err)
+			count, err := r.step(ctx)
+			if err != nil {
+				r.log.Error("relayer step failed", "err", err, "count", count)
+			} else if count > 0 {
+				r.log.Log(ctx, slog.LevelInfo, "Delivered events", "count", count)
 			}
 		}
 	}

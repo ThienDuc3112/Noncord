@@ -16,7 +16,7 @@ WITH candidates AS (
   SELECT o.id
   FROM outbox o
   WHERE o.status IN ('pending', 'inflight')
-    AND (o.status = 'pending' OR o.claimed_at < now() - INTERVAL $1::interval)
+    AND (o.status = 'pending' OR o.claimed_at < now() - $1::interval)
   ORDER BY o.occurred_at
   FOR UPDATE SKIP LOCKED
   LIMIT $2
