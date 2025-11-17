@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
 	}
-	mq := rabbitmq.NewRMQEventBroker(amqpConn)
+	mq := rabbitmq.NewRMQEventPublisher(amqpConn, slog.Default())
 	outboxReader := postgres.NewPGOutboxReader(pgxConn)
 	relayer := relayer.New(slog.Default(), outboxReader, mq, relayer.Config{
 		BatchSize:    100,

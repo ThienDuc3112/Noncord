@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"backend/internal/application/ports"
 	"context"
+	"log/slog"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -11,10 +12,11 @@ const EXCHANGE_NAME = "noncord.event"
 
 type RMQEventPublisher struct {
 	conn *amqp.Connection
+	log  *slog.Logger
 }
 
-func NewRMQEventBroker(conn *amqp.Connection) ports.EventPublisher {
-	return &RMQEventPublisher{conn}
+func NewRMQEventPublisher(conn *amqp.Connection, logger *slog.Logger) ports.EventPublisher {
+	return &RMQEventPublisher{conn, logger}
 }
 
 func (mq *RMQEventPublisher) Publish(ctx context.Context, msg ports.EventMessage) error {
@@ -39,5 +41,6 @@ func (mq *RMQEventPublisher) Publish(ctx context.Context, msg ports.EventMessage
 }
 
 func (mq *RMQEventPublisher) Close(ctx context.Context) error {
+	slog.Info("Closing publisher")
 	return mq.conn.Close()
 }

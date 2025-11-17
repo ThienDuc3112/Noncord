@@ -60,6 +60,82 @@ func (p ServerPermissionBits) HasAny(check ServerPermissionBits) bool {
 	return (p & check) > 0
 }
 
+func (p ServerPermissionBits) ToFlagArray() []string {
+	res := make([]string, 0)
+
+	if PermViewChannel&p > 0 {
+		res = append(res, "ViewChannel")
+	}
+	if PermManageChannel&p > 0 {
+		res = append(res, "ManageChannel")
+	}
+	if PermManageRoles&p > 0 {
+		res = append(res, "ManageRoles")
+	}
+	if PermCreateEmote&p > 0 {
+		res = append(res, "CreateEmote")
+	}
+	if PermManageEmote&p > 0 {
+		res = append(res, "ManageEmote")
+	}
+	if PermViewAudit&p > 0 {
+		res = append(res, "ViewAudit")
+	}
+	if PermManageServer&p > 0 {
+		res = append(res, "ManageServer")
+	}
+	if PermCreateInvite&p > 0 {
+		res = append(res, "CreateInvite")
+	}
+	if PermChangeNickname&p > 0 {
+		res = append(res, "ChangeNickname")
+	}
+	if PermManageNickname&p > 0 {
+		res = append(res, "ManageNickname")
+	}
+	if PermManageMember&p > 0 {
+		res = append(res, "ManageMember")
+	}
+	if PermBanMember&p > 0 {
+		res = append(res, "BanMember")
+	}
+	if PermTimeout&p > 0 {
+		res = append(res, "Timeout")
+	}
+	if PermSendMessage&p > 0 {
+		res = append(res, "SendMessage")
+	}
+	if PermEmbedLinks&p > 0 {
+		res = append(res, "EmbedLinks")
+	}
+	if PermAttachFiles&p > 0 {
+		res = append(res, "AttachFiles")
+	}
+	if PermAddReactions&p > 0 {
+		res = append(res, "AddReactions")
+	}
+	if PermExternalEmote&p > 0 {
+		res = append(res, "ExternalEmote")
+	}
+	if PermMentionEveryone&p > 0 {
+		res = append(res, "MentionEveryone")
+	}
+	if PermManageMessages&p > 0 {
+		res = append(res, "ManageMessages")
+	}
+	if PermReadMessagesHistory&p > 0 {
+		res = append(res, "ReadMessagesHistory")
+	}
+	if PermManagePermissions&p > 0 {
+		res = append(res, "ManagePermissions")
+	}
+	if PermAdministrator&p > 0 {
+		res = append(res, "Administrator")
+	}
+
+	return res
+}
+
 type ServerId uuid.UUID
 
 type Server struct {

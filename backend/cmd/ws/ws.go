@@ -1,1 +1,5 @@
-package ws
+package main
+
+func main() {
+
+}

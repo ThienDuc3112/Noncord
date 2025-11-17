@@ -21,5 +21,5 @@ type EventPublisher interface {
 type EventSubscriber interface {
 	Subscribe(ctx context.Context, topic string, handler func(context.Context, EventMessage) error) error
 
-	Close(context.Context)
+	Close(context.Context) error
 }
