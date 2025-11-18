@@ -68,6 +68,10 @@ func (s *RMQEventSubscriber) Subscribe(ctx context.Context, topic string, handle
 }
 
 func (s *RMQEventSubscriber) Close(ctx context.Context) error {
+	for topic := range s.handlerMap {
+		s.c.QueueUnbind(s.serviceName, topic, s.exchangeName, nil)
+	}
+
 	return s.c.Close()
 }
 
@@ -87,6 +91,7 @@ loop:
 			base, err := events.ParseEvent(data)
 			if err != nil {
 				s.logger.Warn("Parse event failed", "error", err, "data", data)
+				msg.Ack(false)
 				continue
 			}
 
@@ -95,6 +100,7 @@ loop:
 			s.mu.RUnlock()
 			if !ok {
 				s.logger.Warn("Event don't have handler", "topic", base.EventType, "event", base)
+				msg.Ack(false)
 				continue
 			}
 
@@ -106,7 +112,10 @@ loop:
 			})
 			if err != nil {
 				s.logger.Warn("Event handler failed", "event", base)
+				msg.Reject(true)
 				continue
+			} else {
+				msg.Ack(false)
 			}
 		}
 	}

@@ -176,13 +176,13 @@ func NewChannelOverwriteDeleted(channelId ChannelId, target OverwriteTarget, use
 // ----------------- Registration -----------------
 
 func init() {
-	events.Register(EventChannelCreated, ChannelCreatedSchemaVersion, func() events.DomainEvent { return &ChannelCreated{} })
-	events.Register(EventChannelNameUpdated, ChannelNameUpdatedSchemaVersion, func() events.DomainEvent { return &ChannelNameUpdated{} })
-	events.Register(EventChannelDescriptionUpdated, ChannelDescriptionUpdatedSchemaVersion, func() events.DomainEvent { return &ChannelDescriptionUpdated{} })
-	events.Register(EventChannelParentCategoryChanged, ChannelParentCategoryChangedSchemaVersion, func() events.DomainEvent { return &ChannelParentCategoryChanged{} })
-	events.Register(EventChannelOrderChanged, ChannelOrderChangedSchemaVersion, func() events.DomainEvent { return &ChannelOrderChanged{} })
-	events.Register(EventChannelDeleted, ChannelDeletedSchemaVersion, func() events.DomainEvent { return &ChannelDeleted{} })
+	events.Register(EventChannelCreated, ChannelCreatedSchemaVersion, func() events.DomainEvent { return ChannelCreated{} })
+	events.Register(EventChannelNameUpdated, ChannelNameUpdatedSchemaVersion, func() events.DomainEvent { return ChannelNameUpdated{} })
+	events.Register(EventChannelDescriptionUpdated, ChannelDescriptionUpdatedSchemaVersion, func() events.DomainEvent { return ChannelDescriptionUpdated{} })
+	events.Register(EventChannelParentCategoryChanged, ChannelParentCategoryChangedSchemaVersion, func() events.DomainEvent { return ChannelParentCategoryChanged{} })
+	events.Register(EventChannelOrderChanged, ChannelOrderChangedSchemaVersion, func() events.DomainEvent { return ChannelOrderChanged{} })
+	events.Register(EventChannelDeleted, ChannelDeletedSchemaVersion, func() events.DomainEvent { return ChannelDeleted{} })
 
-	events.Register(EventChannelOverwriteUpserted, ChannelOverwriteUpsertedSchemaVersion, func() events.DomainEvent { return &ChannelOverwriteUpserted{} })
-	events.Register(EventChannelOverwriteDeleted, ChannelOverwriteDeletedSchemaVersion, func() events.DomainEvent { return &ChannelOverwriteDeleted{} })
+	events.Register(EventChannelOverwriteUpserted, ChannelOverwriteUpsertedSchemaVersion, func() events.DomainEvent { return ChannelOverwriteUpserted{} })
+	events.Register(EventChannelOverwriteDeleted, ChannelOverwriteDeletedSchemaVersion, func() events.DomainEvent { return ChannelOverwriteDeleted{} })
 }

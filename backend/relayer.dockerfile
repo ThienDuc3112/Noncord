@@ -8,9 +8,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN rm .air.toml
-RUN mv relayer.air.toml .air.toml
+COPY air_config/relayer.air.toml .air.toml
 
 RUN mkdir -p /app/tmp/air && chmod -R 0777 /app/tmp/air
-
-CMD ["air"]

@@ -213,16 +213,16 @@ func NewUserDeleted(u *User, old *time.Time) UserDeleted {
 }
 
 func init() {
-	events.Register(EventUserCreated, UserCreatedSchemaVersion, func() events.DomainEvent { return &UserCreated{} })
-	events.Register(EventUserUsernameUpdated, UserUsernameUpdatedSchemaVersion, func() events.DomainEvent { return &UserUsernameUpdated{} })
-	events.Register(EventUserDisplayNameUpdated, UserDisplayNameUpdatedSchemaVersion, func() events.DomainEvent { return &UserDisplayNameUpdated{} })
-	events.Register(EventUserAboutMeUpdated, UserAboutMeUpdatedSchemaVersion, func() events.DomainEvent { return &UserAboutMeUpdated{} })
-	events.Register(EventUserEmailUpdated, UserEmailUpdatedSchemaVersion, func() events.DomainEvent { return &UserEmailUpdated{} })
-	events.Register(EventUserPasswordUpdated, UserPasswordUpdatedSchemaVersion, func() events.DomainEvent { return &UserPasswordUpdated{} })
-	events.Register(EventUserAvatarURLUpdated, UserAvatarURLUpdatedSchemaVersion, func() events.DomainEvent { return &UserAvatarURLUpdated{} })
-	events.Register(EventUserBannerURLUpdated, UserBannerURLUpdatedSchemaVersion, func() events.DomainEvent { return &UserBannerURLUpdated{} })
-	events.Register(EventUserFlagsChanged, UserFlagsChangedSchemaVersion, func() events.DomainEvent { return &UserFlagsChanged{} })
-	events.Register(EventUserDisabledChanged, UserDisabledChangedSchemaVersion, func() events.DomainEvent { return &UserDisabledChanged{} })
-	events.Register(EventUserVerifiedChanged, UserVerifiedChangedSchemaVersion, func() events.DomainEvent { return &UserVerifiedChanged{} })
-	events.Register(EventUserDeleted, UserDeletedSchemaVersion, func() events.DomainEvent { return &UserDeleted{} })
+	events.Register(EventUserCreated, UserCreatedSchemaVersion, func() events.DomainEvent { return UserCreated{} })
+	events.Register(EventUserUsernameUpdated, UserUsernameUpdatedSchemaVersion, func() events.DomainEvent { return UserUsernameUpdated{} })
+	events.Register(EventUserDisplayNameUpdated, UserDisplayNameUpdatedSchemaVersion, func() events.DomainEvent { return UserDisplayNameUpdated{} })
+	events.Register(EventUserAboutMeUpdated, UserAboutMeUpdatedSchemaVersion, func() events.DomainEvent { return UserAboutMeUpdated{} })
+	events.Register(EventUserEmailUpdated, UserEmailUpdatedSchemaVersion, func() events.DomainEvent { return UserEmailUpdated{} })
+	events.Register(EventUserPasswordUpdated, UserPasswordUpdatedSchemaVersion, func() events.DomainEvent { return UserPasswordUpdated{} })
+	events.Register(EventUserAvatarURLUpdated, UserAvatarURLUpdatedSchemaVersion, func() events.DomainEvent { return UserAvatarURLUpdated{} })
+	events.Register(EventUserBannerURLUpdated, UserBannerURLUpdatedSchemaVersion, func() events.DomainEvent { return UserBannerURLUpdated{} })
+	events.Register(EventUserFlagsChanged, UserFlagsChangedSchemaVersion, func() events.DomainEvent { return UserFlagsChanged{} })
+	events.Register(EventUserDisabledChanged, UserDisabledChangedSchemaVersion, func() events.DomainEvent { return UserDisabledChanged{} })
+	events.Register(EventUserVerifiedChanged, UserVerifiedChangedSchemaVersion, func() events.DomainEvent { return UserVerifiedChanged{} })
+	events.Register(EventUserDeleted, UserDeletedSchemaVersion, func() events.DomainEvent { return UserDeleted{} })
 }

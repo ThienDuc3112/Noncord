@@ -10,21 +10,21 @@ import (
 	"github.com/google/uuid"
 )
 
-type PermissionRepo interface {
+type PermissionRepos interface {
 	Member() repositories.MemberRepo
 	Server() repositories.ServerRepo
 	Channel() repositories.ChannelRepo
 }
 
 type PermissionService struct {
-	uow repositories.UnitOfWork[PermissionRepo]
+	uow repositories.UnitOfWork[PermissionRepos]
 }
 
-func NewPermissionService(uow repositories.UnitOfWork[PermissionRepo]) interfaces.PermissionService {
+func NewPermissionService(uow repositories.UnitOfWork[PermissionRepos]) interfaces.PermissionService {
 	return &PermissionService{uow}
 }
 
-func (s *PermissionService) getChannelContext(ctx context.Context, repos PermissionRepo, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
+func (s *PermissionService) getChannelContext(ctx context.Context, repos PermissionRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
 	channel, err := repos.Channel().Find(ctx, channelId)
 	if err != nil {
 		return nil, nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's channel")
@@ -38,7 +38,7 @@ func (s *PermissionService) getChannelContext(ctx context.Context, repos Permiss
 	return channel, server, membership, nil
 }
 
-func (s *PermissionService) getServerContext(ctx context.Context, repos PermissionRepo, serverId entities.ServerId, userId entities.UserId) (*entities.Server, *entities.Membership, error) {
+func (s *PermissionService) getServerContext(ctx context.Context, repos PermissionRepos, serverId entities.ServerId, userId entities.UserId) (*entities.Server, *entities.Membership, error) {
 	server, err := repos.Server().Find(ctx, serverId)
 	if err != nil {
 		return nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's server")
@@ -56,7 +56,7 @@ func (s *PermissionService) getServerContext(ctx context.Context, repos Permissi
 }
 
 func (s *PermissionService) getChannelEffectivePerm(ctx context.Context, channelId entities.ChannelId, userId entities.UserId) (res entities.ServerPermissionBits, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepo) error {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepos) error {
 		_, _, _, err := s.getChannelContext(ctx, repos, channelId, userId)
 		if err != nil {
 			return err
@@ -73,7 +73,7 @@ func (s *PermissionService) getChannelEffectivePerm(ctx context.Context, channel
 }
 
 func (s *PermissionService) getServerEffectivePerm(ctx context.Context, serverId entities.ServerId, userId entities.UserId) (res entities.ServerPermissionBits, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepo) error {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepos) error {
 		_, _, err := s.getServerContext(ctx, repos, serverId, userId)
 		if err != nil {
 			return err
@@ -125,6 +125,10 @@ func (s *PermissionService) ServerHasAny(ctx context.Context, params query.Check
 	return effBit.HasAny(params.Permission), err
 }
 
-func (s *PermissionService) GetVisibleChannels(ctx context.Context, userId uuid.UUID) uuid.UUIDs {
-	return nil
+func (s *PermissionService) GetVisibleChannels(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error) {
+	return nil, nil
+}
+
+func (s *PermissionService) GetVisibleServers(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error) {
+	return nil, nil
 }

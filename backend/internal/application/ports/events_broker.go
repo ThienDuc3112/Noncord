@@ -9,7 +9,7 @@ import (
 type EventMessage struct {
 	AggregateId uuid.UUID
 	Payload     []byte
-	Headers     map[string]any
+	Headers     map[string]any // Only string but any for amq compatibility
 	EventType   string
 }
 

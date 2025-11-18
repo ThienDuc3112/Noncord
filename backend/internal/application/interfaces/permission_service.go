@@ -13,5 +13,6 @@ type PermissionService interface {
 	ServerHasAll(ctx context.Context, query query.CheckServerPerm) (bool, error)
 	ServerHasAny(ctx context.Context, query query.CheckServerPerm) (bool, error)
 
-	GetVisibleChannels(ctx context.Context, userId uuid.UUID) uuid.UUIDs
+	GetVisibleChannels(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error)
+	GetVisibleServers(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error)
 }

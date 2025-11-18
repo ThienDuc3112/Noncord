@@ -8,4 +8,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY air_config/api.air.toml .air.toml
+COPY air_config/ws.air.toml .air.toml
+
+RUN mkdir -p /app/tmp/air && chmod -R 0777 /app/tmp/air

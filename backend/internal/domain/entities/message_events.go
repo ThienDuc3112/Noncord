@@ -144,10 +144,10 @@ func NewMessageReactionRemoved(m *Message, userID UserId, emoteID EmoteId) Messa
 // ---------------------- Registration ----------------------
 
 func init() {
-	events.Register(EventMessageCreated, MessageCreatedSchemaVersion, func() events.DomainEvent { return &MessageCreated{} })
-	events.Register(EventMessageEdited, MessageEditedSchemaVersion, func() events.DomainEvent { return &MessageEdited{} })
-	events.Register(EventMessageAttachmentRemoved, MessageAttachmentRemovedSchemaVersion, func() events.DomainEvent { return &MessageAttachmentRemoved{} })
-	events.Register(EventMessageDeleted, MessageDeletedSchemaVersion, func() events.DomainEvent { return &MessageDeleted{} })
-	events.Register(EventMessageReactionAdded, MessageReactionAddedSchemaVersion, func() events.DomainEvent { return &MessageReactionAdded{} })
-	events.Register(EventMessageReactionRemoved, MessageReactionRemovedSchemaVersion, func() events.DomainEvent { return &MessageReactionRemoved{} })
+	events.Register(EventMessageCreated, MessageCreatedSchemaVersion, func() events.DomainEvent { return MessageCreated{} })
+	events.Register(EventMessageEdited, MessageEditedSchemaVersion, func() events.DomainEvent { return MessageEdited{} })
+	events.Register(EventMessageAttachmentRemoved, MessageAttachmentRemovedSchemaVersion, func() events.DomainEvent { return MessageAttachmentRemoved{} })
+	events.Register(EventMessageDeleted, MessageDeletedSchemaVersion, func() events.DomainEvent { return MessageDeleted{} })
+	events.Register(EventMessageReactionAdded, MessageReactionAddedSchemaVersion, func() events.DomainEvent { return MessageReactionAdded{} })
+	events.Register(EventMessageReactionRemoved, MessageReactionRemovedSchemaVersion, func() events.DomainEvent { return MessageReactionRemoved{} })
 }

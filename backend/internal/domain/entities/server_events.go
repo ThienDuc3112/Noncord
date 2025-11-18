@@ -169,13 +169,13 @@ func NewServerDeleted(s *Server) ServerDeleted {
 }
 
 func init() {
-	events.Register(EventServerCreated, ServerCreatedSchemaVersion, func() events.DomainEvent { return &ServerCreated{} })
-	events.Register(EventServerNameUpdated, ServerNameUpdatedSchemaVersion, func() events.DomainEvent { return &ServerNameUpdated{} })
-	events.Register(EventServerDescriptionUpdated, ServerDescriptionUpdatedSchemaVersion, func() events.DomainEvent { return &ServerDescriptionUpdated{} })
-	events.Register(EventServerIconURLUpdated, ServerIconURLUpdatedSchemaVersion, func() events.DomainEvent { return &ServerIconURLUpdated{} })
-	events.Register(EventServerBannerURLUpdated, ServerBannerURLUpdatedSchemaVersion, func() events.DomainEvent { return &ServerBannerURLUpdated{} })
-	events.Register(EventServerNeedApprovalChanged, ServerNeedApprovalChangedSchemaVersion, func() events.DomainEvent { return &ServerNeedApprovalChanged{} })
-	events.Register(EventServerAnnouncementChannelChanged, ServerAnnouncementChannelChangedSchemaVersion, func() events.DomainEvent { return &ServerAnnouncementChannelChanged{} })
-	events.Register(EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion, func() events.DomainEvent { return &ServerDefaultPermissionChanged{} })
-	events.Register(EventServerDeleted, ServerDeletedSchemaVersion, func() events.DomainEvent { return &ServerDeleted{} })
+	events.Register(EventServerCreated, ServerCreatedSchemaVersion, func() events.DomainEvent { return ServerCreated{} })
+	events.Register(EventServerNameUpdated, ServerNameUpdatedSchemaVersion, func() events.DomainEvent { return ServerNameUpdated{} })
+	events.Register(EventServerDescriptionUpdated, ServerDescriptionUpdatedSchemaVersion, func() events.DomainEvent { return ServerDescriptionUpdated{} })
+	events.Register(EventServerIconURLUpdated, ServerIconURLUpdatedSchemaVersion, func() events.DomainEvent { return ServerIconURLUpdated{} })
+	events.Register(EventServerBannerURLUpdated, ServerBannerURLUpdatedSchemaVersion, func() events.DomainEvent { return ServerBannerURLUpdated{} })
+	events.Register(EventServerNeedApprovalChanged, ServerNeedApprovalChangedSchemaVersion, func() events.DomainEvent { return ServerNeedApprovalChanged{} })
+	events.Register(EventServerAnnouncementChannelChanged, ServerAnnouncementChannelChangedSchemaVersion, func() events.DomainEvent { return ServerAnnouncementChannelChanged{} })
+	events.Register(EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion, func() events.DomainEvent { return ServerDefaultPermissionChanged{} })
+	events.Register(EventServerDeleted, ServerDeletedSchemaVersion, func() events.DomainEvent { return ServerDeleted{} })
 }

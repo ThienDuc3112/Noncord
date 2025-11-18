@@ -110,3 +110,5 @@ func NewInvitationInvalidated(i *Invitation, at time.Time, oldExpiresAt *time.Ti
 		OldExpiresAt: oldExpiresAt,
 	}
 }
+
+func init() {}

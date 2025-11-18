@@ -22,15 +22,31 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  ws:
+    container_name: noncord_websocket
+    build:
+      context: ./backend
+      dockerfile: ws.dockerfile
+    command: air
+    volumes:
+      - ./backend/internal:/app/internal
+      - ./backend/cmd:/app/cmd
+    environment:
+      DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
+      AMQP_URI: "amqp://noncord:noncord@mq:5672/"
+    depends_on:
+      - db
+      - mq
+
   relayer:
     container_name: noncord_relayer
     build:
       context: ./backend
       dockerfile: relayer.dockerfile
+    command: air
     volumes:
       - ./backend/internal:/app/internal
       - ./backend/cmd:/app/cmd
-      - ./backend/docs:/app/docs
     environment:
       DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
       AMQP_URI: "amqp://noncord:noncord@mq:5672/"
@@ -44,7 +60,9 @@ services:
       context: ./backend
       dockerfile: dev.dockerfile
     volumes:
-      - ./backend:/app
+      - ./backend/docs:/app/docs
+      - ./backend/internal:/app/internal
+      - ./backend/cmd:/app/cmd
       - /app/tmp
     ports: 
       - "8888:8888"

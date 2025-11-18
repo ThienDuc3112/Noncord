@@ -76,8 +76,8 @@ func NewMembershipDeleted(m *Membership) MembershipDeleted {
 }
 
 func init() {
-	events.Register(EventMembershipCreated, MembershipCreatedSchemaVersion, func() events.DomainEvent { return &MembershipCreated{} })
-	events.Register(EventMembershipRoleAssigned, MembershipRoleAssignedSchemaVersion, func() events.DomainEvent { return &MembershipRoleAssigned{} })
-	events.Register(EventMembershipNicknameChanged, MembershipNicknameChangedSchemaVersion, func() events.DomainEvent { return &MembershipNicknameChanged{} })
-	events.Register(EventMembershipDeleted, MembershipDeletedSchemaVersion, func() events.DomainEvent { return &MembershipDeleted{} })
+	events.Register(EventMembershipCreated, MembershipCreatedSchemaVersion, func() events.DomainEvent { return MembershipCreated{} })
+	events.Register(EventMembershipRoleAssigned, MembershipRoleAssignedSchemaVersion, func() events.DomainEvent { return MembershipRoleAssigned{} })
+	events.Register(EventMembershipNicknameChanged, MembershipNicknameChangedSchemaVersion, func() events.DomainEvent { return MembershipNicknameChanged{} })
+	events.Register(EventMembershipDeleted, MembershipDeletedSchemaVersion, func() events.DomainEvent { return MembershipDeleted{} })
 }
