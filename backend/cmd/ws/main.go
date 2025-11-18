@@ -75,7 +75,7 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	r.Connect("/ws", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		ws.ServeWs(wsHub, w, r)
 	})
 

@@ -31,7 +31,10 @@ services:
     volumes:
       - ./backend/internal:/app/internal
       - ./backend/cmd:/app/cmd
+    ports:
+      - "9999:9999"
     environment:
+      PORT: "9999"
       DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
       AMQP_URI: "amqp://noncord:noncord@mq:5672/"
     depends_on:
