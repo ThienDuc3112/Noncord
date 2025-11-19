@@ -30,7 +30,7 @@ func main() {
 	}
 	mq := rabbitmq.NewRMQEventPublisher(amqpConn, slog.Default())
 	outboxReader := postgres.NewPGOutboxReader(pgxConn)
-	relayer := relayer.New(slog.Default(), outboxReader, mq, relayer.Config{
+	relayer := relayer.New(outboxReader, mq, relayer.Config{
 		BatchSize:    100,
 		StaleAfter:   time.Minute,
 		PollInterval: 100 * time.Millisecond,

@@ -18,14 +18,13 @@ type Config struct {
 }
 
 type Relayer struct {
-	log    *slog.Logger
 	reader ports.OutboxReader
 	broker ports.EventPublisher
 	cfg    Config
 }
 
-func New(log *slog.Logger, reader ports.OutboxReader, broker ports.EventPublisher, config Config) *Relayer {
-	return &Relayer{log, reader, broker, config}
+func New(reader ports.OutboxReader, broker ports.EventPublisher, config Config) *Relayer {
+	return &Relayer{reader, broker, config}
 }
 
 func (r *Relayer) step(ctx context.Context) (int32, error) {
@@ -81,9 +80,9 @@ func (r *Relayer) Run(ctx context.Context) error {
 		case <-tickerCh:
 			count, err := r.step(ctx)
 			if err != nil {
-				r.log.Error("relayer step failed", "err", err, "count", count)
+				slog.Default().Error("relayer step failed", "err", err, "count", count)
 			} else if count > 0 {
-				r.log.Log(ctx, slog.LevelInfo, "Delivered events", "count", count)
+				slog.Default().Log(ctx, slog.LevelInfo, "Delivered events", "count", count)
 			}
 		}
 	}

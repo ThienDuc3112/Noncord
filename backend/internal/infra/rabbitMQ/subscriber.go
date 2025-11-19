@@ -16,14 +16,13 @@ type Handler func(context.Context, ports.EventMessage) error
 type RMQEventSubscriber struct {
 	mu           *sync.RWMutex
 	c            *amqp.Channel
-	logger       *slog.Logger
 	serviceName  string
 	exchangeName string
 	handlerMap   map[string]Handler
 	durable      bool
 }
 
-func NewRMQEventConsumer(ctx context.Context, conn *amqp.Connection, logger *slog.Logger, serviceName, exchangeName string, durable bool) (ports.EventSubscriber, error) {
+func NewRMQEventConsumer(ctx context.Context, conn *amqp.Connection, serviceName, exchangeName string, durable bool) (ports.EventSubscriber, error) {
 	c, err := conn.Channel()
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func NewRMQEventConsumer(ctx context.Context, conn *amqp.Connection, logger *slo
 	}
 
 	var mu sync.RWMutex
-	client := &RMQEventSubscriber{&mu, c, logger, serviceName, exchangeName, make(map[string]Handler), durable}
+	client := &RMQEventSubscriber{&mu, c, serviceName, exchangeName, make(map[string]Handler), durable}
 
 	go client.consumeLoop(ctx, msgs)
 
@@ -90,7 +89,7 @@ loop:
 			data := msg.Body
 			base, err := events.ParseEvent(data)
 			if err != nil {
-				s.logger.Warn("Parse event failed", "error", err, "data", data)
+				slog.Warn("Parse event failed", "error", err, "data", data)
 				msg.Ack(false)
 				continue
 			}
@@ -99,7 +98,7 @@ loop:
 			handler, ok := s.handlerMap[base.EventType]
 			s.mu.RUnlock()
 			if !ok {
-				s.logger.Warn("Event don't have handler", "topic", base.EventType, "event", base)
+				slog.Warn("Event don't have handler", "topic", base.EventType, "event", base)
 				msg.Ack(false)
 				continue
 			}
@@ -111,7 +110,7 @@ loop:
 				Headers:     msg.Headers,
 			})
 			if err != nil {
-				s.logger.Warn("Event handler failed", "event", base)
+				slog.Warn("Event handler failed", "event", base)
 				msg.Reject(true)
 				continue
 			} else {

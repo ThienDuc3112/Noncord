@@ -46,15 +46,16 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 	}))
+	slog.SetDefault(logger)
 
-	eventSub, err := rabbitmq.NewRMQEventConsumer(ctx, rabbitMQConn, logger, "websocket", "noncord.event", true)
+	eventSub, err := rabbitmq.NewRMQEventConsumer(ctx, rabbitMQConn, "websocket", "noncord.event", true)
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
 	}
 	defer eventSub.Close(ctx)
 
-	wsHub, err := ws.NewHub(ctx, permissionService, eventSub, logger)
+	wsHub, err := ws.NewHub(ctx, permissionService, eventSub)
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)

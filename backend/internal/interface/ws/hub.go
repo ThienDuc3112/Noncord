@@ -4,7 +4,6 @@ import (
 	"backend/internal/application/interfaces"
 	"backend/internal/application/ports"
 	"context"
-	"log/slog"
 	"sync"
 
 	"github.com/google/uuid"
@@ -12,23 +11,14 @@ import (
 )
 
 type Hub struct {
-	userConn   map[uuid.UUID]map[uuid.UUID]*Client
+	userConn   map[uuid.UUID]map[uuid.UUID]*client
 	serverSub  map[uuid.UUID]map[uuid.UUID]bool
 	channelSub map[uuid.UUID]map[uuid.UUID]bool
 
 	permissionService interfaces.PermissionService
 	eventSubscriber   ports.EventSubscriber
 
-	logger *slog.Logger
-
 	m sync.RWMutex
-}
-
-type Client struct {
-	id     uuid.UUID
-	userId uuid.UUID
-	conn   *websocket.Conn
-	m      sync.Mutex
 }
 
 var Upgrader = websocket.Upgrader{
@@ -36,15 +26,14 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func NewHub(ctx context.Context, permService interfaces.PermissionService, eventReader ports.EventSubscriber, logger *slog.Logger) (*Hub, error) {
+func NewHub(ctx context.Context, permService interfaces.PermissionService, eventReader ports.EventSubscriber) (*Hub, error) {
 	hub := &Hub{
-		userConn:   make(map[uuid.UUID]map[uuid.UUID]*Client),
+		userConn:   make(map[uuid.UUID]map[uuid.UUID]*client),
 		serverSub:  make(map[uuid.UUID]map[uuid.UUID]bool),
 		channelSub: make(map[uuid.UUID]map[uuid.UUID]bool),
 
 		permissionService: permService,
 		eventSubscriber:   eventReader,
-		logger:            logger,
 	}
 
 	if err := hub.registerHandlers(ctx); err != nil {
@@ -64,12 +53,7 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 		return err
 	}
 
-	client := Client{
-		id:     uuid.New(),
-		userId: userId,
-		conn:   conn,
-	}
-
+	c := newClient(userId, conn)
 	h.m.Lock()
 	defer h.m.Unlock()
 
@@ -88,9 +72,9 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 	}
 
 	if _, ok := h.userConn[userId]; !ok {
-		h.userConn[userId] = make(map[uuid.UUID]*Client)
+		h.userConn[userId] = make(map[uuid.UUID]*client)
 	}
-	h.userConn[userId][client.id] = &client
+	h.userConn[userId][c.id] = c
 
 	return nil
 }

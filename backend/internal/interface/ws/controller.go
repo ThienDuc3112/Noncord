@@ -5,8 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
@@ -15,30 +13,24 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	wr, err := conn.NextWriter(websocket.TextMessage)
-	wr.Write([]byte("hola"))
-	wr.Close()
 
-	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	go func() {
+		<-ctx.Done()
+		conn.Close()
+	}()
+
 	go func() {
 	outer:
 		for {
-			select {
-			case <-ctx.Done():
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
 				break outer
-			default:
-				_, msg, err := conn.ReadMessage()
-				if err != nil {
-					break outer
-				}
-				slog.Default().Info("Incoming message", "message", msg)
-				if string(msg) == "ping" {
-					conn.WriteJSON(map[string]any{"message": "pong"})
-				}
+			}
+			slog.Default().Info("Incoming message", "message", msg)
+			if string(msg) == "ping" {
+				conn.WriteJSON(map[string]any{"message": "pong"})
 			}
 		}
 	}()
-	<-ctx.Done()
-	conn.Close()
 }

@@ -111,4 +111,11 @@ func NewInvitationInvalidated(i *Invitation, at time.Time, oldExpiresAt *time.Ti
 	}
 }
 
-func init() {}
+func init() {
+	events.Register(EventInvitationCreated, InvitationCreatedSchemaVersion, func() events.DomainEvent { return InvitationCreatedAt{} })
+	events.Register(EventInvitationUpdateExpiresAt, InvitationUpdateExpiresAtSchemaVersion, func() events.DomainEvent { return InvitationUpdateExpiresAt{} })
+	events.Register(EventInvitationUpdateBypassApproval, InvitationUpdateBypassApprovalSchemaVersion, func() events.DomainEvent { return InvitationUpdateBypassApproval{} })
+	events.Register(EventInvitationUpdateJoinLimit, InvitationUpdateJoinLimitSchemaVersion, func() events.DomainEvent { return InvitationUpdateJoinLimit{} })
+	events.Register(EventInvitationUpdateJoinCount, InvitationUpdateJoinCountSchemaVersion, func() events.DomainEvent { return InvitationUpdateJoinCount{} })
+	events.Register(EventInvitationInvalidated, InvitationInvalidatedSchemaVersion, func() events.DomainEvent { return InvitationInvalidated{} })
+}
