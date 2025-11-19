@@ -13,6 +13,8 @@
         - [x] Green path implemented
         - [ ] Proper parsing of validator error
 - [ ] Server service
+    - [ ] Shape:
+        - [ ] Add roles to server aggregate
     - [x] Implement repo
         - [x] Save server
             - [x] Update the change
@@ -109,6 +111,8 @@
             - [x] Green path
             - [x] Error parsing route
 - [ ] Membership service
+    - [ ] Shape:
+        - [ ] Added role assignments to membership
     - [ ] Implement repo
         - [x] Find membership
         - [x] Find memberships by user id
@@ -130,6 +134,8 @@
     - [ ] Implement controller
         - [ ] Get members in a server
 - [ ] Channel service
+    - [ ] Shape:
+        - [ ] Merge permission overwrite to channel shape
     - [ ] Implement repo
         - [ ] Find channel by id
             - [x] Fetch channel
@@ -164,14 +170,6 @@
         - [x] Create channel
         - [ ] Update channel
         - [ ] Delete channel
-- [ ] Role service
-    - [ ] Implement repo
-    - [ ] Implement service
-        - [ ] Create role
-        - [ ] Update role
-        - [ ] Delete role
-        - [ ] Update channel role permission
-    - [ ] Implement controller
 - [ ] Message service
     - [x] Implement repo
     - [ ] Implement service
@@ -194,13 +192,20 @@
         - [x] Get message controller
         - [ ] Get messages by channel id controller
         - [ ] Get messages by group id controller
+- [ ] Websocket service
+    - [ ] Hub
+        - [ ] Messages handlers
+        - [ ] Servers handlers
+        - [ ] Channels handlers
+    - [ ] Client
+        - [ ] Read pump and channel
+        - [x] Write pump and channel
 - [ ] Permission service
     - [ ] Check by permission bit
         - [ ] Calculate server effective bit
         - [ ] Calculate channel effective bit
         - [x] Return result
     - [ ] Get all visible channels
-    
 - [ ] Attachment service
     - [ ] Implement repo
     - [ ] Implement service
