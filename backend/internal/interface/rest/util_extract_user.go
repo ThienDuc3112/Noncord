@@ -1,16 +1,17 @@
 package rest
 
 import (
-	"backend/internal/application/common"
 	"context"
-	"log"
+	"log/slog"
+
+	"github.com/google/uuid"
 )
 
-func extractUser(ctx context.Context) *common.UserResult {
-	user, ok := ctx.Value("user").(*common.UserResult)
-	if ok == false || user == nil {
-		log.Println("[extractUser] context don't have user, this logcially shouldn't happen")
+func extractUserId(ctx context.Context) *uuid.UUID {
+	userId, ok := ctx.Value(userIdKey).(*uuid.UUID)
+	if ok == false || userId == nil {
+		slog.Info("context don't have user id, this logcially shouldn't happen")
 		return nil
 	}
-	return user
+	return userId
 }

@@ -114,14 +114,14 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	membership, err := c.memberService.JoinServer(r.Context(), command.JoinServerCommand{
-		UserId:       user.Id,
+		UserId:       *userId,
 		InvitationId: invitationId,
 	})
 	if err != nil {
@@ -191,15 +191,15 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	newInv, err := c.invitationService.UpdateInvitation(r.Context(), command.UpdateInvitationCommand{
 		InvitationId: invitation.Result.Id,
-		UserId:       user.Id,
+		UserId:       *userId,
 		Updates:      command.UpdateInvitationOption(body),
 	})
 	if err != nil {
@@ -251,15 +251,15 @@ func (c *InvitationController) DeleteInvitationController(w http.ResponseWriter,
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	err = c.invitationService.InvalidateInvitation(r.Context(), command.InvalidateInvitationCommand{
 		InvitationId: invitation.Result.Id,
-		UserId:       user.Id,
+		UserId:       *userId,
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot get invitation info", 500, err))

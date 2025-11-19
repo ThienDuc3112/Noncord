@@ -215,17 +215,7 @@ func (s *AuthService) Authenticate(ctx context.Context, param command.Authentica
 	if err != nil {
 		return res, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "invalid token, invalid user id")
 	}
+	res.UserId = (*uuid.UUID)(&userId)
 
-	err = s.uow.Do(ctx, func(ctx context.Context, repos AuthRepos) error {
-		user, err := repos.User().Find(ctx, entities.UserId(userId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot find user")
-		}
-
-		res = command.AuthenticateCommandResult{
-			User: mapper.NewUserResultFromUserEntity(user),
-		}
-		return nil
-	})
-	return res, err
+	return res, nil
 }

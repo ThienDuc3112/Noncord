@@ -40,7 +40,7 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 		}
 
-		_, err = repos.Member().Save(ctx, entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserDisplayName))
+		_, err = repos.Member().Save(ctx, entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserNickname))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
 		}

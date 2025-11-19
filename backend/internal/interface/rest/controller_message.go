@@ -53,8 +53,8 @@ func (ac *MessageController) RegisterRoute(r chi.Router) {
 func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[CreateMessageController] Create message")
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
@@ -66,7 +66,7 @@ func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *h
 	}
 
 	msg, err := ac.messageService.Create(r.Context(), command.CreateMessageCommand{
-		UserId:          user.Id,
+		UserId:          *userId,
 		TargetId:        body.TargetId,
 		Content:         body.Content,
 		IsTargetChannel: body.IsTargetChannel,
@@ -106,8 +106,8 @@ func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *h
 func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetMessageController] Get message")
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
@@ -120,7 +120,7 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 
 	msg, err := ac.messageService.Get(r.Context(), query.GetMessage{
 		MessageId: messageId,
-		UserId:    user.Id,
+		UserId:    *userId,
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot get message", 500, err))

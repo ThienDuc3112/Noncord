@@ -1,11 +1,13 @@
 package command
 
-import "backend/internal/application/common"
+import (
+	"github.com/google/uuid"
+)
 
 type AuthenticateCommand struct {
 	AccessToken string
 }
 
 type AuthenticateCommandResult struct {
-	User *common.UserResult
+	UserId *uuid.UUID
 }

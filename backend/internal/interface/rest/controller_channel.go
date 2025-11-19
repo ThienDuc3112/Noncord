@@ -63,15 +63,15 @@ func (c *ChannelController) GetChannelController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	channel, err := c.channelService.Get(r.Context(), query.GetChannel{
 		ChannelId: channelId,
-		UserId:    user.Id,
+		UserId:    *userId,
 	})
 
 	if err != nil {
@@ -111,8 +111,8 @@ func (c *ChannelController) GetChannelController(w http.ResponseWriter, r *http.
 func (c *ChannelController) CreateChannelController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[CreateChannelController] Creating channel")
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
@@ -128,7 +128,7 @@ func (c *ChannelController) CreateChannelController(w http.ResponseWriter, r *ht
 		Description:    body.Description,
 		ServerId:       body.ServerId,
 		ParentCategory: body.ParentCategory,
-		UserId:         user.Id,
+		UserId:         *userId,
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot create channel", http.StatusInternalServerError, err))

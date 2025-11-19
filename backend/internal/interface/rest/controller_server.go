@@ -73,16 +73,16 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	server, err := c.serverService.Create(r.Context(), command.CreateServerCommand{
-		UserId:          user.Id,
-		Name:            body.Name,
-		UserDisplayName: user.DisplayName,
+		UserId:       *userId,
+		Name:         body.Name,
+		UserNickname: "",
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot create server", 500, err))
@@ -110,15 +110,15 @@ func (c *ServerController) CreateServerController(w http.ResponseWriter, r *http
 func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetServersController] Getting servers by user")
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	// TODO: replace with actual getting servers code
 	servers, err := c.serverService.GetServersUserIn(r.Context(), query.GetServersUserIn{
-		UserId: user.Id,
+		UserId: *userId,
 	})
 	if err != nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot get servers", 500, err))
@@ -161,15 +161,15 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	server, err := c.serverService.Get(r.Context(), query.GetServer{
 		ServerId: serverId,
-		UserId:   &user.Id,
+		UserId:   userId,
 	})
 
 	if err != nil {
@@ -241,8 +241,8 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
@@ -254,7 +254,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 	}
 
 	server, err := c.serverService.Update(r.Context(), command.UpdateServerCommand{
-		UserId:   user.Id,
+		UserId:   *userId,
 		ServerId: serverId,
 		Updates: command.UpdateServerOption{
 			Name:                body.Name,
@@ -308,14 +308,14 @@ func (c *ServerController) DeleteServerController(w http.ResponseWriter, r *http
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	err = c.serverService.Delete(r.Context(), command.DeleteServerCommand{
-		UserId:   user.Id,
+		UserId:   *userId,
 		ServerId: serverId,
 	})
 	if err != nil {
@@ -350,15 +350,15 @@ func (c *ServerController) GetInvitationController(w http.ResponseWriter, r *htt
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	invs, err := c.invitationService.GetInvitationsByServerId(r.Context(), query.GetInvitationsByServerId{
 		ServerId: serverId,
-		UserId:   user.Id,
+		UserId:   *userId,
 	})
 	if err != nil {
 		render.Render(w, r, response.NewErrorResponseFromChatError(err.(*entities.ChatError)))
@@ -411,15 +411,15 @@ func (c *ServerController) CreateInvitationController(w http.ResponseWriter, r *
 		return
 	}
 
-	user := extractUser(r.Context())
-	if user == nil {
+	userId := extractUserId(r.Context())
+	if userId == nil {
 		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
 		return
 	}
 
 	inv, err := c.invitationService.CreateInvitation(r.Context(), command.CreateInvitationCommand{
 		ServerId:       serverId,
-		UserId:         user.Id,
+		UserId:         *userId,
 		ExpiresAt:      body.ExpiresAt,
 		BypassApproval: body.BypassApproval,
 		JoinLimit:      body.JoinLimit,

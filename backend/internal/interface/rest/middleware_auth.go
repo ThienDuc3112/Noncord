@@ -12,6 +12,12 @@ import (
 	"github.com/go-chi/render"
 )
 
+type contextKey string
+
+const (
+	userIdKey contextKey = "userId"
+)
+
 func authMiddleware(authService interfaces.AuthService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +42,7 @@ func authMiddleware(authService interfaces.AuthService) func(http.Handler) http.
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "user", res.User)
+			ctx := context.WithValue(r.Context(), userIdKey, res.UserId)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
