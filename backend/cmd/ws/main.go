@@ -23,6 +23,7 @@ import (
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, os.Interrupt)
 	defer stop()
 
@@ -36,6 +37,7 @@ func main() {
 	uow := postgres.NewBaseUoW(conn)
 
 	permissionService := services.NewPermissionService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
+	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos { return rb }), os.Getenv("SECRET"))
 
 	rabbitMQConn, err := amqp091.Dial(os.Getenv("AMQP_URI"))
 	if err != nil {
@@ -53,7 +55,7 @@ func main() {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
 	}
-	defer eventSub.Close(ctx)
+	defer eventSub.Close()
 
 	wsHub, err := ws.NewHub(ctx, permissionService, eventSub)
 	if err != nil {
@@ -77,7 +79,7 @@ func main() {
 	}))
 
 	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		ws.ServeWs(wsHub, w, r)
+		ws.ServeWs(wsHub, authService, w, r)
 	})
 
 	log.Printf("listening on port %v", port)

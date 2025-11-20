@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/gookit/goutil/arrutil"
 )
 
 type PermissionRepos interface {
@@ -125,8 +126,18 @@ func (s *PermissionService) ServerHasAny(ctx context.Context, params query.Check
 	return effBit.HasAny(params.Permission), err
 }
 
-func (s *PermissionService) GetVisibleChannels(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error) {
-	return nil, nil
+func (s *PermissionService) GetVisibleChannels(ctx context.Context, userId uuid.UUID) (res uuid.UUIDs, err error) {
+	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepos) error {
+		channelIds, err := repos.Channel().FindByUserServers(ctx, entities.UserId(userId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channels")
+		}
+
+		res = arrutil.Map(channelIds, func(id entities.ChannelId) (uuid.UUID, bool) { return uuid.UUID(id), true })
+		return nil
+	})
+
+	return res, err
 }
 
 func (s *PermissionService) GetVisibleServers(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error) {

@@ -47,6 +47,7 @@ func (h *Hub) messageCreatedHandler(ctx context.Context, event ports.EventMessag
 					"channelId":   e.ChannelID,
 					"groupId":     e.GroupID,
 					"attachments": e.Attachments,
+					"messageId":   e.AggregateID,
 				})
 			}
 		}

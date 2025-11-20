@@ -10,6 +10,8 @@ type ChannelRepo interface {
 	FindIds(context.Context, []e.ChannelId) ([]*e.Channel, error)
 	FindByServerId(context.Context, e.ServerId) ([]*e.Channel, error)
 
+	FindByUserServers(context.Context, e.UserId) ([]e.ChannelId, error)
+
 	GetServerMaxChannelOrder(context.Context, e.ServerId) (int32, error)
 
 	Save(context.Context, *e.Channel) (*e.Channel, error)

@@ -62,6 +62,7 @@ func main() {
 		rest.NewServerController(serverService, authService, invitationService, channelService).RegisterRoute(r)
 		rest.NewInvitationController(serverService, authService, invitationService, membershipService).RegisterRoute(r)
 		rest.NewMessageController(messageService, authService).RegisterRoute(r)
+		rest.NewChannelController(authService, channelService).RegisterRoute(r)
 	})
 
 	log.Printf("listening on port %v", port)

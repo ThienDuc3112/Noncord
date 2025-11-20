@@ -116,4 +116,12 @@ func (r *PGChannelRepo) Delete(ctx context.Context, id e.ChannelId) error {
 // 	return fmt.Errorf("Not implemented")
 // }
 
+func (r *PGChannelRepo) FindByUserServers(ctx context.Context, userId e.UserId) ([]e.ChannelId, error) {
+	ids, err := r.q.FindAllChannelInUserServers(ctx, uuid.UUID(userId))
+	if err != nil {
+		return nil, err
+	}
+	return arrutil.Map(ids, func(id uuid.UUID) (target e.ChannelId, find bool) { return e.ChannelId(id), true }), nil
+}
+
 var _ repositories.ChannelRepo = &PGChannelRepo{}

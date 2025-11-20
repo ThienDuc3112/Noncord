@@ -15,16 +15,14 @@ import (
 )
 
 type ChannelController struct {
-	authService       interfaces.AuthService
-	channelService    interfaces.ChannelService
-	membershipService interfaces.MembershipService
+	authService    interfaces.AuthService
+	channelService interfaces.ChannelService
 }
 
-func NewChannelController(authService interfaces.AuthService, channelService interfaces.ChannelService, membershipService interfaces.MembershipService) *ChannelController {
+func NewChannelController(authService interfaces.AuthService, channelService interfaces.ChannelService) *ChannelController {
 	return &ChannelController{
-		membershipService: membershipService,
-		authService:       authService,
-		channelService:    channelService,
+		authService:    authService,
+		channelService: channelService,
 	}
 }
 

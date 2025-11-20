@@ -18,6 +18,8 @@ type Hub struct {
 	permissionService interfaces.PermissionService
 	eventSubscriber   ports.EventSubscriber
 
+	unsubChan chan *client
+
 	m sync.RWMutex
 }
 
@@ -34,11 +36,14 @@ func NewHub(ctx context.Context, permService interfaces.PermissionService, event
 
 		permissionService: permService,
 		eventSubscriber:   eventReader,
+
+		unsubChan: make(chan *client, 1024),
 	}
 
-	if err := hub.registerHandlers(ctx); err != nil {
+	if err := hub.registerHandlers(); err != nil {
 		return nil, err
 	}
+	go hub.unsubLoop(ctx)
 
 	return hub, nil
 }
@@ -53,7 +58,7 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 		return err
 	}
 
-	c := newClient(userId, conn)
+	c := newClient(userId, conn, h.unsubChan)
 	h.m.Lock()
 	defer h.m.Unlock()
 
@@ -77,4 +82,37 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 	h.userConn[userId][c.id] = c
 
 	return nil
+}
+
+func (h *Hub) unsubLoop(ctx context.Context) {
+outer:
+	for {
+		select {
+		case <-ctx.Done():
+			break outer
+		case c, ok := <-h.unsubChan:
+			if !ok {
+				break
+			}
+			if c == nil {
+				continue
+			}
+			h.m.Lock()
+			if _, ok = h.userConn[c.userId]; ok {
+				if _, ok = h.userConn[c.userId][c.id]; ok {
+					delete(h.userConn[c.userId], c.id)
+				}
+				if len(h.userConn[c.userId]) == 0 {
+					delete(h.userConn, c.userId)
+					for _, v := range h.serverSub {
+						delete(v, c.userId)
+					}
+					for _, v := range h.channelSub {
+						delete(v, c.userId)
+					}
+				}
+			}
+			h.m.Unlock()
+		}
+	}
 }

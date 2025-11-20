@@ -16,9 +16,11 @@ type client struct {
 
 	writeChan chan any
 	isClose   atomic.Bool
+
+	unsub chan<- *client
 }
 
-func newClient(userId uuid.UUID, conn *websocket.Conn) *client {
+func newClient(userId uuid.UUID, conn *websocket.Conn, unsub chan<- *client) *client {
 	c := &client{
 		id:     uuid.New(),
 		userId: userId,
@@ -26,6 +28,8 @@ func newClient(userId uuid.UUID, conn *websocket.Conn) *client {
 
 		writeChan: make(chan any, 512),
 		isClose:   atomic.Bool{},
+
+		unsub: unsub,
 	}
 	c.isClose.Store(false)
 

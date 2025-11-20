@@ -50,7 +50,7 @@ func NewRMQEventConsumer(ctx context.Context, conn *amqp.Connection, serviceName
 	return client, nil
 }
 
-func (s *RMQEventSubscriber) Subscribe(ctx context.Context, topic string, handler func(context.Context, ports.EventMessage) error) error {
+func (s *RMQEventSubscriber) Subscribe(topic string, handler func(context.Context, ports.EventMessage) error) error {
 	q, err := s.c.QueueDeclarePassive(s.serviceName, s.durable, false, false, false, nil)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (s *RMQEventSubscriber) Subscribe(ctx context.Context, topic string, handle
 	return nil
 }
 
-func (s *RMQEventSubscriber) Close(ctx context.Context) error {
+func (s *RMQEventSubscriber) Close() error {
 	for topic := range s.handlerMap {
 		s.c.QueueUnbind(s.serviceName, topic, s.exchangeName, nil)
 	}
