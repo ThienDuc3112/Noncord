@@ -3,6 +3,7 @@ package ws
 import (
 	"log/slog"
 	"sync/atomic"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -55,13 +56,31 @@ func (c *client) Write(msg any) {
 }
 
 func (c *client) writePump() {
-	for msg := range c.writeChan {
-		err := c.conn.WriteJSON(msg)
-		if websocket.IsUnexpectedCloseError(err) {
-			slog.Warn("write message to a closed client", "client", c.toSlogVal())
-			break
-		} else if err != nil {
-			slog.Warn("cannot send message", "client", c.toSlogVal(), "error", err)
+	tickerCh := time.Tick(30 * time.Second)
+	for {
+		select {
+		case _, ok := <-tickerCh:
+			if !ok {
+				return
+			}
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				slog.Warn("Ping failed to send", "client", c.toSlogVal())
+				c.conn.Close()
+				return
+			}
+
+		case msg, ok := <-c.writeChan:
+			if !ok {
+				slog.Warn("write channel is closed", "client", c.toSlogVal())
+				_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				c.conn.Close()
+				return
+			}
+			err := c.conn.WriteJSON(msg)
+			if err != nil {
+				slog.Warn("cannot send message", "client", c.toSlogVal(), "error", err)
+				c.conn.Close()
+			}
 		}
 	}
 }
@@ -69,17 +88,26 @@ func (c *client) writePump() {
 func (c *client) readPump() {
 	slog.Info("Read pump started")
 	defer func() {
-		slog.Info("closing client", "conn_id", c.id, "user_id", c.userId)
+		slog.Info("closing client", "client", c.toSlogVal())
 		c.Close()
 	}()
+
+	c.conn.SetReadLimit(512)
+	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.conn.SetPongHandler(func(string) error {
+		// extend deadline on pong
+		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
 
 	for !c.isClose.Load() {
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
+			slog.Warn("closing client", "error", err, "client", c.toSlogVal())
 			break
 		}
 
-		slog.Info("Incoming ws message", "msg", string(msg))
+		slog.Info("Incoming ws message", "msg", string(msg), "client", c.toSlogVal())
 	}
 }
 

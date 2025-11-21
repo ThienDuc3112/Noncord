@@ -183,6 +183,8 @@
         - [x] Create message
             - [x] Create message
             - [ ] Check permission
+        - [x] Create system message
+            - [x] Create message
         - [ ] Edit message
         - [ ] Delete message
             - [x] Delete message
@@ -197,9 +199,10 @@
         - [ ] Messages handlers
         - [ ] Servers handlers
         - [ ] Channels handlers
-    - [ ] Client
-        - [ ] Read pump and channel
+    - [x] Client
+        - [x] Read pump and channel
         - [x] Write pump and channel
+        - [x] Handle life cycle
 - [ ] Permission service
     - [ ] Check by permission bit
         - [ ] Calculate server effective bit
