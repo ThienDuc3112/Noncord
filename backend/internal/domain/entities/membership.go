@@ -72,13 +72,16 @@ func (m *Membership) Delete() error {
 }
 
 func NewMembership(sid ServerId, uid UserId, nickname string) *Membership {
-	return &Membership{
+	m := &Membership{
+		Id:        MembershipId(uuid.New()),
 		ServerId:  sid,
 		UserId:    uid,
 		Nickname:  nickname,
 		CreatedAt: time.Now(),
 		deleted:   false,
 	}
+	m.Record(NewMembershipCreated(m))
+	return m
 }
 
 type RoleAssignment struct {

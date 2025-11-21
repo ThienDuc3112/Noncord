@@ -3,18 +3,23 @@ package main
 import (
 	_ "backend/docs"
 	"backend/internal/application/services"
+	"backend/internal/application/workers"
 	"backend/internal/domain/repositories"
 	"backend/internal/infra/db/postgres"
+	rabbitmq "backend/internal/infra/rabbitMQ"
 	"backend/internal/interface/rest"
 	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -22,10 +27,24 @@ import (
 // @version		1.0
 // @description	This is the api for Noncord
 func main() {
-	conn, err := pgxpool.New(context.Background(), os.Getenv("DB_URI"))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, os.Interrupt)
+	defer stop()
 
+	conn, err := pgxpool.New(ctx, os.Getenv("DB_URI"))
 	if err != nil {
 		log.Fatalf("Cannot connect to db: %v", err)
+	}
+
+	rabbitMQConn, err := amqp091.Dial(os.Getenv("AMQP_URI"))
+	if err != nil {
+		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
+	}
+
+	eventSub, err := rabbitmq.NewRMQEventSubscriber(ctx, rabbitMQConn, "api_workers", "noncord.event", true)
+	if err != nil {
+		log.Fatalf("Cannot create a new event sub: %v", err)
 	}
 
 	uow := postgres.NewBaseUoW(conn)
@@ -38,6 +57,10 @@ func main() {
 	membershipService := services.NewMemberService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MemberRepos { return rb }))
 	channelService := services.NewChannelService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
 	messageService := services.NewMessageService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MessageRepos { return rb }))
+
+	if err = workers.NewWorker(messageService, eventSub); err != nil {
+		log.Fatalf("Cannot attach workers to event sub: %v", err)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

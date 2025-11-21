@@ -79,6 +79,8 @@ func (s *MessageService) Get(ctx context.Context, params query.GetMessage) (res 
 
 func (s *MessageService) GetByGroupId(ctx context.Context, params query.GetMessagesByGroupId) (res query.GetMessagesByGroupIdResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
+		// TODO: Check permission with roles, channel overwrite and stuff
+
 		before := time.Now()
 		if params.Before != nil {
 			before = *params.Before
@@ -88,9 +90,23 @@ func (s *MessageService) GetByGroupId(ctx context.Context, params query.GetMessa
 			limit = *params.Limit
 		}
 
-		_, err := repos.Message().FindByGroupId(ctx, entities.DMGroupId(params.GroupId), before, limit)
+		msgs, err := repos.Message().FindByGroupId(ctx, entities.DMGroupId(params.GroupId), before, limit)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get messages")
+		}
+
+		parsedMsgs := arrutil.Map(msgs, func(m *entities.Message) (target *common.Message, find bool) {
+			return mapper.MessageToResult(m), true
+		})
+		more := false
+		if len(parsedMsgs) > int(limit) {
+			parsedMsgs = parsedMsgs[:limit]
+			more = true
+		}
+
+		res = query.GetMessagesByGroupIdResult{
+			Result: parsedMsgs,
+			More:   more,
 		}
 
 		return entities.NewError(entities.ErrCodeForbidden, "dm group not implemented", nil)
@@ -107,25 +123,30 @@ func (s *MessageService) GetByChannelId(ctx context.Context, params query.GetMes
 		}
 		// TODO: Check permission with roles, channel overwrite and stuff
 
-		before := time.Now()
-		if params.Before != nil {
-			before = *params.Before
-		}
 		limit := int32(100)
-		if params.Limit != nil && *params.Limit <= 500 && *params.Limit > 0 {
-			limit = *params.Limit
+		if params.Limit <= 500 && params.Limit >= 1 {
+			limit = params.Limit
 		}
 
-		msgs, err := repos.Message().FindByChannelId(ctx, entities.ChannelId(params.ChannelId), before, limit)
+		msgs, err := repos.Message().FindByChannelId(ctx, entities.ChannelId(params.ChannelId), params.Before, limit+1)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get messages")
 		}
 
-		res = query.GetMessagesByChannelIdResult{
-			Result: arrutil.Map(msgs, func(m *entities.Message) (target *common.Message, find bool) {
-				return mapper.MessageToResult(m), true
-			}),
+		parsedMsgs := arrutil.Map(msgs, func(m *entities.Message) (target *common.Message, find bool) {
+			return mapper.MessageToResult(m), true
+		})
+		more := false
+		if len(parsedMsgs) > int(limit) {
+			parsedMsgs = parsedMsgs[:limit]
+			more = true
 		}
+
+		res = query.GetMessagesByChannelIdResult{
+			Result: parsedMsgs,
+			More:   more,
+		}
+
 		return nil
 	})
 
@@ -134,13 +155,13 @@ func (s *MessageService) GetByChannelId(ctx context.Context, params query.GetMes
 
 func (s *MessageService) Create(ctx context.Context, params command.CreateMessageCommand) (res command.CreateMessageCommandResult, err error) {
 	if params.IsTargetChannel {
-		msg, err := entities.NewMessage((*entities.ChannelId)(&params.TargetId), nil, entities.UserId(params.UserId), params.Content, nil)
+		msg, err := entities.NewMessage((*entities.ChannelId)(&params.TargetId), nil, (*entities.UserId)(params.UserId), entities.AuthorType(params.AuthorType), params.Content, nil)
 		if err != nil {
 			return res, err
 		}
 
 		err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
-			_, _, _, err = s.getChannelContext(ctx, repos, entities.ChannelId(params.TargetId), msg.Author)
+			_, _, _, err = s.getChannelContext(ctx, repos, entities.ChannelId(params.TargetId), *msg.Author)
 			if err != nil {
 				return err
 			}
@@ -164,9 +185,32 @@ func (s *MessageService) Create(ctx context.Context, params command.CreateMessag
 
 }
 
-func (s *MessageService) Update(context.Context, command.UpdateMessageCommand) (res command.UpdateMessageCommandResult, err error) {
+func (s *MessageService) CreateSystemMessage(ctx context.Context, params command.CreateSystemMessageCommand) error {
+	return s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
+		s, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+		}
+		if s.AnnouncementChannel == nil {
+			return nil
+		}
+		// TODO: Check permission with roles, channel overwrite and stuff
+		msg, err := entities.NewMessage(s.AnnouncementChannel, nil, nil, entities.AuthorTypeSystem, params.Content, nil)
+		if err != nil {
+			return err
+		}
 
-	return res, err
+		msg, err = repos.Message().Save(ctx, msg)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "failed to save message")
+		}
+
+		return nil
+	})
+}
+
+func (s *MessageService) Update(context.Context, command.UpdateMessageCommand) (res command.UpdateMessageCommandResult, err error) {
+	return res, entities.NewError(entities.ErrCodeForbidden, "method not implemented", nil)
 }
 
 func (s *MessageService) Delete(ctx context.Context, params command.DeleteMessageCommand) error {

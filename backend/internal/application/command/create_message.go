@@ -7,7 +7,8 @@ import (
 )
 
 type CreateMessageCommand struct {
-	UserId          uuid.UUID
+	UserId          *uuid.UUID
+	AuthorType      string
 	TargetId        uuid.UUID
 	Content         string
 	IsTargetChannel bool

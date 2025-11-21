@@ -28,15 +28,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
 	}
-	mq := rabbitmq.NewRMQEventPublisher(amqpConn, slog.Default())
+	mq := rabbitmq.NewRMQEventPublisher(amqpConn)
 	outboxReader := postgres.NewPGOutboxReader(pgxConn)
-	relayer := relayer.New(outboxReader, mq, relayer.Config{
+	relayerConfig := relayer.Config{
 		BatchSize:    100,
 		StaleAfter:   time.Minute,
 		PollInterval: 100 * time.Millisecond,
-		Topic:        "noncord events",
-	})
+	}
+	relayer := relayer.New(outboxReader, mq, relayerConfig)
 
+	slog.Info("Running the relayer", "config", relayerConfig)
 	if err = relayer.Run(ctx); err != nil {
 		log.Fatal(err)
 	}

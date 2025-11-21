@@ -3,7 +3,6 @@ package ws
 import (
 	"log/slog"
 	"sync/atomic"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -68,15 +67,11 @@ func (c *client) writePump() {
 }
 
 func (c *client) readPump() {
-	defer c.Close()
-
-	c.conn.SetReadLimit(512)
-	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-	c.conn.SetPongHandler(func(string) error {
-		// extend deadline on pong
-		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-		return nil
-	})
+	slog.Info("Read pump started")
+	defer func() {
+		slog.Info("closing client", "conn_id", c.id, "user_id", c.userId)
+		c.Close()
+	}()
 
 	for !c.isClose.Load() {
 		_, msg, err := c.conn.ReadMessage()
@@ -84,7 +79,7 @@ func (c *client) readPump() {
 			break
 		}
 
-		_ = msg
+		slog.Info("Incoming ws message", "msg", string(msg))
 	}
 }
 

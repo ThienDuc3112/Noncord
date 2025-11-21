@@ -5,6 +5,7 @@ import (
 	"backend/internal/application/ports"
 	"context"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -60,7 +61,6 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 
 	c := newClient(userId, conn, h.unsubChan)
 	h.m.Lock()
-	defer h.m.Unlock()
 
 	for _, cId := range chans {
 		if _, ok := h.channelSub[cId]; !ok {
@@ -80,6 +80,10 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 		h.userConn[userId] = make(map[uuid.UUID]*client)
 	}
 	h.userConn[userId][c.id] = c
+
+	h.m.Unlock()
+
+	c.writeChan <- map[string]any{"subscribedFrom": time.Now()}
 
 	return nil
 }

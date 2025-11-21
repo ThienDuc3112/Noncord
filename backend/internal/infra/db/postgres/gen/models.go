@@ -13,6 +13,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AuthorType string
+
+const (
+	AuthorTypeUser   AuthorType = "user"
+	AuthorTypeBot    AuthorType = "bot"
+	AuthorTypeSystem AuthorType = "system"
+)
+
+func (e *AuthorType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthorType(s)
+	case string:
+		*e = AuthorType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthorType: %T", src)
+	}
+	return nil
+}
+
+type NullAuthorType struct {
+	AuthorType AuthorType
+	Valid      bool // Valid is true if AuthorType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthorType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthorType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthorType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthorType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthorType), nil
+}
+
 type OverwriteTarget string
 
 const (
@@ -215,14 +258,15 @@ type Membership struct {
 }
 
 type Message struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-	ChannelID *uuid.UUID
-	GroupID   *uuid.UUID
-	AuthorID  uuid.UUID
-	Message   string
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
+	ChannelID  *uuid.UUID
+	GroupID    *uuid.UUID
+	AuthorID   *uuid.UUID
+	Message    string
+	AuthorType AuthorType
 }
 
 type Outbox struct {

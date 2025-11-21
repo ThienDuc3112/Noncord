@@ -2,16 +2,21 @@ package rest
 
 import (
 	"backend/internal/application/command"
+	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/query"
+	"backend/internal/interface/rest/dto/mapper"
 	"backend/internal/interface/rest/dto/request"
 	"backend/internal/interface/rest/dto/response"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/gookit/goutil/arrutil"
 )
 
 type MessageController struct {
@@ -66,7 +71,8 @@ func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *h
 	}
 
 	msg, err := ac.messageService.Create(r.Context(), command.CreateMessageCommand{
-		UserId:          *userId,
+		UserId:          userId,
+		AuthorType:      "user",
 		TargetId:        body.TargetId,
 		Content:         body.Content,
 		IsTargetChannel: body.IsTargetChannel,
@@ -77,15 +83,7 @@ func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *h
 	}
 
 	render.Status(r, 201)
-	render.JSON(w, r, response.Message{
-		Id:        msg.Result.Id,
-		CreatedAt: msg.Result.CreatedAt,
-		UpdatedAt: msg.Result.UpdatedAt,
-		ChannelId: msg.Result.ChannelId,
-		GroupId:   msg.Result.GroupId,
-		Author:    msg.Result.Author,
-		Message:   msg.Result.Message,
-	})
+	render.JSON(w, r, mapper.ParseCommonMessage(msg.Result))
 }
 
 // register 		godoc
@@ -127,15 +125,7 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 		return
 	}
 
-	render.JSON(w, r, response.Message{
-		Id:        msg.Result.Id,
-		CreatedAt: msg.Result.CreatedAt,
-		UpdatedAt: msg.Result.UpdatedAt,
-		ChannelId: msg.Result.ChannelId,
-		GroupId:   msg.Result.GroupId,
-		Author:    msg.Result.Author,
-		Message:   msg.Result.Message,
-	})
+	render.JSON(w, r, mapper.ParseCommonMessage(msg.Result))
 }
 
 // register 		godoc
@@ -148,8 +138,8 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 //	@Param			Authorization	header		string						true	"Bearer token"
 //	@Param			channel_id		path		string	true	"channel id to fetch messages"
 //	@Param			limit		query		int	false	"Message limit" minimum(1) maximum(500) default(100)
-//	@Param			before		query		int	false	"Time in unix"
-//	@Success		200		{object}	nil
+//	@Param			before		query		int64	false	"Time in unix microseconds"
+//	@Success		200		{object}	response.GetMessagesResponse
 //	@Failure		400		{object}	response.ErrorResponse "Invalid channel id"
 //	@Failure		401		{object}	response.ErrorResponse "Unauthorized"
 //	@Failure		404		{object}	response.ErrorResponse "Channel not found"
@@ -157,6 +147,60 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 //	@Router			/api/v1/message/channel/{channel_id} [get]
 func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetMessagesByChannelIdController] Getting messages by channel id")
+
+	userId := extractUserId(r.Context())
+	if userId == nil {
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	channelId, err := uuid.Parse(chi.URLParam(r, "channel_id"))
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Invalid channel id", http.StatusBadRequest, err))
+		return
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit < 1 || limit > 500 {
+		limit = 100
+	}
+
+	beforeInt, err := strconv.ParseInt(r.URL.Query().Get("before"), 10, 64)
+	if err != nil {
+		beforeInt = time.Now().UnixMicro()
+	}
+	before := time.UnixMicro(beforeInt)
+
+	msgs, err := ac.messageService.GetByChannelId(r.Context(), query.GetMessagesByChannelId{
+		ChannelId: channelId,
+		UserId:    *userId,
+		Before:    before,
+		Limit:     int32(limit),
+	})
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Unable to get messages", http.StatusInternalServerError, err))
+		return
+	}
+
+	nextUrl := ""
+	var next *string = nil
+	if msgs.More {
+		u := *r.URL
+		q := u.Query()
+		q.Set("before", strconv.FormatInt(msgs.Result[len(msgs.Result)-1].CreatedAt.UnixMicro(), 10))
+		nextUrl = q.Encode()
+		next = &nextUrl
+	}
+
+	render.JSON(w, r, response.GetMessagesResponse{
+		Result: arrutil.Map(msgs.Result, func(msg *common.Message) (response.Message, bool) {
+			if msg == nil {
+				return response.Message{}, false
+			}
+			return mapper.ParseCommonMessage(msg), true
+		}),
+		Next: next,
+	})
 }
 
 // register 		godoc

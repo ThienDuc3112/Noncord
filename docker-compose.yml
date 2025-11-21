@@ -37,6 +37,7 @@ services:
       PORT: "9999"
       DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
       AMQP_URI: "amqp://noncord:noncord@mq:5672/"
+      SECRET: "d2bbb0d95eba5eef4a5127dbaf7ab9fb4ab75d4cc0677962fcbb7f740e6d067d"
     depends_on:
       - db
       - mq
@@ -71,6 +72,7 @@ services:
       - "8888:8888"
     command: air
     environment:
+      AMQP_URI: "amqp://noncord:noncord@mq:5672/"
       DB_URI: "postgres://noncord:password@db:5432/noncord?sslmode=disable"
       PORT: "8888"
       SECRET: "d2bbb0d95eba5eef4a5127dbaf7ab9fb4ab75d4cc0677962fcbb7f740e6d067d"

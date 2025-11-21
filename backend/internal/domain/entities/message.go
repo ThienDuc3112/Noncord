@@ -2,6 +2,7 @@ package entities
 
 import (
 	"backend/internal/domain/events"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -71,6 +72,14 @@ func NewReaction(mid MessageId, uid UserId, eid EmoteId) *Reaction {
 	}
 }
 
+type AuthorType string
+
+const (
+	AuthorTypeUser   AuthorType = "user"
+	AuthorTypeSystem            = "system"
+	AuthorTypeBot               = "bot"
+)
+
 type Message struct {
 	events.Recorder
 
@@ -80,7 +89,8 @@ type Message struct {
 	DeletedAt   *time.Time
 	ChannelId   *ChannelId
 	GroupId     *DMGroupId
-	Author      UserId
+	Author      *UserId
+	AuthorType  AuthorType
 	Message     string
 	Attachments []Attachment
 }
@@ -95,6 +105,7 @@ func (m *Message) Validate() error {
 	if len(m.Attachments) > 10 {
 		return NewError(ErrCodeValidationError, "attachments limit exceed", nil)
 	}
+
 	noChannel := m.ChannelId == nil
 	noGroup := m.GroupId == nil
 	if noGroup && noChannel {
@@ -104,10 +115,23 @@ func (m *Message) Validate() error {
 		return NewError(ErrCodeValidationError, "cannot have message in both dm group and channel", nil)
 	}
 
+	switch m.AuthorType {
+	case AuthorTypeSystem:
+		if m.Author != nil {
+			return NewError(ErrCodeValidationError, "system message cannot have author id", nil)
+		}
+	case AuthorTypeBot, AuthorTypeUser:
+		if m.Author == nil {
+			return NewError(ErrCodeValidationError, fmt.Sprintf("%s message must have author id", m.AuthorType), nil)
+		}
+	default:
+		return NewError(ErrCodeValidationError, "unknown author type", nil)
+	}
+
 	return nil
 }
 
-func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg string, attachments []Attachment) (*Message, error) {
+func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId *UserId, authorType AuthorType, msg string, attachments []Attachment) (*Message, error) {
 	now := time.Now()
 	message := &Message{
 		Id:          MessageId(uuid.New()),
@@ -117,6 +141,7 @@ func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg str
 		ChannelId:   channelId,
 		GroupId:     groupId,
 		Author:      authId,
+		AuthorType:  authorType,
 		Message:     msg,
 		Attachments: attachments,
 	}
@@ -129,7 +154,10 @@ func NewMessage(channelId *ChannelId, groupId *DMGroupId, authId UserId, msg str
 }
 
 func (m *Message) IsAuthor(userId UserId) bool {
-	return userId == m.Author
+	if m.Author == nil {
+		return false
+	}
+	return userId == *m.Author
 }
 
 func (m *Message) UpdateContent(newContent string) error {

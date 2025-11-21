@@ -12,11 +12,10 @@ const EXCHANGE_NAME = "noncord.event"
 
 type RMQEventPublisher struct {
 	conn *amqp.Connection
-	log  *slog.Logger
 }
 
-func NewRMQEventPublisher(conn *amqp.Connection, logger *slog.Logger) ports.EventPublisher {
-	return &RMQEventPublisher{conn, logger}
+func NewRMQEventPublisher(conn *amqp.Connection) ports.EventPublisher {
+	return &RMQEventPublisher{conn}
 }
 
 func (mq *RMQEventPublisher) Publish(ctx context.Context, msg ports.EventMessage) error {

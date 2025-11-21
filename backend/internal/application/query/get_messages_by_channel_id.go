@@ -10,10 +10,11 @@ import (
 type GetMessagesByChannelId struct {
 	ChannelId uuid.UUID
 	UserId    uuid.UUID
-	Before    *time.Time
-	Limit     *int32
+	Before    time.Time
+	Limit     int32
 }
 
 type GetMessagesByChannelIdResult struct {
 	Result []*common.Message
+	More   bool
 }

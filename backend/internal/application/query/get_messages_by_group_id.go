@@ -16,4 +16,5 @@ type GetMessagesByGroupId struct {
 
 type GetMessagesByGroupIdResult struct {
 	Result []*common.Message
+	More   bool
 }

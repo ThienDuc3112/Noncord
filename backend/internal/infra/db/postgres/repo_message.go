@@ -60,14 +60,15 @@ func (r *PGMessageRepo) FindByGroupId(ctx context.Context, groupId e.DMGroupId, 
 
 func (r *PGMessageRepo) Save(ctx context.Context, msg *e.Message) (*e.Message, error) {
 	m, err := r.q.SaveMessage(ctx, gen.SaveMessageParams{
-		ID:        uuid.UUID(msg.Id),
-		CreatedAt: msg.CreatedAt,
-		UpdatedAt: msg.UpdatedAt,
-		DeletedAt: msg.DeletedAt,
-		ChannelID: (*uuid.UUID)(msg.ChannelId),
-		GroupID:   (*uuid.UUID)(msg.GroupId),
-		AuthorID:  uuid.UUID(msg.Author),
-		Message:   msg.Message,
+		ID:         uuid.UUID(msg.Id),
+		CreatedAt:  msg.CreatedAt,
+		UpdatedAt:  msg.UpdatedAt,
+		DeletedAt:  msg.DeletedAt,
+		ChannelID:  (*uuid.UUID)(msg.ChannelId),
+		GroupID:    (*uuid.UUID)(msg.GroupId),
+		AuthorID:   (*uuid.UUID)(msg.Author),
+		AuthorType: gen.AuthorType(msg.AuthorType),
+		Message:    msg.Message,
 	})
 	if err != nil {
 		return nil, err

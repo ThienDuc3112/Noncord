@@ -13,7 +13,8 @@ func fromDbMessage(m gen.Message, attachments []entities.Attachment) *entities.M
 		DeletedAt:   m.DeletedAt,
 		ChannelId:   (*entities.ChannelId)(m.ChannelID),
 		GroupId:     (*entities.DMGroupId)(m.GroupID),
-		Author:      entities.UserId(m.AuthorID),
+		Author:      (*entities.UserId)(m.AuthorID),
+		AuthorType:  entities.AuthorType(m.AuthorType),
 		Message:     m.Message,
 		Attachments: attachments,
 	}

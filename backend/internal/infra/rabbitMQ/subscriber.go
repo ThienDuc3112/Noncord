@@ -22,7 +22,7 @@ type RMQEventSubscriber struct {
 	durable      bool
 }
 
-func NewRMQEventConsumer(ctx context.Context, conn *amqp.Connection, serviceName, exchangeName string, durable bool) (ports.EventSubscriber, error) {
+func NewRMQEventSubscriber(ctx context.Context, conn *amqp.Connection, serviceName, exchangeName string, durable bool) (ports.EventSubscriber, error) {
 	c, err := conn.Channel()
 	if err != nil {
 		return nil, err
@@ -47,6 +47,7 @@ func NewRMQEventConsumer(ctx context.Context, conn *amqp.Connection, serviceName
 
 	go client.consumeLoop(ctx, msgs)
 
+	slog.Info("Created new EventSubscriber successfully")
 	return client, nil
 }
 

@@ -68,6 +68,10 @@ func (r *PGMemberRepo) Save(ctx context.Context, membership *e.Membership) (*e.M
 		return nil, err
 	}
 
+	if err = pullAndPushEvents(ctx, r.q, membership.PullsEvents()); err != nil {
+		return nil, err
+	}
+
 	return fromDbMembership(res), nil
 }
 

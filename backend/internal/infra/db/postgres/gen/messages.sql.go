@@ -13,7 +13,7 @@ import (
 )
 
 const findMessageById = `-- name: FindMessageById :one
-SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE id = $1 AND deleted_at IS NULL
+SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message, author_type FROM messages WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) FindMessageById(ctx context.Context, id uuid.UUID) (Message, error) {
@@ -28,12 +28,13 @@ func (q *Queries) FindMessageById(ctx context.Context, id uuid.UUID) (Message, e
 		&i.GroupID,
 		&i.AuthorID,
 		&i.Message,
+		&i.AuthorType,
 	)
 	return i, err
 }
 
 const findMessagesByChannelId = `-- name: FindMessagesByChannelId :many
-SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE channel_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3
+SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message, author_type FROM messages WHERE channel_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3
 `
 
 type FindMessagesByChannelIdParams struct {
@@ -60,6 +61,7 @@ func (q *Queries) FindMessagesByChannelId(ctx context.Context, arg FindMessagesB
 			&i.GroupID,
 			&i.AuthorID,
 			&i.Message,
+			&i.AuthorType,
 		); err != nil {
 			return nil, err
 		}
@@ -72,7 +74,7 @@ func (q *Queries) FindMessagesByChannelId(ctx context.Context, arg FindMessagesB
 }
 
 const findMessagesByGroupId = `-- name: FindMessagesByGroupId :many
-SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message FROM messages WHERE group_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3
+SELECT id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message, author_type FROM messages WHERE group_id = $1 AND created_at < $2 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $3
 `
 
 type FindMessagesByGroupIdParams struct {
@@ -99,6 +101,7 @@ func (q *Queries) FindMessagesByGroupId(ctx context.Context, arg FindMessagesByG
 			&i.GroupID,
 			&i.AuthorID,
 			&i.Message,
+			&i.AuthorType,
 		); err != nil {
 			return nil, err
 		}
@@ -119,20 +122,22 @@ INSERT INTO messages (
   channel_id,
   group_id,
   author_id,
+  author_type,
   message
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-RETURNING id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+RETURNING id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message, author_type
 `
 
 type SaveMessageParams struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-	ChannelID *uuid.UUID
-	GroupID   *uuid.UUID
-	AuthorID  uuid.UUID
-	Message   string
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
+	ChannelID  *uuid.UUID
+	GroupID    *uuid.UUID
+	AuthorID   *uuid.UUID
+	AuthorType AuthorType
+	Message    string
 }
 
 func (q *Queries) SaveMessage(ctx context.Context, arg SaveMessageParams) (Message, error) {
@@ -144,6 +149,7 @@ func (q *Queries) SaveMessage(ctx context.Context, arg SaveMessageParams) (Messa
 		arg.ChannelID,
 		arg.GroupID,
 		arg.AuthorID,
+		arg.AuthorType,
 		arg.Message,
 	)
 	var i Message
@@ -156,6 +162,7 @@ func (q *Queries) SaveMessage(ctx context.Context, arg SaveMessageParams) (Messa
 		&i.GroupID,
 		&i.AuthorID,
 		&i.Message,
+		&i.AuthorType,
 	)
 	return i, err
 }

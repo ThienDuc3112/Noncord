@@ -38,7 +38,8 @@ type AttachmentSnapshot struct {
 
 type MessageCreated struct {
 	events.Base
-	AuthorID    uuid.UUID            `json:"author_id"`
+	AuthorID    *uuid.UUID           `json:"author_id"`
+	AuthorType  string               `json:"authorType"`
 	ChannelID   *uuid.UUID           `json:"channel_id,omitempty"`
 	GroupID     *uuid.UUID           `json:"group_id,omitempty"`
 	Content     string               `json:"content,omitempty"`
@@ -63,7 +64,8 @@ func NewMessageCreated(m *Message) MessageCreated {
 
 	return MessageCreated{
 		Base:        events.NewBase("message", uuid.UUID(m.Id), EventMessageCreated, MessageCreatedSchemaVersion),
-		AuthorID:    uuid.UUID(m.Author),
+		AuthorID:    (*uuid.UUID)(m.Author),
+		AuthorType:  string(m.AuthorType),
 		ChannelID:   (*uuid.UUID)(m.ChannelId),
 		GroupID:     (*uuid.UUID)(m.GroupId),
 		Content:     m.Message,

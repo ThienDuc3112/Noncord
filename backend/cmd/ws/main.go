@@ -50,7 +50,7 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	eventSub, err := rabbitmq.NewRMQEventConsumer(ctx, rabbitMQConn, "websocket", "noncord.event", true)
+	eventSub, err := rabbitmq.NewRMQEventSubscriber(ctx, rabbitMQConn, "websocket", "noncord.event", true)
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)

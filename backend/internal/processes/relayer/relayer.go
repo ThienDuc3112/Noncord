@@ -13,7 +13,6 @@ type Config struct {
 	StaleAfter   time.Duration // lease duration, e.g. 60 * time.Second
 	MaxAttempts  int32         // e.g. 8
 	PollInterval time.Duration // e.g. 100 * time.Millisecond
-	Topic        string
 	ShardCount   int32
 }
 
@@ -44,7 +43,6 @@ func (r *Relayer) step(ctx context.Context) (int32, error) {
 			"schema_version": strconv.Itoa(int(rec.SchemaVersion)),
 			"occurred_at":    rec.OccurredAt.UTC().Format(time.RFC3339Nano),
 			"event_id":       rec.ID.String(),
-			"topic":          r.cfg.Topic,
 		}
 
 		err = r.broker.Publish(ctx, ports.EventMessage{
