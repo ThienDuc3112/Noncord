@@ -143,6 +143,15 @@ definitions:
       server:
         $ref: '#/definitions/response.ServerPreview'
     type: object
+  response.GetMessagesResponse:
+    properties:
+      next:
+        type: string
+      result:
+        items:
+          $ref: '#/definitions/response.Message'
+        type: array
+    type: object
   response.GetServerResponse:
     properties:
       announcementChannel:
@@ -214,12 +223,17 @@ definitions:
     properties:
       author:
         type: string
+        x-nullable: true
+      authorType:
+        type: string
       channelId:
         type: string
+        x-nullable: true
       createdAt:
         type: string
       groupId:
         type: string
+        x-nullable: true
       id:
         type: string
       message:
@@ -953,7 +967,8 @@ paths:
         minimum: 1
         name: limit
         type: integer
-      - description: Time in unix
+      - description: Time in unix microseconds
+        format: int64
         in: query
         name: before
         type: integer
@@ -962,6 +977,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.GetMessagesResponse'
         "400":
           description: Invalid channel id
           schema:

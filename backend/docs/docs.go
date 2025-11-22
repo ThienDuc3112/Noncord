@@ -973,14 +973,18 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Time in unix",
+                        "format": "int64",
+                        "description": "Time in unix microseconds",
                         "name": "before",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetMessagesResponse"
+                        }
                     },
                     "400": {
                         "description": "Invalid channel id",
@@ -1868,6 +1872,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetMessagesResponse": {
+            "type": "object",
+            "properties": {
+                "next": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Message"
+                    }
+                }
+            }
+        },
         "response.GetServerResponse": {
             "type": "object",
             "properties": {
@@ -1975,16 +1993,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "author": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "authorType": {
                     "type": "string"
                 },
                 "channelId": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "groupId": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "id": {
                     "type": "string"

@@ -59,6 +59,7 @@ func (r *PGMemberRepo) FindRoleAssignments(ctx context.Context, userId e.UserId,
 
 func (r *PGMemberRepo) Save(ctx context.Context, membership *e.Membership) (*e.Membership, error) {
 	res, err := r.q.SaveMembership(ctx, gen.SaveMembershipParams{
+		ID:        uuid.UUID(membership.Id),
 		ServerID:  uuid.UUID(membership.ServerId),
 		UserID:    uuid.UUID(membership.UserId),
 		CreatedAt: membership.CreatedAt,

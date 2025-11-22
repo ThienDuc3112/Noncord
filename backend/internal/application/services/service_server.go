@@ -9,6 +9,7 @@ import (
 	"backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/gookit/goutil/arrutil"
@@ -35,16 +36,19 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 	}
 
 	err = s.uow.Do(ctx, func(ctx context.Context, repos ServerRepos) error {
+		slog.Info("creating server")
 		server, err = repos.Server().Save(ctx, server)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 		}
 
+		slog.Info("creating membership")
 		_, err = repos.Member().Save(ctx, entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserNickname))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
 		}
 
+		slog.Info("creating channel")
 		channel := entities.NewChannel("text channel", "Your first channel", server.Id, 1, nil)
 		channel, err = repos.Channel().Save(ctx, channel)
 		if err != nil {
@@ -56,6 +60,7 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 			return err
 		}
 
+		slog.Info("saving server", "server", server)
 		server, err = repos.Server().Save(ctx, server)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")

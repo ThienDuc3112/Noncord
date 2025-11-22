@@ -1,34 +1,22 @@
 "use client";
+
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { theme } from "@/lib/theme";
-import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import axios, { isAxiosError } from "axios";
+import Cookies from "universal-cookie";
+import { isAxiosError } from "axios";
+import { Eye, EyeOff } from "lucide-react";
 
-const LoginSchema = z.object({
-  username: z
-    .string({ message: "Username must be a string" })
-    .nonempty("Username or email must exist"),
-  password: z
-    .string({ message: "Password must be a string" })
-    .nonempty("Password must exist"),
-});
+import { apiClient } from "@/lib/request";
+import { LoginSchema, TokenSchema, type LoginData } from "@/lib/types";
+import { theme } from "@/lib/theme";
 
-type LoginData = z.infer<typeof LoginSchema>;
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+
+const cookies = new Cookies();
 
 const LoginForm = () => {
   const router = useRouter();
@@ -42,123 +30,127 @@ const LoginForm = () => {
     },
   });
 
-  const handleSubmit = async (data: LoginData) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = form;
+
+  const onSubmit = async (data: LoginData) => {
     try {
-      await axios.post("/auth/login", data, { withCredentials: true });
+      const res = await apiClient.post("/auth/login", data);
+      const body = TokenSchema.safeParse(res.data);
+
+      if (!body.success) {
+        return setError("root", {
+          message: body.error.errors.map((e) => e.message).join("\n"),
+        });
+      }
+
+      cookies.set("accessToken", body.data.accessToken, {
+        sameSite: true,
+        secure: true,
+        path: "/",
+      });
+      cookies.set("refreshToken", body.data.refreshToken, {
+        sameSite: true,
+        secure: true,
+        path: "/",
+      });
+
       router.push("/app");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       if (
         isAxiosError(error) &&
         error.response &&
         error.response.status < 500
       ) {
-        const errorMsg: string | undefined = error.response.data?.error;
+        const errorMsg: string | undefined = (error.response.data as any)
+          ?.error;
         if (errorMsg) {
-          return form.setError("root", { message: errorMsg });
+          return setError("root", { message: errorMsg });
         }
       }
-      form.setError("root", {
+      setError("root", {
         message: "Unknown error occured, please try again some time later",
       });
     }
   };
 
+  const rootError = errors.root?.message;
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel className={theme.classes.label}>
-                Email or Username
-                <span className={theme.colors.states.error}>*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  className={
-                    fieldState.error
-                      ? theme.classes.inputError
-                      : theme.classes.input
-                  }
-                />
-              </FormControl>
-              <FormMessage className={theme.classes.formMessage} />
-            </FormItem>
-          )}
+    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+      {/* Username */}
+      <div className="space-y-1">
+        <Label htmlFor="username" className={theme.classes.label}>
+          Username or Email
+        </Label>
+        <Input
+          id="username"
+          type="text"
+          autoComplete="username"
+          className={
+            errors.username ? theme.classes.inputError : theme.classes.input
+          }
+          {...register("username")}
         />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel className={theme.classes.label}>
-                Password<span className={theme.colors.states.error}>*</span>
-              </FormLabel>
-              <div className="relative">
-                <FormControl>
-                  <Input
-                    {...field}
-                    type={showPassword ? "text" : "password"}
-                    className={
-                      (fieldState.error
-                        ? theme.classes.inputError
-                        : theme.classes.input) + " pr-10"
-                    }
-                  />
-                </FormControl>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${theme.colors.text.secondary} hover:text-white`}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              <FormMessage className={theme.classes.formMessage} />
-            </FormItem>
-          )}
-        />
-
-        {form.formState.errors.root && (
-          <div className="flex items-center space-x-2 p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-            <p className={theme.classes.formMessage}>
-              {form.formState.errors.root.message}
-            </p>
-          </div>
+        {errors.username && (
+          <p className={theme.classes.formMessage}>{errors.username.message}</p>
         )}
+      </div>
 
-        <button
-          type="button"
-          className={`${theme.colors.interactive.link} text-sm`}
-        >
-          Forgot your password?
-        </button>
+      {/* Password */}
+      <div className="space-y-1">
+        <Label htmlFor="password" className={theme.classes.label}>
+          Password
+        </Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            className={
+              errors.password
+                ? `${theme.classes.inputError} pr-10`
+                : `${theme.classes.input} pr-10`
+            }
+            {...register("password")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#a5adcb]"
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        {errors.password && (
+          <p className={theme.classes.formMessage}>{errors.password.message}</p>
+        )}
+      </div>
 
-        <Button
-          type="submit"
-          className={`w-full ${theme.classes.button.primary}`}
-        >
-          Log In
-        </Button>
+      {/* Root errors */}
+      {rootError && (
+        <div className="rounded-sm bg-[#3b1f2b]/80 px-3 py-2 text-sm text-[#ed8796]">
+          {rootError}
+        </div>
+      )}
 
-        <p className={`${theme.colors.text.muted} text-sm`}>
-          Need an account?{" "}
-          <Link href="/register" className={theme.colors.interactive.link}>
-            Register
-          </Link>
-        </p>
-      </form>
-    </Form>
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className={`w-full ${theme.classes.button.primary}`}
+      >
+        {isSubmitting ? "Signing in..." : "Sign in"}
+      </Button>
+    </form>
   );
 };
 
