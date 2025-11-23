@@ -7,17 +7,24 @@ import (
 )
 
 type Message struct {
-	Id         uuid.UUID  `json:"id"`
-	CreatedAt  time.Time  `json:"createdAt"`
-	UpdatedAt  time.Time  `json:"updatedAt"`
-	ChannelId  *uuid.UUID `json:"channelId" extensions:"x-nullable"`
-	GroupId    *uuid.UUID `json:"groupId" extensions:"x-nullable"`
-	Author     *uuid.UUID `json:"author" extensions:"x-nullable"`
-	AuthorType string     `json:"authorType"`
-	Message    string     `json:"message"`
+	Id          uuid.UUID  `json:"id"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	ChannelId   *uuid.UUID `json:"channelId" extensions:"x-nullable"`
+	GroupId     *uuid.UUID `json:"groupId" extensions:"x-nullable"`
+	Author      *uuid.UUID `json:"author" extensions:"x-nullable"`
+	AuthorType  string     `json:"authorType"`
+	Message     string     `json:"message"`
+	DisplayName string     `json:"displayName"`
+	AvatarUrl   string     `json:"avatarUrl"`
 }
 
 type GetMessagesResponse struct {
 	Result []Message `json:"result"`
 	Next   *string   `json:"next"`
+}
+
+type CreateMessage struct {
+	Id        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
 }

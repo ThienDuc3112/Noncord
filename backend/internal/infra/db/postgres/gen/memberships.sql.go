@@ -48,6 +48,28 @@ func (q *Queries) FindMembership(ctx context.Context, arg FindMembershipParams) 
 	return i, err
 }
 
+const findMembershipWithChannelId = `-- name: FindMembershipWithChannelId :one
+SELECT mb.id, mb.server_id, mb.user_id, mb.created_at, mb.nickname FROM memberships mb, channels c WHERE c.id = $1 AND mb.user_id = $2 AND mb.server_id = c.server_id
+`
+
+type FindMembershipWithChannelIdParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) FindMembershipWithChannelId(ctx context.Context, arg FindMembershipWithChannelIdParams) (Membership, error) {
+	row := q.db.QueryRow(ctx, findMembershipWithChannelId, arg.ID, arg.UserID)
+	var i Membership
+	err := row.Scan(
+		&i.ID,
+		&i.ServerID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.Nickname,
+	)
+	return i, err
+}
+
 const findMembershipsByServerId = `-- name: FindMembershipsByServerId :many
 SELECT id, server_id, user_id, created_at, nickname FROM memberships WHERE server_id = $1
 `

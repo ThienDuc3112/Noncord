@@ -2,8 +2,9 @@ package entities
 
 import (
 	"backend/internal/domain/events"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (

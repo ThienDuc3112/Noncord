@@ -898,7 +898,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Message sent",
                         "schema": {
-                            "$ref": "#/definitions/response.Message"
+                            "$ref": "#/definitions/response.CreateMessage"
                         }
                     },
                     "400": {
@@ -1853,6 +1853,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CreateMessage": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1999,11 +2010,17 @@ const docTemplate = `{
                 "authorType": {
                     "type": "string"
                 },
+                "avatarUrl": {
+                    "type": "string"
+                },
                 "channelId": {
                     "type": "string",
                     "x-nullable": true
                 },
                 "createdAt": {
+                    "type": "string"
+                },
+                "displayName": {
                     "type": "string"
                 },
                 "groupId": {

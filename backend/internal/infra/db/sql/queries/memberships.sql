@@ -28,3 +28,6 @@ SELECT * FROM memberships WHERE server_id = $1;
 
 -- name: DeleteMembership :exec
 DELETE FROM memberships WHERE user_id = $1 AND server_id = $2;
+
+-- name: FindMembershipWithChannelId :one
+SELECT mb.* FROM memberships mb, channels c WHERE c.id = $1 AND mb.user_id = $2 AND mb.server_id = c.server_id;

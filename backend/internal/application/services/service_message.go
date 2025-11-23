@@ -2,16 +2,11 @@ package services
 
 import (
 	"backend/internal/application/command"
-	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/mapper"
-	"backend/internal/application/query"
 	"backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"context"
-	"time"
-
-	"github.com/gookit/goutil/arrutil"
 )
 
 type MessageRepos interface {
@@ -26,10 +21,6 @@ type MessageService struct {
 }
 
 func NewMessageService(uow repositories.UnitOfWork[MessageRepos]) interfaces.MessageService {
-	return &MessageService{uow}
-}
-
-func NewMessageQueries(uow repositories.UnitOfWork[MessageRepos]) interfaces.MessageQueries {
 	return &MessageService{uow}
 }
 
@@ -53,108 +44,6 @@ func (s *MessageService) getChannelContext(ctx context.Context, repos MessageRep
 	}
 
 	return channel, server, membership, nil
-}
-
-func (s *MessageService) Get(ctx context.Context, params query.GetMessage) (res query.GetMessageResult, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
-		msg, err := repos.Message().Find(ctx, entities.MessageId(params.MessageId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message")
-		}
-
-		if msg.ChannelId != nil {
-			_, _, _, err := s.getChannelContext(ctx, repos, *msg.ChannelId, entities.UserId(params.UserId))
-			if err != nil {
-				return err
-			}
-			// TODO: Check permission with roles, channel overwrite and stuff
-
-			res = query.GetMessageResult{
-				Result: mapper.MessageToResult(msg),
-			}
-			return nil
-		} else {
-			return entities.NewError(entities.ErrCodeForbidden, "dm group not implemented", nil)
-		}
-	})
-
-	return res, err
-}
-
-func (s *MessageService) GetByGroupId(ctx context.Context, params query.GetMessagesByGroupId) (res query.GetMessagesByGroupIdResult, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
-		// TODO: Check permission with roles, channel overwrite and stuff
-
-		before := time.Now()
-		if params.Before != nil {
-			before = *params.Before
-		}
-		limit := int32(100)
-		if params.Limit != nil && *params.Limit <= 500 && *params.Limit > 0 {
-			limit = *params.Limit
-		}
-
-		msgs, err := repos.Message().FindByGroupId(ctx, entities.DMGroupId(params.GroupId), before, limit)
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get messages")
-		}
-
-		parsedMsgs := arrutil.Map(msgs, func(m *entities.Message) (target *common.Message, find bool) {
-			return mapper.MessageToResult(m), true
-		})
-		more := false
-		if len(parsedMsgs) > int(limit) {
-			parsedMsgs = parsedMsgs[:limit]
-			more = true
-		}
-
-		res = query.GetMessagesByGroupIdResult{
-			Result: parsedMsgs,
-			More:   more,
-		}
-
-		return entities.NewError(entities.ErrCodeForbidden, "dm group not implemented", nil)
-	})
-
-	return res, err
-}
-
-func (s *MessageService) GetByChannelId(ctx context.Context, params query.GetMessagesByChannelId) (res query.GetMessagesByChannelIdResult, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
-		_, _, _, derr := s.getChannelContext(ctx, repos, entities.ChannelId(params.ChannelId), entities.UserId(params.UserId))
-		if derr != nil {
-			return derr
-		}
-		// TODO: Check permission with roles, channel overwrite and stuff
-
-		limit := int32(100)
-		if params.Limit <= 500 && params.Limit >= 1 {
-			limit = params.Limit
-		}
-
-		msgs, err := repos.Message().FindByChannelId(ctx, entities.ChannelId(params.ChannelId), params.Before, limit+1)
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get messages")
-		}
-
-		parsedMsgs := arrutil.Map(msgs, func(m *entities.Message) (target *common.Message, find bool) {
-			return mapper.MessageToResult(m), true
-		})
-		more := false
-		if len(parsedMsgs) > int(limit) {
-			parsedMsgs = parsedMsgs[:limit]
-			more = true
-		}
-
-		res = query.GetMessagesByChannelIdResult{
-			Result: parsedMsgs,
-			More:   more,
-		}
-
-		return nil
-	})
-
-	return res, err
 }
 
 func (s *MessageService) Create(ctx context.Context, params command.CreateMessageCommand) (res command.CreateMessageCommandResult, err error) {

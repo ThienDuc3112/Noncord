@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const findMessageById = `-- name: FindMessageById :one
@@ -111,6 +112,171 @@ func (q *Queries) FindMessagesByGroupId(ctx context.Context, arg FindMessagesByG
 		return nil, err
 	}
 	return items, nil
+}
+
+const getEnrichedMessageByChannelId = `-- name: GetEnrichedMessageByChannelId :many
+SELECT m.id, m.created_at, m.updated_at, m.deleted_at, m.channel_id, m.group_id, m.author_id, m.message, m.author_type, u.display_name, u.avatar_url, mb.nickname FROM messages m
+LEFT JOIN users u ON m.author_id = u.id
+LEFT JOIN channels c ON m.channel_id = c.id
+LEFT JOIN servers s ON c.server_id = s.id
+LEFT JOIN memberships mb ON mb.user_id = u.id AND mb.server_id = s.id
+WHERE m.channel_id = $1 AND m.created_at < $2 AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT $3
+`
+
+type GetEnrichedMessageByChannelIdParams struct {
+	ChannelID *uuid.UUID
+	CreatedAt time.Time
+	Limit     int32
+}
+
+type GetEnrichedMessageByChannelIdRow struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
+	ChannelID   *uuid.UUID
+	GroupID     *uuid.UUID
+	AuthorID    *uuid.UUID
+	Message     string
+	AuthorType  AuthorType
+	DisplayName pgtype.Text
+	AvatarUrl   pgtype.Text
+	Nickname    pgtype.Text
+}
+
+func (q *Queries) GetEnrichedMessageByChannelId(ctx context.Context, arg GetEnrichedMessageByChannelIdParams) ([]GetEnrichedMessageByChannelIdRow, error) {
+	rows, err := q.db.Query(ctx, getEnrichedMessageByChannelId, arg.ChannelID, arg.CreatedAt, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEnrichedMessageByChannelIdRow
+	for rows.Next() {
+		var i GetEnrichedMessageByChannelIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.ChannelID,
+			&i.GroupID,
+			&i.AuthorID,
+			&i.Message,
+			&i.AuthorType,
+			&i.DisplayName,
+			&i.AvatarUrl,
+			&i.Nickname,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEnrichedMessageByGroupId = `-- name: GetEnrichedMessageByGroupId :many
+SELECT m.id, m.created_at, m.updated_at, m.deleted_at, m.channel_id, m.group_id, m.author_id, m.message, m.author_type, u.display_name, u.avatar_url FROM messages m
+JOIN users u ON m.author_id = u.id
+WHERE m.group_id = $1 AND m.created_at < $2 AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT $3
+`
+
+type GetEnrichedMessageByGroupIdParams struct {
+	GroupID   *uuid.UUID
+	CreatedAt time.Time
+	Limit     int32
+}
+
+type GetEnrichedMessageByGroupIdRow struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
+	ChannelID   *uuid.UUID
+	GroupID     *uuid.UUID
+	AuthorID    *uuid.UUID
+	Message     string
+	AuthorType  AuthorType
+	DisplayName string
+	AvatarUrl   string
+}
+
+func (q *Queries) GetEnrichedMessageByGroupId(ctx context.Context, arg GetEnrichedMessageByGroupIdParams) ([]GetEnrichedMessageByGroupIdRow, error) {
+	rows, err := q.db.Query(ctx, getEnrichedMessageByGroupId, arg.GroupID, arg.CreatedAt, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEnrichedMessageByGroupIdRow
+	for rows.Next() {
+		var i GetEnrichedMessageByGroupIdRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.ChannelID,
+			&i.GroupID,
+			&i.AuthorID,
+			&i.Message,
+			&i.AuthorType,
+			&i.DisplayName,
+			&i.AvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEnrichedMessageById = `-- name: GetEnrichedMessageById :one
+SELECT m.id, m.created_at, m.updated_at, m.deleted_at, m.channel_id, m.group_id, m.author_id, m.message, m.author_type, u.display_name, u.avatar_url, mb.nickname FROM messages m
+LEFT JOIN users u ON m.author_id = u.id
+LEFT JOIN channels c ON m.channel_id = c.id
+LEFT JOIN servers s ON c.server_id = s.id
+LEFT JOIN memberships mb ON mb.user_id = u.id AND mb.server_id = s.id
+WHERE m.id = $1 AND m.deleted_at IS NULL
+`
+
+type GetEnrichedMessageByIdRow struct {
+	ID          uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
+	ChannelID   *uuid.UUID
+	GroupID     *uuid.UUID
+	AuthorID    *uuid.UUID
+	Message     string
+	AuthorType  AuthorType
+	DisplayName pgtype.Text
+	AvatarUrl   pgtype.Text
+	Nickname    pgtype.Text
+}
+
+func (q *Queries) GetEnrichedMessageById(ctx context.Context, id uuid.UUID) (GetEnrichedMessageByIdRow, error) {
+	row := q.db.QueryRow(ctx, getEnrichedMessageById, id)
+	var i GetEnrichedMessageByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.ChannelID,
+		&i.GroupID,
+		&i.AuthorID,
+		&i.Message,
+		&i.AuthorType,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Nickname,
+	)
+	return i, err
 }
 
 const saveMessage = `-- name: SaveMessage :one

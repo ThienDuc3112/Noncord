@@ -47,12 +47,12 @@ func (c *ChannelController) RegisterRoute(r chi.Router) {
 //	@Description	Get channel details
 //	@Tags			Channel
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
-//	@Param			channel_id	path		string	true	"channel id to fetch"
-//	@Success		200			{object}	response.Channel
-//	@Failure		400			{object}	response.ErrorResponse	"Invalid channel id"
-//	@Failure		404			{object}	response.ErrorResponse	"Channel not found"
-//	@Failure		500			{object}	response.ErrorResponse
+//	@Param			Authorization	header		string	true	"Bearer token"
+//	@Param			channel_id		path		string	true	"channel id to fetch"
+//	@Success		200				{object}	response.Channel
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid channel id"
+//	@Failure		404				{object}	response.ErrorResponse	"Channel not found"
+//	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/channels/{channel_id} [get]
 func (c *ChannelController) GetChannelController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetChannelController] Getting channel")
@@ -98,14 +98,14 @@ func (c *ChannelController) GetChannelController(w http.ResponseWriter, r *http.
 //	@Description	Create channel
 //	@Tags			Channel
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
-//	@Param			channel_id	path		string						true	"channel id to fetch"
+//	@Param			Authorization	header		string					true	"Bearer token"
+//	@Param			channel_id		path		string					true	"channel id to fetch"
 //	@Param			payload			body		request.CreateChannel	true	"payload"
-//	@Success		200				{object}	response.Channel			"Created channel"
-//	@Failure		400				{object}	response.ErrorResponse		"Invalid body or invalid channel id"
-//	@Failure		401				{object}	response.ErrorResponse		"Cannot authenticate user"
-//	@Failure		403				{object}	response.ErrorResponse		"Forbidden action"
-//	@Failure		404				{object}	response.ErrorResponse		"Channel not found"
+//	@Success		200				{object}	response.Channel		"Created channel"
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid body or invalid channel id"
+//	@Failure		401				{object}	response.ErrorResponse	"Cannot authenticate user"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
+//	@Failure		404				{object}	response.ErrorResponse	"Channel not found"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/channels [post]
 func (c *ChannelController) CreateChannelController(w http.ResponseWriter, r *http.Request) {
@@ -154,14 +154,14 @@ func (c *ChannelController) CreateChannelController(w http.ResponseWriter, r *ht
 //	@Description	Update channel
 //	@Tags			Channel
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
-//	@Param			channel_id	path		string						true	"channel id"
+//	@Param			Authorization	header		string					true	"Bearer token"
+//	@Param			channel_id		path		string					true	"channel id"
 //	@Param			payload			body		request.UpdateChannel	true	"payload"
-//	@Success		200				{object}	response.Channel			"New updated channel"
-//	@Failure		400				{object}	response.ErrorResponse		"Invalid body or invalid channel id"
-//	@Failure		401				{object}	response.ErrorResponse		"Cannot authenticate user"
-//	@Failure		403				{object}	response.ErrorResponse		"Forbidden action"
-//	@Failure		404				{object}	response.ErrorResponse		"Channel not found"
+//	@Success		200				{object}	response.Channel		"New updated channel"
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid body or invalid channel id"
+//	@Failure		401				{object}	response.ErrorResponse	"Cannot authenticate user"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
+//	@Failure		404				{object}	response.ErrorResponse	"Channel not found"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/channels/{channel_id} [put]
 //	@Router			/api/v1/channels/{channel_id} [patch]
@@ -175,13 +175,13 @@ func (c *ChannelController) UpdateChannelController(w http.ResponseWriter, r *ht
 //	@Description	Delete channel
 //	@Tags			Channel
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
-//	@Param			channel_id	path		string						true	"channel id"
+//	@Param			Authorization	header		string	true	"Bearer token"
+//	@Param			channel_id		path		string	true	"channel id"
 //	@Success		204				{object}	nil
-//	@Failure		400				{object}	response.ErrorResponse		"invalid channel id"
-//	@Failure		401				{object}	response.ErrorResponse		"Cannot authenticate user"
-//	@Failure		403				{object}	response.ErrorResponse		"Forbidden action"
-//	@Failure		404				{object}	response.ErrorResponse		"Channel not found"
+//	@Failure		400				{object}	response.ErrorResponse	"invalid channel id"
+//	@Failure		401				{object}	response.ErrorResponse	"Cannot authenticate user"
+//	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
+//	@Failure		404				{object}	response.ErrorResponse	"Channel not found"
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/invitations/{channel_id} [delete]
 func (c *ChannelController) DeleteChannelController(w http.ResponseWriter, r *http.Request) {

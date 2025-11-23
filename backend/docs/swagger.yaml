@@ -131,6 +131,13 @@ definitions:
       updatedAt:
         type: string
     type: object
+  response.CreateMessage:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+    type: object
   response.ErrorResponse:
     properties:
       error:
@@ -226,10 +233,14 @@ definitions:
         x-nullable: true
       authorType:
         type: string
+      avatarUrl:
+        type: string
       channelId:
         type: string
         x-nullable: true
       createdAt:
+        type: string
+      displayName:
         type: string
       groupId:
         type: string
@@ -878,7 +889,7 @@ paths:
         "201":
           description: Message sent
           schema:
-            $ref: '#/definitions/response.Message'
+            $ref: '#/definitions/response.CreateMessage'
         "400":
           description: Invalid request body
           schema:

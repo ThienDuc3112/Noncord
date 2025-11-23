@@ -11,3 +11,9 @@ type CheckChannelPerm struct {
 	ChannelId  uuid.UUID
 	Permission entities.ServerPermissionBits
 }
+
+type CheckServerPerm struct {
+	UserId     uuid.UUID
+	ServerId   uuid.UUID
+	Permission entities.ServerPermissionBits
+}

@@ -16,3 +16,19 @@ type GetServerResult struct {
 	Full    *common.Server
 	Channel []*common.Channel
 }
+
+type GetServers struct {
+	ServerIds []uuid.UUID
+}
+
+type GetServersResult struct {
+	Result []*common.Server
+}
+
+type GetServersUserIn struct {
+	UserId uuid.UUID
+}
+
+type GetServersUserInResult struct {
+	Result []*common.Server
+}

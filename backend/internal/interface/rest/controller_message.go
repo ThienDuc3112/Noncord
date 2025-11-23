@@ -2,7 +2,6 @@ package rest
 
 import (
 	"backend/internal/application/command"
-	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/query"
 	"backend/internal/interface/rest/dto/mapper"
@@ -47,14 +46,14 @@ func (ac *MessageController) RegisterRoute(r chi.Router) {
 //	@Tags			Message
 //	@Accept			json
 //	@Produce		json
-//	@Param			payload	body		request.CreateMessage	true	"Message content"
-//	@Param			Authorization	header		string						true	"Bearer token"
-//	@Success		201		{object}	response.Message					"Message sent"
-//	@Failure		400		{object}	response.ErrorResponse "Invalid request body"
-//	@Failure		401		{object}	response.ErrorResponse "Unauthorized"
-//	@Failure		403		{object}	response.ErrorResponse "User not allowed to send message in the request channel/group"
-//	@Failure		404		{object}	response.ErrorResponse "Target channel/group not found"
-//	@Failure		500		{object}	response.ErrorResponse
+//	@Param			payload			body		request.CreateMessage	true	"Message content"
+//	@Param			Authorization	header		string					true	"Bearer token"
+//	@Success		201				{object}	response.CreateMessage	"Message sent"
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid request body"
+//	@Failure		401				{object}	response.ErrorResponse	"Unauthorized"
+//	@Failure		403				{object}	response.ErrorResponse	"User not allowed to send message in the request channel/group"
+//	@Failure		404				{object}	response.ErrorResponse	"Target channel/group not found"
+//	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/message [post]
 func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[CreateMessageController] Create message")
@@ -84,7 +83,7 @@ func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *h
 	}
 
 	render.Status(r, 201)
-	render.JSON(w, r, mapper.ParseCommonMessage(msg.Result))
+	render.JSON(w, r, response.CreateMessage{Id: msg.Result.Id, CreatedAt: msg.Result.CreatedAt})
 }
 
 // register 		godoc
@@ -94,13 +93,13 @@ func (ac *MessageController) CreateMessageController(w http.ResponseWriter, r *h
 //	@Tags			Message
 //	@Accept			json
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
+//	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			message_id		path		string	true	"message id to fetch"
-//	@Success		200		{object}	response.Message
-//	@Failure		400		{object}	response.ErrorResponse "Invalid message id"
-//	@Failure		401		{object}	response.ErrorResponse "Unauthorized"
-//	@Failure		404		{object}	response.ErrorResponse "Message not found"
-//	@Failure		500		{object}	response.ErrorResponse
+//	@Success		200				{object}	response.Message
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid message id"
+//	@Failure		401				{object}	response.ErrorResponse	"Unauthorized"
+//	@Failure		404				{object}	response.ErrorResponse	"Message not found"
+//	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/message/{message_id} [get]
 func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetMessageController] Get message")
@@ -126,7 +125,7 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 		return
 	}
 
-	render.JSON(w, r, mapper.ParseCommonMessage(msg.Result))
+	render.JSON(w, r, mapper.ParseEnrichedMessage(msg.Result))
 }
 
 // register 		godoc
@@ -136,15 +135,15 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 //	@Tags			Message
 //	@Accept			json
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
+//	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			channel_id		path		string	true	"channel id to fetch messages"
-//	@Param			limit		query		int	false	"Message limit" minimum(1) maximum(500) default(100)
-//	@Param			before		query		int64	false	"Time in unix microseconds"
-//	@Success		200		{object}	response.GetMessagesResponse
-//	@Failure		400		{object}	response.ErrorResponse "Invalid channel id"
-//	@Failure		401		{object}	response.ErrorResponse "Unauthorized"
-//	@Failure		404		{object}	response.ErrorResponse "Channel not found"
-//	@Failure		500		{object}	response.ErrorResponse
+//	@Param			limit			query		int		false	"Message limit"	minimum(1)	maximum(500)	default(100)
+//	@Param			before			query		int64	false	"Time in unix microseconds"
+//	@Success		200				{object}	response.GetMessagesResponse
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid channel id"
+//	@Failure		401				{object}	response.ErrorResponse	"Unauthorized"
+//	@Failure		404				{object}	response.ErrorResponse	"Channel not found"
+//	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/message/channel/{channel_id} [get]
 func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetMessagesByChannelIdController] Getting messages by channel id")
@@ -194,11 +193,8 @@ func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWri
 	}
 
 	render.JSON(w, r, response.GetMessagesResponse{
-		Result: arrutil.Map(msgs.Result, func(msg *common.Message) (response.Message, bool) {
-			if msg == nil {
-				return response.Message{}, false
-			}
-			return mapper.ParseCommonMessage(msg), true
+		Result: arrutil.Map(msgs.Result, func(msg query.EnrichedMessage) (response.Message, bool) {
+			return mapper.ParseEnrichedMessage(msg), true
 		}),
 		Next: next,
 	})
@@ -211,15 +207,15 @@ func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWri
 //	@Tags			Message
 //	@Accept			json
 //	@Produce		json
-//	@Param			Authorization	header		string						true	"Bearer token"
+//	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			group_id		path		string	true	"channel id to fetch messages"
-//	@Param			limit		query		int	false	"Message limit" minimum(1) maximum(500) default(100)
-//	@Param			before		query		int	false	"Time in unix"
-//	@Success		200		{object}	nil
-//	@Failure		400		{object}	response.ErrorResponse "Invalid group id"
-//	@Failure		401		{object}	response.ErrorResponse "Unauthorized"
-//	@Failure		404		{object}	response.ErrorResponse "Group not found"
-//	@Failure		500		{object}	response.ErrorResponse
+//	@Param			limit			query		int		false	"Message limit"	minimum(1)	maximum(500)	default(100)
+//	@Param			before			query		int		false	"Time in unix"
+//	@Success		200				{object}	nil
+//	@Failure		400				{object}	response.ErrorResponse	"Invalid group id"
+//	@Failure		401				{object}	response.ErrorResponse	"Unauthorized"
+//	@Failure		404				{object}	response.ErrorResponse	"Group not found"
+//	@Failure		500				{object}	response.ErrorResponse
 //	@Router			/api/v1/message/group/{group_id} [get]
 func (ac *MessageController) GetMessagesByGroupIdController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetMessagesByGroupIdController] Getting messages by group id")

@@ -32,7 +32,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, os.Interrupt)
 	defer stop()
 
-	conn, err := pgxpool.New(ctx, os.Getenv("DB_URI"))
+	pgPool, err := pgxpool.New(ctx, os.Getenv("DB_URI"))
 	if err != nil {
 		log.Fatalf("Cannot connect to db: %v", err)
 	}
@@ -47,7 +47,7 @@ func main() {
 		log.Fatalf("Cannot create a new event sub: %v", err)
 	}
 
-	uow := postgres.NewBaseUoW(conn)
+	uow := postgres.NewBaseUoW(pgPool)
 
 	// ---------- Services ----------
 	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos {
@@ -62,7 +62,7 @@ func main() {
 	// ---------- Queries ----------
 	serverQueries := services.NewServerQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ServerRepos { return rb }))
 	inviteQueries := services.NewInvitationQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.InvitationRepos { return rb }))
-	messageQueries := services.NewMessageQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MessageRepos { return rb }))
+	messageQueries := postgres.NewPGMessageQueries(pgPool)
 	channelQueries := services.NewChannelQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
 
 	if err = workers.NewWorker(messageService, eventSub); err != nil {
