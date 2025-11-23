@@ -21,6 +21,9 @@ type Hub struct {
 
 	unsubChan chan *client
 
+	nicknameCache ports.CacheStore
+	userResolver  ports.UserResolver
+
 	m sync.RWMutex
 }
 
@@ -29,7 +32,7 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func NewHub(ctx context.Context, permService interfaces.PermissionQueries, eventReader ports.EventSubscriber) (*Hub, error) {
+func NewHub(ctx context.Context, permService interfaces.PermissionQueries, eventReader ports.EventSubscriber, cacheStore ports.CacheStore, userResolver ports.UserResolver) (*Hub, error) {
 	hub := &Hub{
 		userConn:   make(map[uuid.UUID]map[uuid.UUID]*client),
 		serverSub:  make(map[uuid.UUID]map[uuid.UUID]bool),
@@ -39,6 +42,9 @@ func NewHub(ctx context.Context, permService interfaces.PermissionQueries, event
 		eventSubscriber:   eventReader,
 
 		unsubChan: make(chan *client, 1024),
+
+		nicknameCache: cacheStore,
+		userResolver:  userResolver,
 	}
 
 	if err := hub.registerHandlers(); err != nil {

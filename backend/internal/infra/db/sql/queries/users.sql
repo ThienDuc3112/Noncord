@@ -89,3 +89,14 @@ SELECT * FROM users WHERE username = $1 AND deleted_at IS NULL;
 
 -- name: FindUserByEmail :one
 SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL;
+
+-- name: FindUserServerNickname :one
+SELECT mb.nickname, u.display_name, u.avatar_url FROM users u
+LEFT JOIN memberships mb ON u.id = mb.user_id AND mb.server_id = $1
+WHERE u.id = $2;
+
+-- name: FindUserChannelNickname :one
+SELECT mb.nickname, u.display_name, u.avatar_url FROM users u
+LEFT JOIN channels c ON c.id = @channel_id
+LEFT JOIN memberships mb ON u.id = mb.user_id AND mb.server_id = c.server_id
+WHERE u.id = @user_id;

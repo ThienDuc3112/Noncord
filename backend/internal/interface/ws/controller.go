@@ -2,7 +2,7 @@ package ws
 
 import (
 	"backend/internal/application/interfaces"
-	"backend/internal/interface/rest/dto/response"
+	"backend/internal/interface/dto/response"
 	"net/http"
 
 	"github.com/go-chi/render"

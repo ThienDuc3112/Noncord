@@ -265,3 +265,52 @@ func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User
 	)
 	return i, err
 }
+
+const findUserChannelNickname = `-- name: FindUserChannelNickname :one
+SELECT mb.nickname, u.display_name, u.avatar_url FROM users u
+LEFT JOIN channels c ON c.id = $1
+LEFT JOIN memberships mb ON u.id = mb.user_id AND mb.server_id = c.server_id
+WHERE u.id = $2
+`
+
+type FindUserChannelNicknameParams struct {
+	ChannelID uuid.UUID
+	UserID    uuid.UUID
+}
+
+type FindUserChannelNicknameRow struct {
+	Nickname    pgtype.Text
+	DisplayName string
+	AvatarUrl   string
+}
+
+func (q *Queries) FindUserChannelNickname(ctx context.Context, arg FindUserChannelNicknameParams) (FindUserChannelNicknameRow, error) {
+	row := q.db.QueryRow(ctx, findUserChannelNickname, arg.ChannelID, arg.UserID)
+	var i FindUserChannelNicknameRow
+	err := row.Scan(&i.Nickname, &i.DisplayName, &i.AvatarUrl)
+	return i, err
+}
+
+const findUserServerNickname = `-- name: FindUserServerNickname :one
+SELECT mb.nickname, u.display_name, u.avatar_url FROM users u
+LEFT JOIN memberships mb ON u.id = mb.user_id AND mb.server_id = $1
+WHERE u.id = $2
+`
+
+type FindUserServerNicknameParams struct {
+	ServerID uuid.UUID
+	ID       uuid.UUID
+}
+
+type FindUserServerNicknameRow struct {
+	Nickname    pgtype.Text
+	DisplayName string
+	AvatarUrl   string
+}
+
+func (q *Queries) FindUserServerNickname(ctx context.Context, arg FindUserServerNicknameParams) (FindUserServerNicknameRow, error) {
+	row := q.db.QueryRow(ctx, findUserServerNickname, arg.ServerID, arg.ID)
+	var i FindUserServerNicknameRow
+	err := row.Scan(&i.Nickname, &i.DisplayName, &i.AvatarUrl)
+	return i, err
+}

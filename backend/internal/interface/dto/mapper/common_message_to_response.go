@@ -3,7 +3,7 @@ package mapper
 import (
 	"backend/internal/application/common"
 	"backend/internal/application/query"
-	"backend/internal/interface/rest/dto/response"
+	"backend/internal/interface/dto/response"
 )
 
 func ParseEnrichedMessage(m query.EnrichedMessage) response.Message {

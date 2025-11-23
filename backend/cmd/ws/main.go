@@ -3,6 +3,7 @@ package main
 import (
 	"backend/internal/application/services"
 	"backend/internal/domain/repositories"
+	"backend/internal/infra/cache/inmemcache"
 	"backend/internal/infra/db/postgres"
 	rabbitmq "backend/internal/infra/rabbitMQ"
 	"backend/internal/interface/ws"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -27,16 +29,16 @@ func main() {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, os.Interrupt)
 	defer stop()
 
-	conn, err := pgxpool.New(ctx, os.Getenv("DB_URI"))
+	pgPool, err := pgxpool.New(ctx, os.Getenv("DB_URI"))
 
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to db: %v", err)
 	}
 
-	uow := postgres.NewBaseUoW(conn)
+	uow := postgres.NewBaseUoW(pgPool)
 
-	permissionService := services.NewPermissionQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
+	permissionQueries := services.NewPermissionQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
 	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos { return rb }), os.Getenv("SECRET"))
 
 	rabbitMQConn, err := amqp091.Dial(os.Getenv("AMQP_URI"))
@@ -50,6 +52,9 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
+	userResolver := postgres.NewPGNicknameResolver(pgPool)
+	cacheStore := inmemcache.NewInMemoryCache(15*time.Minute, 2*time.Minute)
+
 	eventSub, err := rabbitmq.NewRMQEventSubscriber(ctx, rabbitMQConn, "websocket", "noncord.event", true)
 	if err != nil {
 		cancel()
@@ -57,7 +62,7 @@ func main() {
 	}
 	defer eventSub.Close()
 
-	wsHub, err := ws.NewHub(ctx, permissionService, eventSub)
+	wsHub, err := ws.NewHub(ctx, permissionQueries, eventSub, cacheStore, userResolver)
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
