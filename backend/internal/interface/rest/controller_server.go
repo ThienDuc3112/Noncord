@@ -18,19 +18,21 @@ import (
 )
 
 type ServerController struct {
-	serverService     interfaces.ServerService
 	authService       interfaces.AuthService
+	serverService     interfaces.ServerService
+	serverQueries     interfaces.ServerQueries
 	invitationService interfaces.InviteService
-	channelService    interfaces.ChannelService
+	invitationQueries interfaces.InviteQueries
 }
 
 func NewServerController(
-	serverService interfaces.ServerService,
 	authService interfaces.AuthService,
+	serverService interfaces.ServerService,
+	serverQueries interfaces.ServerQueries,
 	invitationService interfaces.InviteService,
-	channelService interfaces.ChannelService,
+	invitationQueries interfaces.InviteQueries,
 ) *ServerController {
-	return &ServerController{serverService: serverService, authService: authService, invitationService: invitationService}
+	return &ServerController{serverService: serverService, authService: authService, invitationService: invitationService, serverQueries: serverQueries, invitationQueries: invitationQueries}
 }
 
 func (c *ServerController) RegisterRoute(r chi.Router) {
@@ -117,7 +119,7 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 	}
 
 	// TODO: replace with actual getting servers code
-	servers, err := c.serverService.GetServersUserIn(r.Context(), query.GetServersUserIn{
+	servers, err := c.serverQueries.GetServersUserIn(r.Context(), query.GetServersUserIn{
 		UserId: *userId,
 	})
 	if err != nil {
@@ -167,7 +169,7 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	server, err := c.serverService.Get(r.Context(), query.GetServer{
+	server, err := c.serverQueries.Get(r.Context(), query.GetServer{
 		ServerId: serverId,
 		UserId:   userId,
 	})
@@ -356,7 +358,7 @@ func (c *ServerController) GetInvitationController(w http.ResponseWriter, r *htt
 		return
 	}
 
-	invs, err := c.invitationService.GetInvitationsByServerId(r.Context(), query.GetInvitationsByServerId{
+	invs, err := c.invitationQueries.GetInvitationsByServerId(r.Context(), query.GetInvitationsByServerId{
 		ServerId: serverId,
 		UserId:   *userId,
 	})

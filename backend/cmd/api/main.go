@@ -49,6 +49,7 @@ func main() {
 
 	uow := postgres.NewBaseUoW(conn)
 
+	// ---------- Services ----------
 	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos {
 		return rb
 	}), os.Getenv("SECRET"))
@@ -57,6 +58,12 @@ func main() {
 	membershipService := services.NewMemberService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MemberRepos { return rb }))
 	channelService := services.NewChannelService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
 	messageService := services.NewMessageService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MessageRepos { return rb }))
+
+	// ---------- Queries ----------
+	serverQueries := services.NewServerQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ServerRepos { return rb }))
+	inviteQueries := services.NewInvitationQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.InvitationRepos { return rb }))
+	messageQueries := services.NewMessageQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MessageRepos { return rb }))
+	channelQueries := services.NewChannelQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
 
 	if err = workers.NewWorker(messageService, eventSub); err != nil {
 		log.Fatalf("Cannot attach workers to event sub: %v", err)
@@ -82,10 +89,10 @@ func main() {
 		r.Get("/docs/*", docsHandler)
 
 		rest.NewAuthController(authService).RegisterRoute(r)
-		rest.NewServerController(serverService, authService, invitationService, channelService).RegisterRoute(r)
-		rest.NewInvitationController(serverService, authService, invitationService, membershipService).RegisterRoute(r)
-		rest.NewMessageController(messageService, authService).RegisterRoute(r)
-		rest.NewChannelController(authService, channelService).RegisterRoute(r)
+		rest.NewServerController(authService, serverService, serverQueries, invitationService, inviteQueries).RegisterRoute(r)
+		rest.NewInvitationController(serverQueries, authService, invitationService, inviteQueries, membershipService).RegisterRoute(r)
+		rest.NewMessageController(messageService, messageQueries, authService).RegisterRoute(r)
+		rest.NewChannelController(authService, channelService, channelQueries).RegisterRoute(r)
 	})
 
 	log.Printf("listening on port %v", port)

@@ -13,6 +13,9 @@ type MembershipService interface {
 	SetNickname(context.Context, command.SetNickname) error
 }
 
+type MembershipQueries interface {
+}
+
 // - [ ] Assign role
 // - [ ] Update channel user permission
 // - [ ] Get server by user in

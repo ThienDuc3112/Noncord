@@ -29,6 +29,10 @@ func NewServerService(uow repositories.UnitOfWork[ServerRepos]) interfaces.Serve
 	return &ServerService{uow}
 }
 
+func NewServerQueries(uow repositories.UnitOfWork[ServerRepos]) interfaces.ServerQueries {
+	return &ServerService{uow}
+}
+
 func (s *ServerService) Create(ctx context.Context, params command.CreateServerCommand) (res command.CreateServerCommandResult, err error) {
 	server, err := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
 	if err != nil {

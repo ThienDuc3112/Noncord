@@ -15,14 +15,21 @@ import (
 )
 
 type InvitationController struct {
-	serverService     interfaces.ServerService
+	serverQueries     interfaces.ServerQueries
 	authService       interfaces.AuthService
 	invitationService interfaces.InviteService
+	invitationQueries interfaces.InviteQueries
 	memberService     interfaces.MembershipService
 }
 
-func NewInvitationController(serverService interfaces.ServerService, authService interfaces.AuthService, invitationService interfaces.InviteService, memberService interfaces.MembershipService) *InvitationController {
-	return &InvitationController{serverService: serverService, authService: authService, invitationService: invitationService, memberService: memberService}
+func NewInvitationController(
+	serverQueries interfaces.ServerQueries,
+	authService interfaces.AuthService,
+	invitationService interfaces.InviteService,
+	invitationQueries interfaces.InviteQueries,
+	memberService interfaces.MembershipService,
+) *InvitationController {
+	return &InvitationController{serverQueries: serverQueries, authService: authService, invitationService: invitationService, memberService: memberService, invitationQueries: invitationQueries}
 }
 
 func (c *InvitationController) RegisterRoute(r chi.Router) {
@@ -63,7 +70,7 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 		return
 	}
 
-	invitation, err := c.invitationService.GetInvitationById(r.Context(), query.GetInvitation{
+	invitation, err := c.invitationQueries.GetInvitationById(r.Context(), query.GetInvitation{
 		InvitationId: invitationId,
 	})
 	if err != nil {
@@ -72,7 +79,7 @@ func (c *InvitationController) GetInvitationController(w http.ResponseWriter, r 
 	}
 
 	log.Printf("%v", invitation.Result.ServerId)
-	server, err := c.serverService.Get(r.Context(), query.GetServer{
+	server, err := c.serverQueries.Get(r.Context(), query.GetServer{
 		ServerId: invitation.Result.ServerId,
 	})
 	if err != nil {
@@ -129,7 +136,7 @@ func (c *InvitationController) JoinServerController(w http.ResponseWriter, r *ht
 		return
 	}
 
-	server, err := c.serverService.Get(r.Context(), query.GetServer{
+	server, err := c.serverQueries.Get(r.Context(), query.GetServer{
 		ServerId: membership.Result.ServerId,
 		UserId:   &membership.Result.UserId,
 	})
@@ -177,7 +184,7 @@ func (c *InvitationController) UpdateInvitationController(w http.ResponseWriter,
 		return
 	}
 
-	invitation, err := c.invitationService.GetInvitationById(r.Context(), query.GetInvitation{
+	invitation, err := c.invitationQueries.GetInvitationById(r.Context(), query.GetInvitation{
 		InvitationId: invitationId,
 	})
 	if err != nil {
@@ -243,7 +250,7 @@ func (c *InvitationController) DeleteInvitationController(w http.ResponseWriter,
 		return
 	}
 
-	invitation, err := c.invitationService.GetInvitationById(r.Context(), query.GetInvitation{
+	invitation, err := c.invitationQueries.GetInvitationById(r.Context(), query.GetInvitation{
 		InvitationId: invitationId,
 	})
 	if err != nil {

@@ -29,6 +29,10 @@ func NewMessageService(uow repositories.UnitOfWork[MessageRepos]) interfaces.Mes
 	return &MessageService{uow}
 }
 
+func NewMessageQueries(uow repositories.UnitOfWork[MessageRepos]) interfaces.MessageQueries {
+	return &MessageService{uow}
+}
+
 func (s *MessageService) getChannelContext(ctx context.Context, repos MessageRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
 	channel, err := repos.Channel().Find(ctx, channelId)
 	if err != nil {

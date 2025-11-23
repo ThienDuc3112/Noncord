@@ -28,6 +28,10 @@ func NewChannelService(uow repositories.UnitOfWork[ChannelRepos]) interfaces.Cha
 	return &ChannelService{uow: uow}
 }
 
+func NewChannelQueries(uow repositories.UnitOfWork[ChannelRepos]) interfaces.ChannelQueries {
+	return &ChannelService{uow: uow}
+}
+
 func (s *ChannelService) Create(ctx context.Context, params command.CreateChannelCommand) (res command.CreateChannelCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
 		server, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))

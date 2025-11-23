@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type PermissionService interface {
+type PermissionQueries interface {
 	ChannelHasAll(ctx context.Context, query query.CheckChannelPerm) (bool, error)
 	ChannelHasAny(ctx context.Context, query query.CheckChannelPerm) (bool, error)
 	ServerHasAll(ctx context.Context, query query.CheckServerPerm) (bool, error)

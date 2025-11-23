@@ -26,6 +26,10 @@ func NewInvitationService(uow repositories.UnitOfWork[InvitationRepos]) interfac
 	return &InvitationService{uow}
 }
 
+func NewInvitationQueries(uow repositories.UnitOfWork[InvitationRepos]) interfaces.InviteQueries {
+	return &InvitationService{uow}
+}
+
 func (s *InvitationService) CreateInvitation(ctx context.Context, param command.CreateInvitationCommand) (res command.CreateInvitationCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos InvitationRepos) error {
 		server, err := repos.Server().Find(ctx, entities.ServerId(param.ServerId))

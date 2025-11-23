@@ -21,11 +21,12 @@ import (
 
 type MessageController struct {
 	messageService interfaces.MessageService
+	messageQueries interfaces.MessageQueries
 	authService    interfaces.AuthService
 }
 
-func NewMessageController(service interfaces.MessageService, authService interfaces.AuthService) *MessageController {
-	return &MessageController{service, authService}
+func NewMessageController(service interfaces.MessageService, queries interfaces.MessageQueries, authService interfaces.AuthService) *MessageController {
+	return &MessageController{service, queries, authService}
 }
 
 func (ac *MessageController) RegisterRoute(r chi.Router) {
@@ -116,7 +117,7 @@ func (ac *MessageController) GetMessageController(w http.ResponseWriter, r *http
 		return
 	}
 
-	msg, err := ac.messageService.Get(r.Context(), query.GetMessage{
+	msg, err := ac.messageQueries.Get(r.Context(), query.GetMessage{
 		MessageId: messageId,
 		UserId:    *userId,
 	})
@@ -171,7 +172,7 @@ func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWri
 	}
 	before := time.UnixMicro(beforeInt)
 
-	msgs, err := ac.messageService.GetByChannelId(r.Context(), query.GetMessagesByChannelId{
+	msgs, err := ac.messageQueries.GetByChannelId(r.Context(), query.GetMessagesByChannelId{
 		ChannelId: channelId,
 		UserId:    *userId,
 		Before:    before,

@@ -21,7 +21,7 @@ type PermissionService struct {
 	uow repositories.UnitOfWork[PermissionRepos]
 }
 
-func NewPermissionService(uow repositories.UnitOfWork[PermissionRepos]) interfaces.PermissionService {
+func NewPermissionQueries(uow repositories.UnitOfWork[PermissionRepos]) interfaces.PermissionQueries {
 	return &PermissionService{uow}
 }
 

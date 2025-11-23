@@ -23,6 +23,9 @@ type MemberService struct {
 func NewMemberService(uow repositories.UnitOfWork[MemberRepos]) interfaces.MembershipService {
 	return &MemberService{uow}
 }
+func NewMemberQueries(uow repositories.UnitOfWork[MemberRepos]) interfaces.MembershipQueries {
+	return &MemberService{uow}
+}
 
 func (s *MemberService) JoinServer(ctx context.Context, params command.JoinServerCommand) (res command.JoinServerCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos MemberRepos) error {

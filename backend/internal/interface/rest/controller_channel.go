@@ -17,12 +17,14 @@ import (
 type ChannelController struct {
 	authService    interfaces.AuthService
 	channelService interfaces.ChannelService
+	channelQueries interfaces.ChannelQueries
 }
 
-func NewChannelController(authService interfaces.AuthService, channelService interfaces.ChannelService) *ChannelController {
+func NewChannelController(authService interfaces.AuthService, channelService interfaces.ChannelService, channelQueries interfaces.ChannelQueries) *ChannelController {
 	return &ChannelController{
 		authService:    authService,
 		channelService: channelService,
+		channelQueries: channelQueries,
 	}
 }
 
@@ -67,7 +69,7 @@ func (c *ChannelController) GetChannelController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	channel, err := c.channelService.Get(r.Context(), query.GetChannel{
+	channel, err := c.channelQueries.Get(r.Context(), query.GetChannel{
 		ChannelId: channelId,
 		UserId:    *userId,
 	})

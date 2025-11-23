@@ -8,8 +8,11 @@ import (
 
 type ChannelService interface {
 	Create(context.Context, command.CreateChannelCommand) (command.CreateChannelCommandResult, error)
-	Get(context.Context, query.GetChannel) (query.GetChannelResult, error)
-	GetChannelsByServer(context.Context, query.GetChannelsByServer) (query.GetChannelsByServerResult, error)
 	Update(context.Context, command.UpdateChannelCommand) (command.UpdateChannelCommandResult, error)
 	Delete(context.Context, command.DeleteChannelCommand) error
+}
+
+type ChannelQueries interface {
+	Get(context.Context, query.GetChannel) (query.GetChannelResult, error)
+	GetChannelsByServer(context.Context, query.GetChannelsByServer) (query.GetChannelsByServerResult, error)
 }

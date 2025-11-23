@@ -36,7 +36,7 @@ func main() {
 
 	uow := postgres.NewBaseUoW(conn)
 
-	permissionService := services.NewPermissionService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
+	permissionService := services.NewPermissionQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
 	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos { return rb }), os.Getenv("SECRET"))
 
 	rabbitMQConn, err := amqp091.Dial(os.Getenv("AMQP_URI"))

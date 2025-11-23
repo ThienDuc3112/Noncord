@@ -16,7 +16,7 @@ type Hub struct {
 	serverSub  map[uuid.UUID]map[uuid.UUID]bool
 	channelSub map[uuid.UUID]map[uuid.UUID]bool
 
-	permissionService interfaces.PermissionService
+	permissionService interfaces.PermissionQueries
 	eventSubscriber   ports.EventSubscriber
 
 	unsubChan chan *client
@@ -29,7 +29,7 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func NewHub(ctx context.Context, permService interfaces.PermissionService, eventReader ports.EventSubscriber) (*Hub, error) {
+func NewHub(ctx context.Context, permService interfaces.PermissionQueries, eventReader ports.EventSubscriber) (*Hub, error) {
 	hub := &Hub{
 		userConn:   make(map[uuid.UUID]map[uuid.UUID]*client),
 		serverSub:  make(map[uuid.UUID]map[uuid.UUID]bool),
