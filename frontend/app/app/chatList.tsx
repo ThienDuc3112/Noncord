@@ -17,7 +17,7 @@ export default function ChatList({
   onSendMessage,
 }: ChatListProps) {
   return (
-    <div className="flex h-full flex-1 flex-col bg-[#181926]">
+    <div className="flex h-full max-h-full min-h-full flex-1 flex-col bg-[#181926]">
       {/* Header */}
       <div className="flex h-12 items-center border-b border-[#363a4f] px-4 text-sm">
         <span className="mr-2 text-[#6e738d]">#</span>
@@ -25,7 +25,7 @@ export default function ChatList({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex-1 overflow-y-scroll px-4 py-3">
         {isLoading && messages.length === 0 ? (
           <p className={`${theme.colors.text.muted} text-xs`}>
             Loading messages...

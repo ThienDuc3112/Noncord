@@ -1041,6 +1041,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/response.GetMessagesResponse'
         "400":
           description: Invalid group id
           schema:

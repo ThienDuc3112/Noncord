@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Sidebar from "./sidebar";
 import DefaultView from "./defaultView";
 import ChatList from "./chatList";
@@ -16,31 +16,99 @@ import { theme, backgroundPattern } from "@/lib/theme";
 
 import type {
   Channel,
+  GetMessagesResponse,
   GetServerResponse,
   Member,
   Message,
   ServerPreview,
 } from "@/lib/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function MainView() {
-  const [servers, setServers] = useState<ServerPreview[]>([]);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const queryClient = useQueryClient();
+
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
-  const [currentServer, setCurrentServer] = useState<GetServerResponse | null>(
-    null,
-  );
-  const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(
     null,
   );
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoadingServers, setIsLoadingServers] = useState(true);
-  const [isLoadingServer, setIsLoadingServer] = useState(false);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  // 1) Fetch list of servers
+  const {
+    data: serversData,
+    isLoading: isLoadingServers,
+    error: serversError,
+  } = useQuery<ServerPreview[]>({
+    queryKey: ["servers"],
+    queryFn: fetchServers,
+  });
 
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const servers = serversData ?? [];
 
-  // Mock members until you wire a membership endpoint
+  // Select the first server by default
+  useEffect(() => {
+    if (!selectedServerId && servers.length > 0) {
+      setSelectedServerId(servers[0].id);
+    }
+  }, [servers, selectedServerId]);
+
+  // 2) When server changes, fetch server details & channels
+  const {
+    data: serverData,
+    isLoading: isLoadingServer,
+    error: serverError,
+  } = useQuery<GetServerResponse>({
+    queryKey: ["server", selectedServerId],
+    queryFn: () => fetchServerById(selectedServerId as string),
+    enabled: !!selectedServerId,
+  });
+
+  const currentServer = serverData ?? null;
+  const channels: Channel[] = currentServer?.channels ?? [];
+
+  // Ensure a channel is selected when channels change
+  useEffect(() => {
+    if (!channels.length) {
+      setSelectedChannelId(null);
+      return;
+    }
+
+    if (
+      !selectedChannelId ||
+      !channels.some((c) => c.id === selectedChannelId)
+    ) {
+      setSelectedChannelId(channels[0].id);
+    }
+  }, [channels, selectedChannelId]);
+
+  // 3) When channel changes, fetch messages
+  const {
+    data: messagesData,
+    isLoading: isLoadingMessages,
+    error: messagesError,
+  } = useQuery<GetMessagesResponse>({
+    queryKey: ["channelMessages", selectedChannelId],
+    queryFn: () => fetchChannelMessages(selectedChannelId as string, 100),
+    enabled: !!selectedChannelId,
+  });
+
+  const messages: Message[] = messagesData?.result ?? [];
+
+  // Unified load error message similar to your previous setLoadError usage
+  const loadError = useMemo(() => {
+    if (serversError) {
+      return "Failed to load servers. Your session may have expired, please try logging in again.";
+    }
+    if (serverError) {
+      return "Failed to load server details.";
+    }
+    if (messagesError) {
+      return "Failed to load messages.";
+    }
+    return null;
+  }, [serversError, serverError, messagesError]);
+
+  // Mock members until membership endpoint is wired
   const members: Member[] = useMemo(
     () => [
       { id: "you", name: "You", status: "online" },
@@ -49,128 +117,57 @@ export default function MainView() {
     [],
   );
 
-  // 1) Fetch list of servers
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setIsLoadingServers(true);
-        const svrs = await fetchServers();
-        if (cancelled) return;
-
-        setServers(svrs);
-        if (svrs.length > 0) {
-          setSelectedServerId(svrs[0].id);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Failed to fetch servers", err);
-          setLoadError(
-            "Failed to load servers. Your session may have expired, please try logging in again.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingServers(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // 2) When server changes, fetch server details & channels
-  useEffect(() => {
-    if (!selectedServerId) {
-      setCurrentServer(null);
-      setChannels([]);
-      setSelectedChannelId(null);
-      return;
-    }
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setIsLoadingServer(true);
-        const server = await fetchServerById(selectedServerId);
-        if (cancelled) return;
-
-        setCurrentServer(server);
-        setChannels(server.channels ?? []);
-        setSelectedChannelId(server.channels?.[0]?.id ?? null);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Failed to fetch server", err);
-          setLoadError("Failed to load server details.");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingServer(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedServerId]);
-
-  // 3) When channel changes, fetch messages
-  useEffect(() => {
-    if (!selectedChannelId) {
-      setMessages([]);
-      return;
-    }
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setIsLoadingMessages(true);
-        const data = await fetchChannelMessages(selectedChannelId, 100);
-        if (cancelled) return;
-
-        setMessages(data.result ?? []);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Failed to fetch messages", err);
-          setLoadError("Failed to load messages.");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingMessages(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedChannelId]);
-
-  // 4) Send a message
+  // 4) Send a message (update React Query cache instead of local state)
   const handleSendMessage = useCallback(
     async (content: string) => {
       if (!selectedChannelId) return;
+
       const created = await sendChannelMessage(selectedChannelId, content);
-      setMessages((prev) => [...prev, created]);
+
+      queryClient.setQueryData<GetMessagesResponse | undefined>(
+        ["channelMessages", selectedChannelId],
+        (old) => {
+          const prev = old?.result ?? [];
+          return {
+            ...(old ?? { result: [] as Message[] }),
+            result: [
+              {
+                id: created.id,
+                authorType: "user",
+                author: "",
+                displayName: "",
+                avatarUrl: "",
+                createdAt: created.createdAt,
+                updatedAt: created.createdAt,
+                message: content,
+                channelId: selectedChannelId,
+                groupId: null,
+              },
+              ...prev,
+            ],
+          };
+        },
+      );
     },
-    [selectedChannelId],
+    [selectedChannelId, queryClient],
   );
 
   // 5) When a server is created via the sidebar dialog
-  const handleServerCreated = useCallback((server: ServerPreview) => {
-    setServers((prev) => {
-      const exists = prev.some((s) => s.id === server.id);
-      if (exists) return prev;
-      return [...prev, server];
-    });
-    setSelectedServerId(server.id);
-  }, []);
+  const handleServerCreated = useCallback(
+    (server: ServerPreview) => {
+      queryClient.setQueryData<ServerPreview[] | undefined>(
+        ["servers"],
+        (old) => {
+          const list = old ?? [];
+          const exists = list.some((s) => s.id === server.id);
+          if (exists) return list;
+          return [...list, server];
+        },
+      );
+      setSelectedServerId(server.id);
+    },
+    [queryClient],
+  );
 
   const currentChannel = useMemo(
     () => channels.find((c) => c.id === selectedChannelId) ?? null,
@@ -190,7 +187,7 @@ export default function MainView() {
         onServerCreated={handleServerCreated}
       />
 
-      <section className="flex flex-1">
+      <section className="flex flex-1 max-h-screen">
         {/* Left: channels */}
         <div className="flex w-64 flex-col border-r border-[#363a4f] bg-[#1e2030]">
           <div className="flex h-12 items-center border-b border-[#363a4f] px-3 text-sm font-semibold">

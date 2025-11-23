@@ -1059,7 +1059,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetMessagesResponse"
+                        }
                     },
                     "400": {
                         "description": "Invalid group id",

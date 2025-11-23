@@ -7,6 +7,7 @@ import (
 	"backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -201,6 +202,21 @@ func (s *AuthService) Authenticate(ctx context.Context, param command.Authentica
 	}, jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {
+		// v5 has these helpers:
+		if errors.Is(err, jwt.ErrTokenMalformed) {
+			return res, entities.NewError(entities.ErrCodeUnauth, "malformed token", err)
+		}
+		if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+			return res, entities.NewError(entities.ErrCodeUnauth, "invalid token signature", err)
+		}
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return res, entities.NewError(entities.ErrCodeUnauth, "token expired", err)
+		}
+		if errors.Is(err, jwt.ErrTokenNotValidYet) {
+			return res, entities.NewError(entities.ErrCodeUnauth, "token not valid yet", err)
+		}
+
+		// Completely unknown error
 		return res, entities.GetErrOrDefault(err, entities.ErrCodeUnauth, "cannot verify token")
 	}
 

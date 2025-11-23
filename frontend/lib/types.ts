@@ -69,6 +69,11 @@ export const MessageSchema = z.object({
   displayName: z.string(),
 });
 
+export const CreateMessageSchema = z.object({
+  id: z.string(),
+  createdAt: z.string().datetime(),
+});
+
 export const GetMessagesSchema = z.object({
   result: z.array(MessageSchema),
   next: z.string().nullish().optional(),
@@ -93,6 +98,7 @@ export type Channel = z.infer<typeof ChannelSchema>;
 export type GetServersResponse = z.infer<typeof GetServersSchema>;
 export type GetServerResponse = z.infer<typeof GetServerSchema>;
 export type Message = z.infer<typeof MessageSchema>;
+export type CreateMessageResponse = z.infer<typeof CreateMessageSchema>;
 export type GetMessagesResponse = z.infer<typeof GetMessagesSchema>;
 export type NewServerResponse = z.infer<typeof NewServerResponseSchema>;
 
