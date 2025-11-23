@@ -4,11 +4,11 @@ import { Home, Plus } from "lucide-react";
 import type { ServerPreview } from "@/lib/types";
 import { theme } from "@/lib/theme";
 import CreateServerDialog from "./createServerDialog";
+import { useAtom, useAtomValue } from "jotai";
+import { selectedServerIdAtom } from "./state";
 
 interface SidebarProps {
   servers: ServerPreview[];
-  selectedServerId: string | null;
-  onSelectServer: (id: string | null) => void;
   onServerCreated: (server: ServerPreview) => void;
 }
 
@@ -21,19 +21,16 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-export default function Sidebar({
-  servers,
-  selectedServerId,
-  onSelectServer,
-  onServerCreated,
-}: SidebarProps) {
+export default function Sidebar({ servers, onServerCreated }: SidebarProps) {
+  const [selectedServerId, setSelectServer] = useAtom(selectedServerIdAtom);
+
   return (
     <aside
       className={`flex h-screen w-16 flex-col items-center gap-3 border-r border-[#363a4f] ${theme.colors.background.card} py-3`}
     >
       {/* Home / default */}
       <button
-        onClick={() => onSelectServer(null)}
+        onClick={() => setSelectServer(null)}
         className={`flex h-11 w-11 items-center justify-center rounded-3xl ${theme.colors.interactive.primary} transition-all hover:rounded-2xl`}
       >
         <Home className="h-5 w-5" />
@@ -48,7 +45,7 @@ export default function Sidebar({
           return (
             <button
               key={server.id}
-              onClick={() => onSelectServer(server.id)}
+              onClick={() => setSelectServer(server.id)}
               className={`relative flex h-11 w-11 items-center justify-center rounded-3xl text-sm font-semibold transition-all ${
                 isActive
                   ? "bg-[#c6a0f6] text-[#181926] hover:bg-[#b7bdf8]"

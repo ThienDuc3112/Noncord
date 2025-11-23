@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import Sidebar from "./sidebar";
 import DefaultView from "./defaultView";
 import ChatList from "./chatList";
@@ -23,14 +23,15 @@ import type {
   ServerPreview,
 } from "@/lib/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAtom } from "jotai";
+import { selectedChannelIdAtom, selectedServerIdAtom } from "./state";
 
 export default function MainView() {
-  const ref = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
 
-  const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
-  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(
-    null,
+  const [selectedServerId, setSelectedServerId] = useAtom(selectedServerIdAtom);
+  const [selectedChannelId, setSelectedChannelId] = useAtom(
+    selectedChannelIdAtom,
   );
 
   // 1) Fetch list of servers
@@ -44,13 +45,6 @@ export default function MainView() {
   });
 
   const servers = serversData ?? [];
-
-  // Select the first server by default
-  useEffect(() => {
-    if (!selectedServerId && servers.length > 0) {
-      setSelectedServerId(servers[0].id);
-    }
-  }, [servers, selectedServerId]);
 
   // 2) When server changes, fetch server details & channels
   const {
@@ -180,12 +174,7 @@ export default function MainView() {
       className={`flex min-h-screen ${theme.classes.background} ${theme.colors.text.primary}`}
       style={{ backgroundImage: backgroundPattern }}
     >
-      <Sidebar
-        servers={servers}
-        selectedServerId={selectedServerId}
-        onSelectServer={setSelectedServerId}
-        onServerCreated={handleServerCreated}
-      />
+      <Sidebar servers={servers} onServerCreated={handleServerCreated} />
 
       <section className="flex flex-1 max-h-screen">
         {/* Left: channels */}
