@@ -65,6 +65,8 @@ export const MessageSchema = z.object({
   message: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  avatarUrl: z.string(),
+  displayName: z.string(),
 });
 
 export const GetMessagesSchema = z.object({

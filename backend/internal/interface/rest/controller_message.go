@@ -211,7 +211,7 @@ func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWri
 //	@Param			group_id		path		string	true	"channel id to fetch messages"
 //	@Param			limit			query		int		false	"Message limit"	minimum(1)	maximum(500)	default(100)
 //	@Param			before			query		int		false	"Time in unix"
-//	@Success		200				{object}	nil
+//	@Success		200				{object}	response.GetMessagesResponse
 //	@Failure		400				{object}	response.ErrorResponse	"Invalid group id"
 //	@Failure		401				{object}	response.ErrorResponse	"Unauthorized"
 //	@Failure		404				{object}	response.ErrorResponse	"Group not found"
@@ -219,4 +219,55 @@ func (ac *MessageController) GetMessagesByChannelIdController(w http.ResponseWri
 //	@Router			/api/v1/message/group/{group_id} [get]
 func (ac *MessageController) GetMessagesByGroupIdController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[GetMessagesByGroupIdController] Getting messages by group id")
+
+	userId := extractUserId(r.Context())
+	if userId == nil {
+		render.Render(w, r, response.ParseErrorResponse("Cannot authenticate user", http.StatusUnauthorized, nil))
+		return
+	}
+
+	groupId, err := uuid.Parse(chi.URLParam(r, "group_id"))
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Invalid group id", http.StatusBadRequest, err))
+		return
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit < 1 || limit > 500 {
+		limit = 100
+	}
+
+	beforeInt, err := strconv.ParseInt(r.URL.Query().Get("before"), 10, 64)
+	if err != nil {
+		beforeInt = time.Now().UnixMicro()
+	}
+	before := time.UnixMicro(beforeInt)
+
+	msgs, err := ac.messageQueries.GetByGroupId(r.Context(), query.GetMessagesByGroupId{
+		GroupId: groupId,
+		UserId:  *userId,
+		Before:  before,
+		Limit:   int32(limit),
+	})
+	if err != nil {
+		render.Render(w, r, response.ParseErrorResponse("Unable to get messages", http.StatusInternalServerError, err))
+		return
+	}
+
+	nextUrl := ""
+	var next *string = nil
+	if msgs.More {
+		u := *r.URL
+		q := u.Query()
+		q.Set("before", strconv.FormatInt(msgs.Result[len(msgs.Result)-1].CreatedAt.UnixMicro(), 10))
+		nextUrl = q.Encode()
+		next = &nextUrl
+	}
+
+	render.JSON(w, r, response.GetMessagesResponse{
+		Result: arrutil.Map(msgs.Result, func(msg query.EnrichedMessage) (response.Message, bool) {
+			return mapper.ParseEnrichedMessage(msg), true
+		}),
+		Next: next,
+	})
 }
