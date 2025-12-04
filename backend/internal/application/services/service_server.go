@@ -2,23 +2,21 @@ package services
 
 import (
 	"backend/internal/application/command"
-	"backend/internal/application/common"
 	"backend/internal/application/interfaces"
 	"backend/internal/application/mapper"
-	"backend/internal/application/query"
 	"backend/internal/domain/entities"
 	"backend/internal/domain/repositories"
 	"context"
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/gookit/goutil/arrutil"
 )
 
 type ServerRepos interface {
 	Channel() repositories.ChannelRepo
 	Server() repositories.ServerRepo
 	Member() repositories.MemberRepo
+	Role() repositories.RoleRepo
 }
 
 type ServerService struct {
@@ -29,12 +27,25 @@ func NewServerService(uow repositories.UnitOfWork[ServerRepos]) interfaces.Serve
 	return &ServerService{uow}
 }
 
-func NewServerQueries(uow repositories.UnitOfWork[ServerRepos]) interfaces.ServerQueries {
-	return &ServerService{uow}
-}
-
 func (s *ServerService) Create(ctx context.Context, params command.CreateServerCommand) (res command.CreateServerCommandResult, err error) {
 	server, err := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
+	if err != nil {
+		return command.CreateServerCommandResult{}, err
+	}
+	role, err := entities.NewRole("everyone", 0x808080, 0, false,
+		entities.CreatePermission(
+			entities.PermViewChannel,
+			entities.PermCreateInvite,
+			entities.PermChangeNickname,
+			entities.PermSendMessage,
+			entities.PermEmbedLinks,
+			entities.PermAttachFiles,
+			entities.PermAddReactions,
+			entities.PermExternalEmote,
+			entities.PermReadMessagesHistory,
+		),
+		server.Id,
+	)
 	if err != nil {
 		return command.CreateServerCommandResult{}, err
 	}
@@ -46,19 +57,12 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 		}
 
-		slog.Info("creating membership")
-		_, err = repos.Member().Save(ctx, entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserNickname))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
-		}
-
 		slog.Info("creating channel")
 		channel := entities.NewChannel("text channel", "Your first channel", server.Id, 1, nil)
 		channel, err = repos.Channel().Save(ctx, channel)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save channel")
 		}
-		// TODO: Create default role
 
 		if err = server.UpdateAnnouncementChannel(&channel.Id); err != nil {
 			return err
@@ -70,87 +74,22 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 		}
 
+		slog.Info("creating everyone role")
+		role, err = repos.Role().Save(ctx, role)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save role")
+		}
+
+		slog.Info("creating membership")
+		membership := entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserNickname)
+		membership.AssignRole(role.Id)
+		membership, err = repos.Member().Save(ctx, membership)
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
+		}
+
 		res = command.CreateServerCommandResult{
 			Result: mapper.ServerToResult(server),
-		}
-		return nil
-	})
-
-	return res, err
-}
-
-func (s *ServerService) Get(ctx context.Context, params query.GetServer) (res query.GetServerResult, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos ServerRepos) error {
-		server, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
-		}
-
-		if params.UserId == nil {
-			res = query.GetServerResult{
-				Preview: mapper.ServerToPreview(server),
-			}
-			return nil
-		}
-
-		if _, err = repos.Member().Find(ctx, entities.UserId(*params.UserId), server.Id); err != nil {
-			res = query.GetServerResult{
-				Preview: mapper.ServerToPreview(server),
-			}
-			return nil
-		}
-
-		channels, err := repos.Channel().FindByServerId(ctx, server.Id)
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channels")
-		}
-
-		res = query.GetServerResult{
-			Preview: mapper.ServerToPreview(server),
-			Full:    mapper.ServerToResult(server),
-			Channel: arrutil.Map(channels, func(c *entities.Channel) (target *common.Channel, find bool) {
-				return mapper.ChannelToResult(c), true
-			}),
-		}
-		return nil
-	})
-
-	return res, err
-}
-
-func (s *ServerService) GetServers(ctx context.Context, params query.GetServers) (res query.GetServersResult, err error) {
-	var mapFn arrutil.MapFn[uuid.UUID, entities.ServerId] = func(input uuid.UUID) (target entities.ServerId, find bool) {
-		return entities.ServerId(input), true
-	}
-
-	err = s.uow.Do(ctx, func(ctx context.Context, repos ServerRepos) error {
-		servers, err := repos.Server().FindByIds(ctx, arrutil.Map(params.ServerIds, mapFn))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
-		}
-
-		res = query.GetServersResult{
-			Result: arrutil.Map(servers, func(server *entities.Server) (target *common.Server, find bool) {
-				return mapper.ServerToResult(server), true
-			}),
-		}
-		return nil
-	})
-
-	return res, err
-}
-
-func (s *ServerService) GetServersUserIn(ctx context.Context, params query.GetServersUserIn) (res query.GetServersUserInResult, err error) {
-	err = s.uow.Do(ctx, func(ctx context.Context, repos ServerRepos) error {
-		servers, err := repos.Server().FindByUser(ctx, entities.UserId(params.UserId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
-		}
-
-		res = query.GetServersUserInResult{
-			Result: arrutil.Map(servers, func(server *entities.Server) (target *common.Server, find bool) {
-				return mapper.ServerToResult(server), true
-			}),
 		}
 		return nil
 	})
@@ -163,11 +102,6 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 		server, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
-		}
-
-		// TODO: Update with mod and role permission
-		if !server.IsOwner(entities.UserId(params.UserId)) {
-			return entities.NewError(entities.ErrCodeForbidden, "not authorized", err)
 		}
 
 		if params.Updates.Name != nil {
@@ -200,8 +134,12 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 				return err
 			}
 		}
-		if params.Updates.DefaultPermission != nil {
-			if err = server.UpdateDefaultPermission(entities.ServerPermissionBits(*params.Updates.DefaultPermission)); err != nil {
+		if params.Updates.DefaultRole != nil {
+			newRole := (*uuid.UUID)(nil)
+			if params.Updates.DefaultRole.Valid {
+				newRole = (*uuid.UUID)(&params.Updates.DefaultRole.UUID)
+			}
+			if err = server.UpdateDefaultRole((*entities.RoleId)(newRole)); err != nil {
 				return err
 			}
 		}

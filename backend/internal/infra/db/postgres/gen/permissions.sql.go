@@ -12,24 +12,335 @@ import (
 )
 
 const findAllChannelInUserServers = `-- name: FindAllChannelInUserServers :many
-SELECT c.id 
-FROM channels c, servers s, memberships m
-WHERE c.server_id = s.id AND m.server_id = s.id AND m.user_id = $1
+SELECT c.id, c.server_id 
+FROM channels c, memberships m
+WHERE c.server_id = m.server_id AND m.user_id = $1
 `
 
-func (q *Queries) FindAllChannelInUserServers(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+type FindAllChannelInUserServersRow struct {
+	ID       uuid.UUID
+	ServerID uuid.UUID
+}
+
+func (q *Queries) FindAllChannelInUserServers(ctx context.Context, userID uuid.UUID) ([]FindAllChannelInUserServersRow, error) {
 	rows, err := q.db.Query(ctx, findAllChannelInUserServers, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []uuid.UUID
+	var items []FindAllChannelInUserServersRow
 	for rows.Next() {
-		var id uuid.UUID
-		if err := rows.Scan(&id); err != nil {
+		var i FindAllChannelInUserServersRow
+		if err := rows.Scan(&i.ID, &i.ServerID); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllChannelServerUserOverwrite = `-- name: FindAllChannelServerUserOverwrite :many
+SELECT cpo.channel_id, cpo.allow, cpo.deny FROM 
+  channels c,
+  memberships mb,
+  channel_permission_overwrite cpo
+WHERE
+  mb.user_id = $1
+  AND mb.server_id = $2
+  AND mb.server_id = c.server_id
+  AND cpo.channel_id = c.id 
+  AND cpo.user_id = mb.user_id
+`
+
+type FindAllChannelServerUserOverwriteParams struct {
+	UserID   uuid.UUID
+	ServerID uuid.UUID
+}
+
+type FindAllChannelServerUserOverwriteRow struct {
+	ChannelID uuid.UUID
+	Allow     int64
+	Deny      int64
+}
+
+func (q *Queries) FindAllChannelServerUserOverwrite(ctx context.Context, arg FindAllChannelServerUserOverwriteParams) ([]FindAllChannelServerUserOverwriteRow, error) {
+	rows, err := q.db.Query(ctx, findAllChannelServerUserOverwrite, arg.UserID, arg.ServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllChannelServerUserOverwriteRow
+	for rows.Next() {
+		var i FindAllChannelServerUserOverwriteRow
+		if err := rows.Scan(&i.ChannelID, &i.Allow, &i.Deny); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllChannelUserOverwrite = `-- name: FindAllChannelUserOverwrite :many
+SELECT cpo.channel_id, cpo.allow, cpo.deny FROM 
+  channels c,
+  memberships mb,
+  channel_permission_overwrite cpo
+WHERE
+  mb.user_id = $1
+  AND mb.server_id = c.server_id
+  AND cpo.channel_id = c.id 
+  AND cpo.user_id = mb.user_id
+`
+
+type FindAllChannelUserOverwriteRow struct {
+	ChannelID uuid.UUID
+	Allow     int64
+	Deny      int64
+}
+
+func (q *Queries) FindAllChannelUserOverwrite(ctx context.Context, userID uuid.UUID) ([]FindAllChannelUserOverwriteRow, error) {
+	rows, err := q.db.Query(ctx, findAllChannelUserOverwrite, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllChannelUserOverwriteRow
+	for rows.Next() {
+		var i FindAllChannelUserOverwriteRow
+		if err := rows.Scan(&i.ChannelID, &i.Allow, &i.Deny); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllChannelUserRoleOverwrite = `-- name: FindAllChannelUserRoleOverwrite :many
+SELECT ra.role_id, mb.server_id, cpo.channel_id, cpo.allow, cpo.deny FROM 
+  channels c,
+  memberships mb,
+  channel_permission_overwrite cpo,
+  role_assignment ra
+WHERE
+  mb.user_id = $1
+  AND mb.server_id = c.server_id
+  AND cpo.channel_id = c.id 
+  AND ra.membership_id = mb.id
+  AND ra.role_id = cpo.role_id
+`
+
+type FindAllChannelUserRoleOverwriteRow struct {
+	RoleID    uuid.UUID
+	ServerID  uuid.UUID
+	ChannelID uuid.UUID
+	Allow     int64
+	Deny      int64
+}
+
+func (q *Queries) FindAllChannelUserRoleOverwrite(ctx context.Context, userID uuid.UUID) ([]FindAllChannelUserRoleOverwriteRow, error) {
+	rows, err := q.db.Query(ctx, findAllChannelUserRoleOverwrite, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllChannelUserRoleOverwriteRow
+	for rows.Next() {
+		var i FindAllChannelUserRoleOverwriteRow
+		if err := rows.Scan(
+			&i.RoleID,
+			&i.ServerID,
+			&i.ChannelID,
+			&i.Allow,
+			&i.Deny,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllChannelUserServerRoleOverwrite = `-- name: FindAllChannelUserServerRoleOverwrite :many
+SELECT ra.role_id, cpo.channel_id, cpo.allow, cpo.deny FROM 
+  channels c,
+  memberships mb,
+  channel_permission_overwrite cpo,
+  role_assignment ra
+WHERE
+  mb.user_id = $1
+  AND mb.server_id = $2
+  AND mb.server_id = c.server_id
+  AND cpo.channel_id = c.id 
+  AND ra.membership_id = mb.id
+  AND ra.role_id = cpo.role_id
+`
+
+type FindAllChannelUserServerRoleOverwriteParams struct {
+	UserID   uuid.UUID
+	ServerID uuid.UUID
+}
+
+type FindAllChannelUserServerRoleOverwriteRow struct {
+	RoleID    uuid.UUID
+	ChannelID uuid.UUID
+	Allow     int64
+	Deny      int64
+}
+
+func (q *Queries) FindAllChannelUserServerRoleOverwrite(ctx context.Context, arg FindAllChannelUserServerRoleOverwriteParams) ([]FindAllChannelUserServerRoleOverwriteRow, error) {
+	rows, err := q.db.Query(ctx, findAllChannelUserServerRoleOverwrite, arg.UserID, arg.ServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllChannelUserServerRoleOverwriteRow
+	for rows.Next() {
+		var i FindAllChannelUserServerRoleOverwriteRow
+		if err := rows.Scan(
+			&i.RoleID,
+			&i.ChannelID,
+			&i.Allow,
+			&i.Deny,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllRolesUserHave = `-- name: FindAllRolesUserHave :many
+SELECT mb.user_id, mb.server_id, ra.role_id, r.permissions FROM memberships mb
+INNER JOIN role_assignment ra ON ra.membership_id = mb.id
+INNER JOIN roles r ON ra.role_id = r.id
+WHERE mb.user_id = $1
+`
+
+type FindAllRolesUserHaveRow struct {
+	UserID      uuid.UUID
+	ServerID    uuid.UUID
+	RoleID      uuid.UUID
+	Permissions int64
+}
+
+func (q *Queries) FindAllRolesUserHave(ctx context.Context, userID uuid.UUID) ([]FindAllRolesUserHaveRow, error) {
+	rows, err := q.db.Query(ctx, findAllRolesUserHave, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllRolesUserHaveRow
+	for rows.Next() {
+		var i FindAllRolesUserHaveRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ServerID,
+			&i.RoleID,
+			&i.Permissions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllUserRolePermission = `-- name: FindAllUserRolePermission :many
+SELECT mb.user_id, mb.server_id, ra.role_id, r.permissions FROM memberships mb
+INNER JOIN role_assignment ra ON ra.membership_id = mb.id
+INNER JOIN roles r ON ra.role_id = r.id
+WHERE mb.user_id = $1
+ORDER BY r.priority ASC
+`
+
+type FindAllUserRolePermissionRow struct {
+	UserID      uuid.UUID
+	ServerID    uuid.UUID
+	RoleID      uuid.UUID
+	Permissions int64
+}
+
+func (q *Queries) FindAllUserRolePermission(ctx context.Context, userID uuid.UUID) ([]FindAllUserRolePermissionRow, error) {
+	rows, err := q.db.Query(ctx, findAllUserRolePermission, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllUserRolePermissionRow
+	for rows.Next() {
+		var i FindAllUserRolePermissionRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ServerID,
+			&i.RoleID,
+			&i.Permissions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllUserServerRolePermission = `-- name: FindAllUserServerRolePermission :many
+SELECT mb.user_id, mb.server_id, ra.role_id, r.permissions FROM memberships mb
+INNER JOIN role_assignment ra ON ra.membership_id = mb.id
+INNER JOIN roles r ON ra.role_id = r.id
+WHERE mb.user_id = $1 AND mb.server_id = $2
+ORDER BY r.priority ASC
+`
+
+type FindAllUserServerRolePermissionParams struct {
+	UserID   uuid.UUID
+	ServerID uuid.UUID
+}
+
+type FindAllUserServerRolePermissionRow struct {
+	UserID      uuid.UUID
+	ServerID    uuid.UUID
+	RoleID      uuid.UUID
+	Permissions int64
+}
+
+func (q *Queries) FindAllUserServerRolePermission(ctx context.Context, arg FindAllUserServerRolePermissionParams) ([]FindAllUserServerRolePermissionRow, error) {
+	rows, err := q.db.Query(ctx, findAllUserServerRolePermission, arg.UserID, arg.ServerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllUserServerRolePermissionRow
+	for rows.Next() {
+		var i FindAllUserServerRolePermissionRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ServerID,
+			&i.RoleID,
+			&i.Permissions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -16,7 +16,7 @@ type Hub struct {
 	serverSub  map[uuid.UUID]map[uuid.UUID]bool
 	channelSub map[uuid.UUID]map[uuid.UUID]bool
 
-	permissionService interfaces.PermissionQueries
+	visibilityService interfaces.VisibilityQueries
 	eventSubscriber   ports.EventSubscriber
 
 	unsubChan chan *client
@@ -32,13 +32,13 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func NewHub(ctx context.Context, permService interfaces.PermissionQueries, eventReader ports.EventSubscriber, cacheStore ports.CacheStore, userResolver ports.UserResolver) (*Hub, error) {
+func NewHub(ctx context.Context, visibilityQueries interfaces.VisibilityQueries, eventReader ports.EventSubscriber, cacheStore ports.CacheStore, userResolver ports.UserResolver) (*Hub, error) {
 	hub := &Hub{
 		userConn:   make(map[uuid.UUID]map[uuid.UUID]*client),
 		serverSub:  make(map[uuid.UUID]map[uuid.UUID]bool),
 		channelSub: make(map[uuid.UUID]map[uuid.UUID]bool),
 
-		permissionService: permService,
+		visibilityService: visibilityQueries,
 		eventSubscriber:   eventReader,
 
 		unsubChan: make(chan *client, 1024),
@@ -56,11 +56,11 @@ func NewHub(ctx context.Context, permService interfaces.PermissionQueries, event
 }
 
 func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UUID) error {
-	chans, err := h.permissionService.GetVisibleChannels(ctx, userId)
+	chans, err := h.visibilityService.GetVisibleChannels(ctx, userId)
 	if err != nil {
 		return err
 	}
-	servers, err := h.permissionService.GetVisibleServers(ctx, userId)
+	servers, err := h.visibilityService.GetVisibleServers(ctx, userId)
 	if err != nil {
 		return err
 	}

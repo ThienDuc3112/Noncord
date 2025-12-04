@@ -46,6 +46,20 @@ func (m *Membership) AssignRole(roleId RoleId) error {
 	return nil
 }
 
+func (m *Membership) UnassignRole(roleId RoleId) error {
+	if m.deleted {
+		return NewError(ErrCodeValidationError, "membership don't exist", nil)
+	}
+	if m.Roles == nil {
+		return nil
+	}
+	if m.Roles[roleId] {
+		m.Roles[roleId] = false
+		m.Record(NewMembershipRoleUnassigned(m, roleId))
+	}
+	return nil
+}
+
 func (m *Membership) ChangeNickname(nickname string) error {
 	if m.deleted {
 		return NewError(ErrCodeValidationError, "cannot change nickname of a deleted membership", nil)

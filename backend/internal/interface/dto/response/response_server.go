@@ -23,16 +23,16 @@ type GetServersResponse struct {
 
 type GetServerResponse struct {
 	Id                  uuid.UUID  `json:"id"`
-	CreatedAt           time.Time  `json:"createdAt,omitempty,omitzero"`
-	UpdatedAt           time.Time  `json:"updatedAt,omitempty,omitzero"`
+	CreatedAt           time.Time  `json:"createdAt"`
+	UpdatedAt           time.Time  `json:"updatedAt"`
 	Name                string     `json:"name"`
 	Description         string     `json:"description"`
 	IconUrl             string     `json:"iconUrl"`
 	BannerUrl           string     `json:"bannerUrl"`
 	AnnouncementChannel *uuid.UUID `json:"announcementChannel"`
 
-	DefaultPermission int64     `json:"defaultPermission"`
-	Channels          []Channel `json:"channels"`
+	DefaultRole *uuid.UUID `json:"defaultRole"`
+	Channels    []Channel  `json:"channels"`
 	// Members
 }
 
@@ -45,7 +45,7 @@ type UpdateServerResponse struct {
 	IconUrl             string     `json:"iconUrl"`
 	BannerUrl           string     `json:"bannerUrl"`
 	AnnouncementChannel *uuid.UUID `json:"announcementChannel"`
-	DefaultPermission   int64      `json:"defaultPermission"`
+	DefaultRole         *uuid.UUID `json:"defaultRole"`
 }
 
 type GetServerInvitationsResponse struct {

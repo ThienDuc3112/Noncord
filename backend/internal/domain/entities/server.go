@@ -50,14 +50,25 @@ func CreatePermission(permissions ...ServerPermissionBits) ServerPermissionBits 
 
 // Supported many permission check by making check a combination of many permission bits
 // Can use `CreatePermission` to create one
-func (p ServerPermissionBits) HasAll(check ServerPermissionBits) bool {
-	return (p & check) == check
+func (p ServerPermissionBits) HasAll(check ...ServerPermissionBits) bool {
+	for _, c := range check {
+		if (p & c) != c {
+			return false
+		}
+	}
+	return true
 }
 
 // Supported many permission check by making check a combination of many permission bits
 // Can use `CreatePermission` to create one
-func (p ServerPermissionBits) HasAny(check ServerPermissionBits) bool {
-	return (p & check) > 0
+// Return true if it have a single common permission with a single check bits
+func (p ServerPermissionBits) HasAny(check ...ServerPermissionBits) bool {
+	for _, c := range check {
+		if (p & c) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func (p ServerPermissionBits) ToFlagArray() []string {
@@ -153,7 +164,7 @@ type Server struct {
 
 	Owner UserId
 
-	DefaultPermission   ServerPermissionBits
+	DefaultRole         *RoleId
 	AnnouncementChannel *ChannelId
 }
 
@@ -274,12 +285,22 @@ func (s *Server) UpdateAnnouncementChannel(channelId *ChannelId) error {
 	return nil
 }
 
-func (s *Server) UpdateDefaultPermission(perm ServerPermissionBits) error {
-	if s.DefaultPermission != perm {
-		old := s.DefaultPermission
-		s.DefaultPermission = perm
+// func (s *Server) UpdateDefaultPermission(perm ServerPermissionBits) error {
+// 	if s.DefaultPermission != perm {
+// 		old := s.DefaultPermission
+// 		s.DefaultPermission = perm
+// 		s.UpdatedAt = time.Now()
+// 		s.Record(NewServerDefaultPermissionChanged(s, old))
+// 	}
+// 	return nil
+// }
+
+func (s *Server) UpdateDefaultRole(role *RoleId) error {
+	if (s.DefaultRole != nil && role == nil) || (s.DefaultRole == nil && role != nil) || (s.DefaultRole != nil && role != nil && *s.DefaultRole != *role) {
+		old := s.DefaultRole
+		s.DefaultRole = role
 		s.UpdatedAt = time.Now()
-		s.Record(NewServerDefaultPermissionChanged(s, old))
+		s.Record(NewServerDefaultRoleChanged(s, old))
 	}
 	return nil
 }
@@ -309,7 +330,8 @@ func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, need
 
 		Owner: userId,
 
-		DefaultPermission:   CreatePermission(PermViewChannel, PermCreateInvite, PermChangeNickname, PermSendMessage, PermEmbedLinks, PermAttachFiles, PermAddReactions, PermExternalEmote, PermReadMessagesHistory),
+		// DefaultPermission:   CreatePermission(PermViewChannel, PermCreateInvite, PermChangeNickname, PermSendMessage, PermEmbedLinks, PermAttachFiles, PermAddReactions, PermExternalEmote, PermReadMessagesHistory),
+		DefaultRole:         nil,
 		AnnouncementChannel: nil,
 	}
 

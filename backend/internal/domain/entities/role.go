@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/internal/domain/events"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,8 @@ import (
 type RoleId uuid.UUID
 
 type Role struct {
+	events.Recorder
+
 	Id           RoleId
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -31,8 +34,8 @@ func (r *Role) Validate() error {
 	return nil
 }
 
-func NewRole(name string, color uint32, priority uint16, allowMention bool, perm ServerPermissionBits, sid ServerId) *Role {
-	return &Role{
+func NewRole(name string, color uint32, priority uint16, allowMention bool, perm ServerPermissionBits, sid ServerId) (*Role, error) {
+	r := &Role{
 		Id:           RoleId(uuid.New()),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -44,4 +47,11 @@ func NewRole(name string, color uint32, priority uint16, allowMention bool, perm
 		Permissions:  perm,
 		ServerId:     sid,
 	}
+	if err := r.Validate(); err != nil {
+		return nil, err
+	}
+
+	r.Record(NewRoleCreated(r))
+
+	return r, nil
 }

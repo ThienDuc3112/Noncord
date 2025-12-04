@@ -8,7 +8,7 @@ INSERT INTO servers (
 	icon_url,
   banner_url,
 	need_approval,
-	default_permission,
+	default_role,
 	announcement_channel,
   owner
 ) VALUES (
@@ -33,7 +33,7 @@ DO UPDATE SET
 	icon_url = $6,
   banner_url = $7,
 	need_approval = $8,
-	default_permission = $9,
+	default_role = $9,
 	announcement_channel = $10,
   owner = $11
 RETURNING *;

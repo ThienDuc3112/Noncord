@@ -22,7 +22,6 @@ INSERT INTO channels (
 ) 
 ON CONFLICT (id)
 DO UPDATE SET
-  created_at = $2,
   updated_at = $3,
   deleted_at = $4,
 	name = $5,

@@ -129,7 +129,7 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 
 	render.Status(r, 200)
 	render.JSON(w, r, response.GetServersResponse{
-		Result: arrutil.Map(servers.Result, func(s *common.Server) (target response.ServerPreview, find bool) {
+		Result: arrutil.Map(servers.Result, func(s common.Server) (target response.ServerPreview, find bool) {
 			return response.ServerPreview{
 				Id:        s.Id,
 				Name:      s.Name,
@@ -181,6 +181,7 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 
 	if server.Full != nil {
 		render.Status(r, 200)
+		// TODO: update to have role here
 		render.JSON(w, r, response.GetServerResponse{
 			Id:                  server.Full.Id,
 			Name:                server.Full.Name,
@@ -190,8 +191,8 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 			IconUrl:             server.Full.IconUrl,
 			BannerUrl:           server.Full.BannerUrl,
 			AnnouncementChannel: server.Full.AnnouncementChannel,
-			DefaultPermission:   server.Full.DefaultPermission,
-			Channels: arrutil.Map(server.Channel, func(c *common.Channel) (target response.Channel, find bool) {
+			DefaultRole:         server.Full.DefaultRole,
+			Channels: arrutil.Map(server.Channel, func(c common.Channel) (target response.Channel, find bool) {
 				return response.Channel{
 					Id:             c.Id,
 					CreatedAt:      c.CreatedAt,
@@ -242,6 +243,22 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
+	var newRole *uuid.NullUUID = nil
+	if body.DefaultRole != nil {
+		if *body.DefaultRole == "" {
+			newRole = &uuid.NullUUID{}
+		} else {
+			id, err := uuid.Parse(*body.DefaultRole)
+			if err != nil {
+				render.Render(w, r, response.ParseErrorResponse("Invalid body, default role id must be empty or a uuid", http.StatusBadRequest, err))
+				return
+			}
+			newRole = &uuid.NullUUID{
+				UUID:  id,
+				Valid: true,
+			}
+		}
+	}
 
 	userId := extractUserId(r.Context())
 	if userId == nil {
@@ -265,7 +282,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 			BannerUrl:           body.BannerUrl,
 			NeedApproval:        body.NeedApproval,
 			AnnouncementChannel: nullableAnnouncementChannel,
-			DefaultPermission:   body.DefaultPermission,
+			DefaultRole:         newRole,
 		},
 	})
 	if err != nil {
@@ -283,7 +300,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		IconUrl:             server.Result.IconUrl,
 		BannerUrl:           server.Result.BannerUrl,
 		AnnouncementChannel: server.Result.AnnouncementChannel,
-		DefaultPermission:   server.Result.DefaultPermission,
+		DefaultRole:         server.Result.DefaultRole,
 	})
 }
 

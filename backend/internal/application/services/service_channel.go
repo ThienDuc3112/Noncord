@@ -16,7 +16,6 @@ import (
 
 type ChannelRepos interface {
 	Channel() repositories.ChannelRepo
-	Server() repositories.ServerRepo
 	Member() repositories.MemberRepo
 }
 
@@ -34,16 +33,6 @@ func NewChannelQueries(uow repositories.UnitOfWork[ChannelRepos]) interfaces.Cha
 
 func (s *ChannelService) Create(ctx context.Context, params command.CreateChannelCommand) (res command.CreateChannelCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
-		server, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details")
-		}
-
-		// TODO: Add role check
-		if !server.IsOwner(entities.UserId(params.UserId)) {
-			return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
-		}
-
 		maxOrder, err := repos.Channel().GetServerMaxChannelOrder(ctx, entities.ServerId(params.ServerId))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details (max ordering)")
@@ -113,16 +102,6 @@ func (s *ChannelService) Delete(ctx context.Context, params command.DeleteChanne
 		channel, err := repos.Channel().Find(ctx, entities.ChannelId(params.ChannelId))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get channel")
-		}
-
-		server, err := repos.Server().Find(ctx, channel.ServerId)
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details")
-		}
-
-		// TODO: Add role check
-		if !server.IsOwner(entities.UserId(params.UserId)) {
-			return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete channel", err)
 		}
 
 		channel.Delete()

@@ -74,7 +74,16 @@ func (s *MemberService) JoinServer(ctx context.Context, params command.JoinServe
 
 func (s *MemberService) LeaveServer(ctx context.Context, params command.LeaveServerCommand) error {
 	return s.uow.Do(ctx, func(ctx context.Context, repos MemberRepos) error {
-		err := repos.Member().Delete(ctx, entities.UserId(params.UserId), entities.ServerId(params.ServerId))
+		m, err := repos.Member().Find(ctx, entities.UserId(params.UserId), entities.ServerId(params.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get membership status")
+		}
+		if err = m.Delete(); err != nil {
+			return err
+		}
+
+		// err := repos.Member().Delete(ctx, entities.UserId(params.UserId), entities.ServerId(params.ServerId))
+		m, err = repos.Member().Save(ctx, m)
 		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "Cannot leave server")
 
 	})

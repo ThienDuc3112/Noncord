@@ -26,7 +26,7 @@ func (r *PGServerRepo) Save(ctx context.Context, server *e.Server) (*e.Server, e
 		IconUrl:             server.IconUrl,
 		BannerUrl:           server.BannerUrl,
 		NeedApproval:        server.NeedApproval,
-		DefaultPermission:   int64(server.DefaultPermission),
+		DefaultRole:         (*uuid.UUID)(server.DefaultRole),
 		AnnouncementChannel: (*uuid.UUID)(server.AnnouncementChannel),
 		Owner:               uuid.UUID(server.Owner),
 	})

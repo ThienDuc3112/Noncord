@@ -121,7 +121,9 @@ func (r *PGChannelRepo) FindByUserServers(ctx context.Context, userId e.UserId) 
 	if err != nil {
 		return nil, err
 	}
-	return arrutil.Map(ids, func(id uuid.UUID) (target e.ChannelId, find bool) { return e.ChannelId(id), true }), nil
+	return arrutil.Map(ids, func(row gen.FindAllChannelInUserServersRow) (target e.ChannelId, find bool) {
+		return e.ChannelId(row.ID), true
+	}), nil
 }
 
 var _ repositories.ChannelRepo = &PGChannelRepo{}

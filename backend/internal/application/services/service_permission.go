@@ -17,15 +17,15 @@ type PermissionRepos interface {
 	Channel() repositories.ChannelRepo
 }
 
-type PermissionService struct {
+type VisibilityQueries struct {
 	uow repositories.UnitOfWork[PermissionRepos]
 }
 
-func NewPermissionQueries(uow repositories.UnitOfWork[PermissionRepos]) interfaces.PermissionQueries {
-	return &PermissionService{uow}
+func NewVisibilityQueries(uow repositories.UnitOfWork[PermissionRepos]) interfaces.VisibilityQueries {
+	return &VisibilityQueries{uow}
 }
 
-func (s *PermissionService) getChannelContext(ctx context.Context, repos PermissionRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
+func (s *VisibilityQueries) getChannelContext(ctx context.Context, repos PermissionRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
 	channel, err := repos.Channel().Find(ctx, channelId)
 	if err != nil {
 		return nil, nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's channel")
@@ -39,7 +39,7 @@ func (s *PermissionService) getChannelContext(ctx context.Context, repos Permiss
 	return channel, server, membership, nil
 }
 
-func (s *PermissionService) getServerContext(ctx context.Context, repos PermissionRepos, serverId entities.ServerId, userId entities.UserId) (*entities.Server, *entities.Membership, error) {
+func (s *VisibilityQueries) getServerContext(ctx context.Context, repos PermissionRepos, serverId entities.ServerId, userId entities.UserId) (*entities.Server, *entities.Membership, error) {
 	server, err := repos.Server().Find(ctx, serverId)
 	if err != nil {
 		return nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's server")
@@ -56,7 +56,7 @@ func (s *PermissionService) getServerContext(ctx context.Context, repos Permissi
 	return server, membership, nil
 }
 
-func (s *PermissionService) getChannelEffectivePerm(ctx context.Context, channelId entities.ChannelId, userId entities.UserId) (res entities.ServerPermissionBits, err error) {
+func (s *VisibilityQueries) getChannelEffectivePerm(ctx context.Context, channelId entities.ChannelId, userId entities.UserId) (res entities.ServerPermissionBits, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepos) error {
 		_, _, _, err := s.getChannelContext(ctx, repos, channelId, userId)
 		if err != nil {
@@ -73,7 +73,7 @@ func (s *PermissionService) getChannelEffectivePerm(ctx context.Context, channel
 	return res, err
 }
 
-func (s *PermissionService) getServerEffectivePerm(ctx context.Context, serverId entities.ServerId, userId entities.UserId) (res entities.ServerPermissionBits, err error) {
+func (s *VisibilityQueries) getServerEffectivePerm(ctx context.Context, serverId entities.ServerId, userId entities.UserId) (res entities.ServerPermissionBits, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepos) error {
 		_, _, err := s.getServerContext(ctx, repos, serverId, userId)
 		if err != nil {
@@ -90,7 +90,7 @@ func (s *PermissionService) getServerEffectivePerm(ctx context.Context, serverId
 	return res, err
 }
 
-func (s *PermissionService) ChannelHasAll(ctx context.Context, params query.CheckChannelPerm) (res bool, err error) {
+func (s *VisibilityQueries) ChannelHasAll(ctx context.Context, params query.CheckChannelPerm) (res bool, err error) {
 	effBit, err := s.getChannelEffectivePerm(ctx, entities.ChannelId(params.ChannelId), entities.UserId(params.UserId))
 	if err != nil {
 		return false, err
@@ -99,7 +99,7 @@ func (s *PermissionService) ChannelHasAll(ctx context.Context, params query.Chec
 	return effBit.HasAll(params.Permission), err
 }
 
-func (s *PermissionService) ChannelHasAny(ctx context.Context, params query.CheckChannelPerm) (bool, error) {
+func (s *VisibilityQueries) ChannelHasAny(ctx context.Context, params query.CheckChannelPerm) (bool, error) {
 	effBit, err := s.getChannelEffectivePerm(ctx, entities.ChannelId(params.ChannelId), entities.UserId(params.UserId))
 	if err != nil {
 		return false, err
@@ -108,7 +108,7 @@ func (s *PermissionService) ChannelHasAny(ctx context.Context, params query.Chec
 	return effBit.HasAny(params.Permission), err
 }
 
-func (s *PermissionService) ServerHasAll(ctx context.Context, params query.CheckServerPerm) (bool, error) {
+func (s *VisibilityQueries) ServerHasAll(ctx context.Context, params query.CheckServerPerm) (bool, error) {
 	effBit, err := s.getServerEffectivePerm(ctx, entities.ServerId(params.ServerId), entities.UserId(params.UserId))
 	if err != nil {
 		return false, err
@@ -117,7 +117,7 @@ func (s *PermissionService) ServerHasAll(ctx context.Context, params query.Check
 	return effBit.HasAll(params.Permission), err
 }
 
-func (s *PermissionService) ServerHasAny(ctx context.Context, params query.CheckServerPerm) (bool, error) {
+func (s *VisibilityQueries) ServerHasAny(ctx context.Context, params query.CheckServerPerm) (bool, error) {
 	effBit, err := s.getServerEffectivePerm(ctx, entities.ServerId(params.ServerId), entities.UserId(params.UserId))
 	if err != nil {
 		return false, err
@@ -126,7 +126,7 @@ func (s *PermissionService) ServerHasAny(ctx context.Context, params query.Check
 	return effBit.HasAny(params.Permission), err
 }
 
-func (s *PermissionService) GetVisibleChannels(ctx context.Context, userId uuid.UUID) (res uuid.UUIDs, err error) {
+func (s *VisibilityQueries) GetVisibleChannels(ctx context.Context, userId uuid.UUID) (res uuid.UUIDs, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos PermissionRepos) error {
 		channelIds, err := repos.Channel().FindByUserServers(ctx, entities.UserId(userId))
 		if err != nil {
@@ -140,6 +140,10 @@ func (s *PermissionService) GetVisibleChannels(ctx context.Context, userId uuid.
 	return res, err
 }
 
-func (s *PermissionService) GetVisibleServers(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error) {
+func (s *VisibilityQueries) GetVisibleServers(ctx context.Context, userId uuid.UUID) (uuid.UUIDs, error) {
+	return nil, nil
+}
+
+func (s *VisibilityQueries) GetVisibleChannelsInServer(ctx context.Context, params query.GetVisibleChannelsInServer) (uuid.UUIDs, error) {
 	return nil, nil
 }

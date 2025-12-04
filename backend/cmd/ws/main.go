@@ -38,7 +38,7 @@ func main() {
 
 	uow := postgres.NewBaseUoW(pgPool)
 
-	permissionQueries := services.NewPermissionQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
+	visiblityQueries := services.NewVisibilityQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.PermissionRepos { return rb }))
 	authService := services.NewAuthService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.AuthRepos { return rb }), os.Getenv("SECRET"))
 
 	rabbitMQConn, err := amqp091.Dial(os.Getenv("AMQP_URI"))
@@ -62,7 +62,7 @@ func main() {
 	}
 	defer eventSub.Close()
 
-	wsHub, err := ws.NewHub(ctx, permissionQueries, eventSub, cacheStore, userResolver)
+	wsHub, err := ws.NewHub(ctx, visiblityQueries, eventSub, cacheStore, userResolver)
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)

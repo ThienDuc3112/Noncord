@@ -3,6 +3,7 @@ package command
 import "github.com/google/uuid"
 
 type DeleteMessageCommand struct {
-	MessageId uuid.UUID
-	UserId    uuid.UUID
+	MessageId            uuid.UUID
+	UserId               uuid.UUID
+	HasMessageManagement bool
 }

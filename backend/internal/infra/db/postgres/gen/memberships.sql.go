@@ -130,6 +130,78 @@ func (q *Queries) FindMembershipsByUserId(ctx context.Context, userID uuid.UUID)
 	return items, nil
 }
 
+const findRoleAssignmentsByMembershipId = `-- name: FindRoleAssignmentsByMembershipId :many
+SELECT role_id FROM role_assignment WHERE membership_id = $1
+`
+
+func (q *Queries) FindRoleAssignmentsByMembershipId(ctx context.Context, membershipID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, findRoleAssignmentsByMembershipId, membershipID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var role_id uuid.UUID
+		if err := rows.Scan(&role_id); err != nil {
+			return nil, err
+		}
+		items = append(items, role_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findRoleAssignmentsByServerId = `-- name: FindRoleAssignmentsByServerId :many
+SELECT ra.membership_id, ra.role_id FROM role_assignment ra, memberships mb WHERE ra.membership_id = mb.id AND mb.server_id = $1
+`
+
+func (q *Queries) FindRoleAssignmentsByServerId(ctx context.Context, serverID uuid.UUID) ([]RoleAssignment, error) {
+	rows, err := q.db.Query(ctx, findRoleAssignmentsByServerId, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RoleAssignment
+	for rows.Next() {
+		var i RoleAssignment
+		if err := rows.Scan(&i.MembershipID, &i.RoleID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findRoleAssignmentsByUserId = `-- name: FindRoleAssignmentsByUserId :many
+SELECT ra.membership_id, ra.role_id FROM role_assignment ra, memberships mb WHERE ra.membership_id = mb.id AND mb.user_id = $1
+`
+
+func (q *Queries) FindRoleAssignmentsByUserId(ctx context.Context, userID uuid.UUID) ([]RoleAssignment, error) {
+	rows, err := q.db.Query(ctx, findRoleAssignmentsByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RoleAssignment
+	for rows.Next() {
+		var i RoleAssignment
+		if err := rows.Scan(&i.MembershipID, &i.RoleID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const saveMembership = `-- name: SaveMembership :one
 INSERT INTO memberships (
   id,
@@ -175,4 +247,39 @@ func (q *Queries) SaveMembership(ctx context.Context, arg SaveMembershipParams) 
 		&i.Nickname,
 	)
 	return i, err
+}
+
+const setMembershipRoles = `-- name: SetMembershipRoles :many
+WITH deleted AS (
+  DELETE FROM role_assignment WHERE membership_id = $1
+)
+INSERT INTO role_assignment (membership_id, role_id) 
+SELECT $1, UNNEST(COALESCE($2, '{}')::uuid[])
+ON CONFLICT DO NOTHING
+RETURNING role_id
+`
+
+type SetMembershipRolesParams struct {
+	MembershipID uuid.UUID
+	RoleIds      []uuid.UUID
+}
+
+func (q *Queries) SetMembershipRoles(ctx context.Context, arg SetMembershipRolesParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, setMembershipRoles, arg.MembershipID, arg.RoleIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var role_id uuid.UUID
+		if err := rows.Scan(&role_id); err != nil {
+			return nil, err
+		}
+		items = append(items, role_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

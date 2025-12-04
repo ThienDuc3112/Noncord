@@ -291,6 +291,11 @@ INSERT INTO messages (
   author_type,
   message
 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+ON CONFLICT (id)
+DO UPDATE SET
+  updated_at = $3,
+  deleted_at = $4,
+  message = $9
 RETURNING id, created_at, updated_at, deleted_at, channel_id, group_id, author_id, message, author_type
 `
 

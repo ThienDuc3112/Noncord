@@ -14,7 +14,8 @@ type GetServer struct {
 type GetServerResult struct {
 	Preview common.ServerPreview
 	Full    *common.Server
-	Channel []*common.Channel
+	Channel []common.Channel
+	Roles   []common.Role
 }
 
 type GetServers struct {
@@ -22,7 +23,7 @@ type GetServers struct {
 }
 
 type GetServersResult struct {
-	Result []*common.Server
+	Result []common.Server
 }
 
 type GetServersUserIn struct {
@@ -30,5 +31,5 @@ type GetServersUserIn struct {
 }
 
 type GetServersUserInResult struct {
-	Result []*common.Server
+	Result []common.Server
 }

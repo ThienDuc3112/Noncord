@@ -10,11 +10,13 @@ import (
 const (
 	EventMembershipCreated         = "membership.created"
 	EventMembershipRoleAssigned    = "membership.role_assigned"
+	EventMembershipRoleUnassigned  = "membership.role_unassigned"
 	EventMembershipNicknameChanged = "membership.nickname_changed"
 	EventMembershipDeleted         = "membership.deleted"
 
 	MembershipCreatedSchemaVersion         = 1
 	MembershipRoleAssignedSchemaVersion    = 1
+	MembershipRoleUnassignedSchemaVersion  = 1
 	MembershipNicknameChangedSchemaVersion = 1
 	MembershipDeletedSchemaVersion         = 1
 )
@@ -45,6 +47,18 @@ type MembershipRoleAssigned struct {
 func NewMembershipRoleAssigned(m *Membership, roleId RoleId) MembershipRoleAssigned {
 	return MembershipRoleAssigned{
 		Base:   events.NewBase("membership", uuid.UUID(m.Id), EventMembershipRoleAssigned, MembershipRoleAssignedSchemaVersion),
+		RoleID: uuid.UUID(roleId),
+	}
+}
+
+type MembershipRoleUnassigned struct {
+	events.Base
+	RoleID uuid.UUID `json:"role_id"`
+}
+
+func NewMembershipRoleUnassigned(m *Membership, roleId RoleId) MembershipRoleAssigned {
+	return MembershipRoleAssigned{
+		Base:   events.NewBase("membership", uuid.UUID(m.Id), EventMembershipRoleUnassigned, MembershipRoleUnassignedSchemaVersion),
 		RoleID: uuid.UUID(roleId),
 	}
 }

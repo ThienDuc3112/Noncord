@@ -60,7 +60,7 @@ func main() {
 	messageService := services.NewMessageService(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.MessageRepos { return rb }))
 
 	// ---------- Queries ----------
-	serverQueries := services.NewServerQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ServerRepos { return rb }))
+	serverQueries := postgres.NewPGServerQueries(pgPool)
 	inviteQueries := services.NewInvitationQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.InvitationRepos { return rb }))
 	messageQueries := postgres.NewPGMessageQueries(pgPool)
 	channelQueries := services.NewChannelQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))

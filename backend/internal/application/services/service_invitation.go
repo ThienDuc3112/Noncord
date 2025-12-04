@@ -32,16 +32,6 @@ func NewInvitationQueries(uow repositories.UnitOfWork[InvitationRepos]) interfac
 
 func (s *InvitationService) CreateInvitation(ctx context.Context, param command.CreateInvitationCommand) (res command.CreateInvitationCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos InvitationRepos) error {
-		server, err := repos.Server().Find(ctx, entities.ServerId(param.ServerId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
-		}
-
-		if !server.IsOwner(entities.UserId(param.UserId)) {
-			return entities.NewError(entities.ErrCodeForbidden, "not enough permission to create invitation", nil)
-		}
-		// TODO: Check permission in role as well
-
 		invitation := entities.NewInvitation(entities.ServerId(param.ServerId), param.ExpiresAt, param.BypassApproval, param.JoinLimit)
 		newInv, err := repos.Invitation().Save(ctx, invitation)
 		if err != nil {
@@ -59,16 +49,6 @@ func (s *InvitationService) CreateInvitation(ctx context.Context, param command.
 
 func (s *InvitationService) UpdateInvitation(ctx context.Context, params command.UpdateInvitationCommand) (res command.UpdateInvitationCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos InvitationRepos) error {
-		server, err := repos.Server().FindByInvitationId(ctx, entities.InvitationId(params.InvitationId))
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
-		}
-
-		if !server.IsOwner(entities.UserId(params.UserId)) {
-			return entities.NewError(entities.ErrCodeForbidden, "not enough permission to create invitation", nil)
-		}
-		// TODO: Check permission in role as well
-
 		inv, err := repos.Invitation().Find(ctx, entities.InvitationId(params.InvitationId))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get invitation")

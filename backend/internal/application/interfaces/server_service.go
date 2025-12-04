@@ -4,6 +4,8 @@ import (
 	"backend/internal/application/command"
 	"backend/internal/application/query"
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type ServerService interface {
@@ -16,4 +18,5 @@ type ServerQueries interface {
 	Get(context.Context, query.GetServer) (query.GetServerResult, error)
 	GetServers(context.Context, query.GetServers) (query.GetServersResult, error)
 	GetServersUserIn(context.Context, query.GetServersUserIn) (query.GetServersUserInResult, error)
+	GetServerIdsUserIn(context.Context, query.GetServersUserIn) (uuid.UUIDs, error)
 }

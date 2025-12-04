@@ -6,7 +6,6 @@ import (
 	"backend/internal/infra/db/postgres/gen"
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/gookit/goutil/arrutil"
@@ -28,7 +27,12 @@ func (r *PGMemberRepo) Find(ctx context.Context, userId e.UserId, serverId e.Ser
 		return nil, err
 	}
 
-	return fromDbMembership(membership), nil
+	roleIds, err := r.q.FindRoleAssignmentsByMembershipId(ctx, membership.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return fromDbMembership(membership, roleIds), nil
 }
 
 func (r *PGMemberRepo) FindByUserId(ctx context.Context, userId e.UserId) ([]*e.Membership, error) {
@@ -37,8 +41,17 @@ func (r *PGMemberRepo) FindByUserId(ctx context.Context, userId e.UserId) ([]*e.
 		return nil, err
 	}
 
+	roleAssignments, err := r.q.FindRoleAssignmentsByUserId(ctx, uuid.UUID(userId))
+	if err != nil {
+		return nil, err
+	}
+	rolesMapping := make(map[uuid.UUID][]uuid.UUID)
+	for _, ra := range roleAssignments {
+		rolesMapping[ra.MembershipID] = append(rolesMapping[ra.MembershipID], ra.RoleID)
+	}
+
 	return arrutil.Map(memberships, func(m gen.Membership) (target *e.Membership, find bool) {
-		return fromDbMembership(m), true
+		return fromDbMembership(m, rolesMapping[m.ID]), true
 	}), nil
 }
 
@@ -48,16 +61,28 @@ func (r *PGMemberRepo) FindByServerId(ctx context.Context, serverId e.ServerId) 
 		return nil, err
 	}
 
+	roleAssignments, err := r.q.FindRoleAssignmentsByServerId(ctx, uuid.UUID(serverId))
+	if err != nil {
+		return nil, err
+	}
+	rolesMapping := make(map[uuid.UUID][]uuid.UUID)
+	for _, ra := range roleAssignments {
+		rolesMapping[ra.MembershipID] = append(rolesMapping[ra.MembershipID], ra.RoleID)
+	}
+
 	return arrutil.Map(memberships, func(m gen.Membership) (target *e.Membership, find bool) {
-		return fromDbMembership(m), true
+		return fromDbMembership(m, rolesMapping[m.ID]), true
 	}), nil
 }
 
-func (r *PGMemberRepo) FindRoleAssignments(ctx context.Context, userId e.UserId, serverId e.ServerId) ([]*e.RoleAssignment, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
-
 func (r *PGMemberRepo) Save(ctx context.Context, membership *e.Membership) (*e.Membership, error) {
+	roleIds := []uuid.UUID{}
+	for roleId, assigned := range membership.Roles {
+		if assigned {
+			roleIds = append(roleIds, uuid.UUID(roleId))
+		}
+	}
+
 	res, err := r.q.SaveMembership(ctx, gen.SaveMembershipParams{
 		ID:        uuid.UUID(membership.Id),
 		ServerID:  uuid.UUID(membership.ServerId),
@@ -69,15 +94,29 @@ func (r *PGMemberRepo) Save(ctx context.Context, membership *e.Membership) (*e.M
 		return nil, err
 	}
 
+	if membership.IsDeleted() {
+		err = r.q.DeleteMembership(ctx, gen.DeleteMembershipParams{
+			UserID:   uuid.UUID(membership.UserId),
+			ServerID: uuid.UUID(membership.ServerId),
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		roleIds, err = r.q.SetMembershipRoles(ctx, gen.SetMembershipRolesParams{
+			MembershipID: uuid.UUID(membership.Id),
+			RoleIds:      roleIds,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err = pullAndPushEvents(ctx, r.q, membership.PullsEvents()); err != nil {
 		return nil, err
 	}
 
-	return fromDbMembership(res), nil
-}
-
-func (r *PGMemberRepo) SaveRoleAssignment(ctx context.Context, assignment *e.RoleAssignment) (*e.RoleAssignment, error) {
-	return nil, fmt.Errorf("Not implemented")
+	return fromDbMembership(res, roleIds), nil
 }
 
 func (r *PGMemberRepo) Delete(ctx context.Context, userId e.UserId, serverId e.ServerId) error {
@@ -85,10 +124,6 @@ func (r *PGMemberRepo) Delete(ctx context.Context, userId e.UserId, serverId e.S
 		UserID:   uuid.UUID(userId),
 		ServerID: uuid.UUID(serverId),
 	})
-}
-
-func (r *PGMemberRepo) DeleteRoleAssignment(ctx context.Context, userId e.UserId, serverId e.ServerId, roleId e.RoleId) error {
-	return fmt.Errorf("Not implemented")
 }
 
 var _ repositories.MemberRepo = &PGMemberRepo{}

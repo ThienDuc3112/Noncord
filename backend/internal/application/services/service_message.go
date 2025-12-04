@@ -10,9 +10,7 @@ import (
 )
 
 type MessageRepos interface {
-	Member() repositories.MemberRepo
 	Server() repositories.ServerRepo
-	Channel() repositories.ChannelRepo
 	Message() repositories.MessageRepo
 }
 
@@ -24,28 +22,6 @@ func NewMessageService(uow repositories.UnitOfWork[MessageRepos]) interfaces.Mes
 	return &MessageService{uow}
 }
 
-func (s *MessageService) getChannelContext(ctx context.Context, repos MessageRepos, channelId entities.ChannelId, userId entities.UserId) (*entities.Channel, *entities.Server, *entities.Membership, error) {
-	channel, err := repos.Channel().Find(ctx, channelId)
-	if err != nil {
-		return nil, nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's channel")
-	}
-
-	server, err := repos.Server().Find(ctx, channel.ServerId)
-	if err != nil {
-		return nil, nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get message's server")
-	}
-
-	membership, err := repos.Member().Find(ctx, userId, server.Id)
-	if err != nil {
-		if derr, ok := err.(*entities.ChatError); ok && derr.Code == entities.ErrCodeNoObject {
-			return nil, nil, nil, entities.NewError(entities.ErrCodeForbidden, "user not in server to view message", nil)
-		}
-		return nil, nil, nil, entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get user's server membership detail")
-	}
-
-	return channel, server, membership, nil
-}
-
 func (s *MessageService) Create(ctx context.Context, params command.CreateMessageCommand) (res command.CreateMessageCommandResult, err error) {
 	if params.IsTargetChannel {
 		msg, err := entities.NewMessage((*entities.ChannelId)(&params.TargetId), nil, (*entities.UserId)(params.UserId), entities.AuthorType(params.AuthorType), params.Content, nil)
@@ -54,12 +30,6 @@ func (s *MessageService) Create(ctx context.Context, params command.CreateMessag
 		}
 
 		err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
-			_, _, _, err = s.getChannelContext(ctx, repos, entities.ChannelId(params.TargetId), *msg.Author)
-			if err != nil {
-				return err
-			}
-			// TODO: Check permission with roles, channel overwrite and stuff
-
 			msg, err = repos.Message().Save(ctx, msg)
 			if err != nil {
 				return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "failed to save message")
@@ -87,6 +57,7 @@ func (s *MessageService) CreateSystemMessage(ctx context.Context, params command
 		if s.AnnouncementChannel == nil {
 			return nil
 		}
+
 		// TODO: Check permission with roles, channel overwrite and stuff
 		msg, err := entities.NewMessage(s.AnnouncementChannel, nil, nil, entities.AuthorTypeSystem, params.Content, nil)
 		if err != nil {
@@ -114,15 +85,9 @@ func (s *MessageService) Delete(ctx context.Context, params command.DeleteMessag
 		}
 
 		if msg.ChannelId != nil {
-			_, server, membership, derr := s.getChannelContext(ctx, repos, *msg.ChannelId, entities.UserId(params.UserId))
-			if derr != nil {
-				return derr
-			}
-
-			if !server.IsOwner(membership.UserId) && !msg.IsAuthor(membership.UserId) {
+			if !msg.IsAuthor(entities.UserId(params.UserId)) && !params.HasMessageManagement {
 				return entities.NewError(entities.ErrCodeForbidden, "user don't have permission to delete message", nil)
 			}
-			// TODO: Add other permission check later
 
 			err = msg.Delete()
 			if err != nil {

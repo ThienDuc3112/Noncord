@@ -317,9 +317,9 @@ type Server struct {
 	IconUrl             string
 	BannerUrl           string
 	NeedApproval        bool
+	DefaultRole         *uuid.UUID
 	AnnouncementChannel *uuid.UUID
 	Owner               uuid.UUID
-	DefaultPermission   int64
 }
 
 type Session struct {

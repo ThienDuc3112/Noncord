@@ -15,8 +15,9 @@ const (
 	EventServerBannerURLUpdated           = "server.banner_url_updated"
 	EventServerNeedApprovalChanged        = "server.need_approval_changed"
 	EventServerAnnouncementChannelChanged = "server.announcement_channel_changed"
-	EventServerDefaultPermissionChanged   = "server.default_permission_changed"
+	EventServerDefaultRoleChanged         = "server.default_role_changed"
 	EventServerDeleted                    = "server.deleted"
+	// EventServerDefaultRoleChanged   = "server.default_permission_changed"
 
 	ServerCreatedSchemaVersion                    = 1
 	ServerNameUpdatedSchemaVersion                = 1
@@ -25,33 +26,35 @@ const (
 	ServerBannerURLUpdatedSchemaVersion           = 1
 	ServerNeedApprovalChangedSchemaVersion        = 1
 	ServerAnnouncementChannelChangedSchemaVersion = 1
-	ServerDefaultPermissionChangedSchemaVersion   = 1
+	ServerDefaultRoleChangedSchemaVersion         = 1
 	ServerDeletedSchemaVersion                    = 1
+	// ServerDefaultRoleChangedSchemaVersion   = 1
 )
 
 // ----------------- Event payloads + constructors -----------------
 
 type ServerCreated struct {
 	events.Base
-	Name              string    `json:"name"`
-	Description       string    `json:"description"`
-	OwnerID           uuid.UUID `json:"owner_id"`
-	IconURL           string    `json:"icon_url,omitempty"`
-	BannerURL         string    `json:"banner_url,omitempty"`
-	NeedApproval      bool      `json:"need_approval"`
-	DefaultPermission uint64    `json:"default_permission"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	OwnerID      uuid.UUID `json:"owner_id"`
+	IconURL      string    `json:"icon_url,omitempty"`
+	BannerURL    string    `json:"banner_url,omitempty"`
+	NeedApproval bool      `json:"need_approval"`
+	// DefaultPermission uint64    `json:"default_permission"`
+	DefaultRole *uuid.UUID `json:"default_role"`
 }
 
 func NewServerCreated(s *Server) ServerCreated {
 	return ServerCreated{
-		Base:              events.NewBase("server", uuid.UUID(s.Id), EventServerCreated, ServerCreatedSchemaVersion),
-		Name:              s.Name,
-		Description:       s.Description,
-		OwnerID:           uuid.UUID(s.Owner),
-		IconURL:           s.IconUrl,
-		BannerURL:         s.BannerUrl,
-		NeedApproval:      s.NeedApproval,
-		DefaultPermission: uint64(s.DefaultPermission),
+		Base:         events.NewBase("server", uuid.UUID(s.Id), EventServerCreated, ServerCreatedSchemaVersion),
+		Name:         s.Name,
+		Description:  s.Description,
+		OwnerID:      uuid.UUID(s.Owner),
+		IconURL:      s.IconUrl,
+		BannerURL:    s.BannerUrl,
+		NeedApproval: s.NeedApproval,
+		DefaultRole:  (*uuid.UUID)(s.DefaultRole),
 	}
 }
 
@@ -139,17 +142,31 @@ func NewServerAnnouncementChannelChanged(s *Server, old *ChannelId) ServerAnnoun
 	}
 }
 
-type ServerDefaultPermissionChanged struct {
+// type ServerDefaultPermissionChanged struct {
+// 	events.Base
+// 	Old uint64 `json:"old"`
+// 	New uint64 `json:"new"`
+// }
+
+// func NewServerDefaultPermissionChanged(s *Server, old ServerPermissionBits) ServerDefaultPermissionChanged {
+// 	return ServerDefaultPermissionChanged{
+// 		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion),
+// 		Old:  uint64(old),
+// 		New:  uint64(s.DefaultPermission),
+// 	}
+// }
+
+type ServerDefaultRoleChanged struct {
 	events.Base
-	Old uint64 `json:"old"`
-	New uint64 `json:"new"`
+	Old *uuid.UUID `json:"old"`
+	New *uuid.UUID `json:"new"`
 }
 
-func NewServerDefaultPermissionChanged(s *Server, old ServerPermissionBits) ServerDefaultPermissionChanged {
-	return ServerDefaultPermissionChanged{
-		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion),
-		Old:  uint64(old),
-		New:  uint64(s.DefaultPermission),
+func NewServerDefaultRoleChanged(s *Server, old *RoleId) ServerDefaultRoleChanged {
+	return ServerDefaultRoleChanged{
+		Base: events.NewBase("server", uuid.UUID(s.Id), EventServerDefaultRoleChanged, ServerDefaultRoleChangedSchemaVersion),
+		Old:  (*uuid.UUID)(old),
+		New:  (*uuid.UUID)(s.DefaultRole),
 	}
 }
 
@@ -177,6 +194,6 @@ func init() {
 	events.Register(EventServerBannerURLUpdated, ServerBannerURLUpdatedSchemaVersion, func() events.DomainEvent { return ServerBannerURLUpdated{} })
 	events.Register(EventServerNeedApprovalChanged, ServerNeedApprovalChangedSchemaVersion, func() events.DomainEvent { return ServerNeedApprovalChanged{} })
 	events.Register(EventServerAnnouncementChannelChanged, ServerAnnouncementChannelChangedSchemaVersion, func() events.DomainEvent { return ServerAnnouncementChannelChanged{} })
-	events.Register(EventServerDefaultPermissionChanged, ServerDefaultPermissionChangedSchemaVersion, func() events.DomainEvent { return ServerDefaultPermissionChanged{} })
+	events.Register(EventServerDefaultRoleChanged, ServerDefaultRoleChangedSchemaVersion, func() events.DomainEvent { return ServerDefaultRoleChanged{} })
 	events.Register(EventServerDeleted, ServerDeletedSchemaVersion, func() events.DomainEvent { return ServerDeleted{} })
 }

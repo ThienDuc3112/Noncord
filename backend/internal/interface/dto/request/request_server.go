@@ -22,7 +22,7 @@ type UpdateServer struct {
 	BannerUrl           *string    `json:"bannerUrl" validate:"required_without_all=Name Description IconUrl NeedApproval AnnouncementChannel DefaultPermission"`
 	NeedApproval        *bool      `json:"needApproval" validate:"required_without_all=Name Description IconUrl BannerUrl AnnouncementChannel DefaultPermission"`
 	AnnouncementChannel *uuid.UUID `json:"announcementChannel" validate:"required_without_all=Name Description IconUrl BannerUrl NeedApproval DefaultPermission"`
-	DefaultPermission   *int64     `json:"defaultPermission" validate:"required_without_all=Name Description IconUrl BannerUrl NeedApproval AnnouncementChannel"`
+	DefaultRole         *string    `json:"defaultPermission" validate:"required_without_all=Name Description IconUrl BannerUrl NeedApproval AnnouncementChannel"`
 }
 
 func (r *UpdateServer) Bind(_ *http.Request) error {
