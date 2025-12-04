@@ -47,6 +47,7 @@
             - [ ] Check for ownership
             - [ ] Actual transfer
     - [ ] Implement controller
+        - [ ] Front door perission checking
         - [x] Auth middleware
         - [ ] Create new server
             - [x] Document server routes
@@ -92,6 +93,7 @@
         - [x] Edit invitation
         - [x] Invalidate invitation
     - [ ] Implement controller
+        - [ ] Front door perission checking
         - [x] Auth middleware
         - [x] Get invitation by ID
             - [x] Document server routes
@@ -132,6 +134,7 @@
         - [ ] Get server by user in
         - [ ] Set nickname
     - [ ] Implement controller
+        - [ ] Front door perission checking
         - [ ] Get members in a server
 - [ ] Channel service
     - [ ] Shape:
@@ -166,6 +169,7 @@
             - [ ] Permission check
             - [x] Delete channel
     - [ ] Implement controller
+        - [ ] Front door perission checking
         - [x] Get channel
         - [x] Create channel
         - [ ] Update channel
@@ -190,6 +194,7 @@
             - [x] Delete message
             - [ ] Check permission
     - [ ] Implement controller
+        - [ ] Front door perission checking
         - [x] Create message controller
         - [x] Get message controller
         - [ ] Get messages by channel id controller
