@@ -42,6 +42,22 @@ func (q *PGServerQueries) Get(ctx context.Context, p query.GetServer) (query.Get
 		return query.GetServerResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot get roles", err)
 	}
 
+	member := query.Membership{}
+	if p.UserId != nil {
+		mb, err := q.q.FindMembership(ctx, gen.FindMembershipParams{
+			ServerID: s.ID,
+			UserID:   *p.UserId,
+		})
+		if err == nil {
+			member = query.Membership{
+				ServerId:  mb.ServerID,
+				UserId:    mb.UserID,
+				Nickname:  mb.Nickname,
+				CreatedAt: mb.CreatedAt,
+			}
+		}
+	}
+
 	rs := toCommonServer(s)
 
 	return query.GetServerResult{
@@ -59,6 +75,7 @@ func (q *PGServerQueries) Get(ctx context.Context, p query.GetServer) (query.Get
 		Roles: arrutil.Map(roles, func(r gen.Role) (target common.Role, find bool) {
 			return toCommonRole(r), true
 		}),
+		Membership: member,
 	}, nil
 }
 

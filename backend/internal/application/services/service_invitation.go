@@ -32,6 +32,11 @@ func NewInvitationQueries(uow repositories.UnitOfWork[InvitationRepos]) interfac
 
 func (s *InvitationService) CreateInvitation(ctx context.Context, param command.CreateInvitationCommand) (res command.CreateInvitationCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos InvitationRepos) error {
+		_, err := repos.Server().Find(ctx, entities.ServerId(param.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+		}
+
 		invitation := entities.NewInvitation(entities.ServerId(param.ServerId), param.ExpiresAt, param.BypassApproval, param.JoinLimit)
 		newInv, err := repos.Invitation().Save(ctx, invitation)
 		if err != nil {

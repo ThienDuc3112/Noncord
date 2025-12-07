@@ -6,9 +6,9 @@ import { theme } from "@/lib/theme";
 import CreateServerDialog from "./createServerDialog";
 import { useAtom, useAtomValue } from "jotai";
 import { selectedServerIdAtom } from "./state";
+import { ServersAtom } from "../context/server";
 
 interface SidebarProps {
-  servers: ServerPreview[];
   onServerCreated: (server: ServerPreview) => void;
 }
 
@@ -21,8 +21,9 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-export default function Sidebar({ servers, onServerCreated }: SidebarProps) {
+export default function Sidebar({ onServerCreated }: SidebarProps) {
   const [selectedServerId, setSelectServer] = useAtom(selectedServerIdAtom);
+  const servers = useAtomValue(ServersAtom);
 
   return (
     <aside

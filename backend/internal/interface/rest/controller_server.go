@@ -214,6 +214,12 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 					ServerId:     r.ServerId,
 				}, true
 			}),
+			SelfMembership: response.Membership{
+				ServerId:  server.Membership.ServerId,
+				UserId:    server.Membership.UserId,
+				Nickname:  server.Membership.Nickname,
+				CreatedAt: server.Membership.CreatedAt,
+			},
 		})
 	} else {
 		render.Status(r, 404)

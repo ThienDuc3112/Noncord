@@ -15,6 +15,12 @@ import {
   CreateMessageSchema,
   CreateMessageResponse,
   TokenData,
+  NewInvitationSchema,
+  InvitationSchema,
+  JoinServerResponseSchema,
+  type NewInvitationData,
+  type Invitation,
+  type JoinServerResponse,
 } from "./types";
 
 export const apiClient = axios.create({
@@ -197,4 +203,36 @@ export async function createServer(name: string): Promise<ServerPreview> {
     iconUrl: server.iconUrl ?? undefined,
     bannerUrl: server.bannerUrl ?? undefined,
   };
+}
+
+export async function createInvitation(
+  serverId: string,
+  data: NewInvitationData,
+): Promise<Invitation> {
+  // Client-side validation of payload
+  const payload = NewInvitationSchema.parse(data);
+
+  const res = await apiClient.post(`/server/${serverId}/invitations`, payload);
+
+  const parsed = InvitationSchema.safeParse(res.data);
+  if (!parsed.success) {
+    console.error("Invalid create-invitation response", parsed.error);
+    throw new Error("Server returned invalid invitation shape");
+  }
+
+  return parsed.data;
+}
+
+export async function joinServer(
+  invitationId: string,
+): Promise<JoinServerResponse> {
+  const res = await apiClient.post(`/invitations/${invitationId}/join`);
+
+  const parsed = JoinServerResponseSchema.safeParse(res.data);
+  if (!parsed.success) {
+    console.error("Invalid join-server response", parsed.error);
+    throw new Error("Server returned invalid join-server shape");
+  }
+
+  return parsed.data;
 }

@@ -23,8 +23,9 @@ import type {
   ServerPreview,
 } from "@/lib/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { selectedChannelIdAtom, selectedServerIdAtom } from "./state";
+import { ServersAtom } from "../context/server";
 
 export default function MainView() {
   const queryClient = useQueryClient();
@@ -44,7 +45,10 @@ export default function MainView() {
     queryFn: fetchServers,
   });
 
-  const servers = serversData ?? [];
+  const setServers = useSetAtom(ServersAtom);
+  useEffect(() => {
+    if (serversData) setServers(serversData);
+  }, [serversData]);
 
   // 2) When server changes, fetch server details & channels
   const {
@@ -54,6 +58,7 @@ export default function MainView() {
   } = useQuery<GetServerResponse>({
     queryKey: ["server", selectedServerId],
     queryFn: () => fetchServerById(selectedServerId as string),
+    staleTime: 15_000,
     enabled: !!selectedServerId,
   });
 
@@ -174,7 +179,7 @@ export default function MainView() {
       className={`flex min-h-screen ${theme.classes.background} ${theme.colors.text.primary}`}
       style={{ backgroundImage: backgroundPattern }}
     >
-      <Sidebar servers={servers} onServerCreated={handleServerCreated} />
+      <Sidebar onServerCreated={handleServerCreated} />
 
       <section className="flex flex-1 max-h-screen">
         {/* Left: channels */}

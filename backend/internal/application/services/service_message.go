@@ -11,6 +11,7 @@ import (
 
 type MessageRepos interface {
 	Server() repositories.ServerRepo
+	Channel() repositories.ChannelRepo
 	Message() repositories.MessageRepo
 }
 
@@ -30,6 +31,10 @@ func (s *MessageService) Create(ctx context.Context, params command.CreateMessag
 		}
 
 		err = s.uow.Do(ctx, func(ctx context.Context, repos MessageRepos) error {
+			_, err := repos.Channel().Find(ctx, *msg.ChannelId)
+			if err != nil {
+				return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "failed to channel")
+			}
 			msg, err = repos.Message().Save(ctx, msg)
 			if err != nil {
 				return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "failed to save message")

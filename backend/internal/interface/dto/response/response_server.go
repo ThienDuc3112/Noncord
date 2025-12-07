@@ -34,7 +34,8 @@ type GetServerResponse struct {
 	DefaultRole uuid.UUID `json:"defaultRole"`
 	Channels    []Channel `json:"channels"`
 	Roles       []Role    `json:"roles"`
-	// Members
+
+	SelfMembership Membership `json:"selfMembership,omitzero"`
 }
 
 type UpdateServerResponse struct {

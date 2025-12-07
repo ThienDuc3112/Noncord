@@ -102,7 +102,7 @@ definitions:
       bannerUrl:
         type: string
       defaultPermission:
-        type: integer
+        type: string
       description:
         type: string
       iconUrl:
@@ -171,8 +171,8 @@ definitions:
         type: array
       createdAt:
         type: string
-      defaultPermission:
-        type: integer
+      defaultRole:
+        type: string
       description:
         type: string
       iconUrl:
@@ -181,6 +181,12 @@ definitions:
         type: string
       name:
         type: string
+      roles:
+        items:
+          $ref: '#/definitions/response.Role'
+        type: array
+      selfMembership:
+        $ref: '#/definitions/response.Membership'
       updatedAt:
         type: string
     type: object
@@ -257,6 +263,25 @@ definitions:
       id:
         type: string
     type: object
+  response.Role:
+    properties:
+      allowMention:
+        type: boolean
+      color:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      priority:
+        type: integer
+      serverId:
+        type: string
+    type: object
   response.ServerPreview:
     properties:
       bannerUrl:
@@ -283,8 +308,8 @@ definitions:
         type: string
       createdAt:
         type: string
-      defaultPermission:
-        type: integer
+      defaultRole:
+        type: string
       description:
         type: string
       iconUrl:

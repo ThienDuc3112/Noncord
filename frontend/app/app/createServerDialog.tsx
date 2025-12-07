@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import { NewServerSchema, type ServerPreview } from "@/lib/types";
-import { createServer } from "@/lib/request";
+import { createServer, joinServer } from "@/lib/request";
 import { theme } from "@/lib/theme";
 
 // ---- Schemas & types ----
@@ -57,7 +56,6 @@ export default function CreateServerDialog({
   onServerCreated,
   children,
 }: CreateServerDialogProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"create" | "join">("create");
 
@@ -116,9 +114,11 @@ export default function CreateServerDialog({
       return;
     }
 
-    // For now, just navigate to the invite page;
-    // that route will handle contacting the backend and joining the server.
-    router.push(`/invite/${inviteId}`);
+    const res = await joinServer(inviteId);
+    onServerCreated(res.server);
+    // // For now, just navigate to the invite page;
+    // // that route will handle contacting the backend and joining the server.
+    // router.push(`/invite/${inviteId}`);
 
     resetJoin();
     resetCreate();

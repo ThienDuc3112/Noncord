@@ -13,7 +13,6 @@ export const TokenSchema = z.object({
   accessToken:
     z
       .string({ message: "server didn't return correct access token type" })
-      // assuming you extended zod with .jwt(); if not, you can remove this line
       .jwt?.({ message: "server didn't return jwt token" }) ??
     z.string().nonempty({ message: "server didn't return a access token" }),
   refreshToken: z
@@ -39,8 +38,25 @@ export const ChannelSchema = z.object({
   updatedAt: z.string().optional(),
 });
 
+export const RoleSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  serverId: z.string(),
+  color: z.number().int().optional(),
+  allowMention: z.boolean().optional(),
+  permissions: z.array(z.string()).optional(),
+  priority: z.number().int().optional(),
+});
+
 export const GetServersSchema = z.object({
   result: z.array(ServerPreviewSchema),
+});
+
+export const MembershipSchema = z.object({
+  createdAt: z.string(),
+  nickname: z.string(),
+  serverId: z.string(),
+  userId: z.string(),
 });
 
 export const GetServerSchema = z.object({
@@ -50,10 +66,12 @@ export const GetServerSchema = z.object({
   iconUrl: z.string().nullish(),
   description: z.string().nullish(),
   announcementChannel: z.string().nullish(),
-  defaultPermission: z.number().int().optional(),
+  defaultRole: z.string().nullish(),
   createdAt: z.string(),
   updatedAt: z.string(),
   channels: z.array(ChannelSchema),
+  roles: z.array(RoleSchema),
+  selfMembership: MembershipSchema.optional(),
 });
 
 export const MessageSchema = z.object({
@@ -90,6 +108,27 @@ export const NewServerResponseSchema = z.object({
   id: z.string(),
 });
 
+export const NewInvitationSchema = z.object({
+  bypassApproval: z.boolean().optional(),
+  expiresAt: z.string().optional(),
+  joinLimit: z.number().int().optional(),
+});
+
+export const InvitationSchema = z.object({
+  id: z.string(),
+  serverId: z.string(),
+  bypassApproval: z.boolean(),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+  joinCount: z.number().int(),
+  joinLimit: z.number().int(),
+});
+
+export const JoinServerResponseSchema = z.object({
+  membership: MembershipSchema,
+  server: ServerPreviewSchema,
+});
+
 // Types
 export type LoginData = z.infer<typeof LoginSchema>;
 export type TokenData = z.infer<typeof TokenSchema>;
@@ -101,6 +140,10 @@ export type Message = z.infer<typeof MessageSchema>;
 export type CreateMessageResponse = z.infer<typeof CreateMessageSchema>;
 export type GetMessagesResponse = z.infer<typeof GetMessagesSchema>;
 export type NewServerResponse = z.infer<typeof NewServerResponseSchema>;
+export type NewInvitationData = z.infer<typeof NewInvitationSchema>;
+export type Invitation = z.infer<typeof InvitationSchema>;
+export type Membership = z.infer<typeof MembershipSchema>;
+export type JoinServerResponse = z.infer<typeof JoinServerResponseSchema>;
 
 export interface Member {
   id: string;

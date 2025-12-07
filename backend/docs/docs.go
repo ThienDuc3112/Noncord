@@ -1811,7 +1811,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "defaultPermission": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -1918,8 +1918,8 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "defaultPermission": {
-                    "type": "integer"
+                "defaultRole": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -1932,6 +1932,15 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Role"
+                    }
+                },
+                "selfMembership": {
+                    "$ref": "#/definitions/response.Membership"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -2049,6 +2058,35 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Role": {
+            "type": "object",
+            "properties": {
+                "allowMention": {
+                    "type": "boolean"
+                },
+                "color": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "serverId": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ServerPreview": {
             "type": "object",
             "properties": {
@@ -2089,8 +2127,8 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "defaultPermission": {
-                    "type": "integer"
+                "defaultRole": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"

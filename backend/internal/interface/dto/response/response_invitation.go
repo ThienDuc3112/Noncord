@@ -22,6 +22,6 @@ type Invitation struct {
 }
 
 type JoinServerResponse struct {
-	Server     ServerPreview
-	Membership Membership
+	Server     ServerPreview `json:"server"`
+	Membership Membership    `json:"membership"`
 }

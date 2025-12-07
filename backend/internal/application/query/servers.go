@@ -2,6 +2,7 @@ package query
 
 import (
 	"backend/internal/application/common"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -11,11 +12,19 @@ type GetServer struct {
 	UserId   *uuid.UUID
 }
 
+type Membership struct {
+	ServerId  uuid.UUID
+	UserId    uuid.UUID
+	Nickname  string
+	CreatedAt time.Time
+}
+
 type GetServerResult struct {
-	Preview common.ServerPreview
-	Full    *common.Server
-	Channel []common.Channel
-	Roles   []common.Role
+	Preview    common.ServerPreview
+	Full       *common.Server
+	Channel    []common.Channel
+	Roles      []common.Role
+	Membership Membership
 }
 
 type GetServers struct {
