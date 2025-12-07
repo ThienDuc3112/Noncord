@@ -38,9 +38,6 @@ func (b *pgRepoBundle) Member() repositories.MemberRepo {
 func (b *pgRepoBundle) Message() repositories.MessageRepo {
 	return &PGMessageRepo{b.q}
 }
-func (b *pgRepoBundle) Role() repositories.RoleRepo {
-	return &PGRoleRepo{b.q}
-}
 func (b *pgRepoBundle) Server() repositories.ServerRepo {
 	return &PGServerRepo{b.q}
 }

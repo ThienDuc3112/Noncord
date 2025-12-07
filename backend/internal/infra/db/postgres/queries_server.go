@@ -63,7 +63,6 @@ func (q *PGServerQueries) Get(ctx context.Context, p query.GetServer) (query.Get
 }
 
 func (q *PGServerQueries) GetServers(ctx context.Context, p query.GetServers) (query.GetServersResult, error) {
-	// TODO: Implement
 	servers, err := q.q.FindServersByIds(ctx, p.ServerIds)
 	if err != nil {
 		return query.GetServersResult{}, entities.NewError(entities.ErrCodeDepFail, "cannot get servers", err)
@@ -87,7 +86,10 @@ func (q *PGServerQueries) GetServersUserIn(ctx context.Context, p query.GetServe
 	}, nil
 }
 
-func (q *PGServerQueries) GetServerIdsUserIn(context.Context, query.GetServersUserIn) (uuid.UUIDs, error) {
-	// TODO: Implement
-	return nil, nil
+func (q *PGServerQueries) GetServerIdsUserIn(ctx context.Context, p query.GetServersUserIn) (uuid.UUIDs, error) {
+	servers, err := q.q.FindServersFromUserId(ctx, p.UserId)
+	if err != nil {
+		return nil, entities.NewError(entities.ErrCodeDepFail, "cannot get servers", err)
+	}
+	return arrutil.Map(servers, func(s gen.Server) (uuid.UUID, bool) { return s.ID, true }), nil
 }

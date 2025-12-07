@@ -8,15 +8,12 @@ import (
 	"backend/internal/domain/repositories"
 	"context"
 	"log/slog"
-
-	"github.com/google/uuid"
 )
 
 type ServerRepos interface {
 	Channel() repositories.ChannelRepo
 	Server() repositories.ServerRepo
 	Member() repositories.MemberRepo
-	Role() repositories.RoleRepo
 }
 
 type ServerService struct {
@@ -29,23 +26,6 @@ func NewServerService(uow repositories.UnitOfWork[ServerRepos]) interfaces.Serve
 
 func (s *ServerService) Create(ctx context.Context, params command.CreateServerCommand) (res command.CreateServerCommandResult, err error) {
 	server, err := entities.NewServer(entities.UserId(params.UserId), params.Name, "", "", "", false)
-	if err != nil {
-		return command.CreateServerCommandResult{}, err
-	}
-	role, err := entities.NewRole("everyone", 0x808080, 0, false,
-		entities.CreatePermission(
-			entities.PermViewChannel,
-			entities.PermCreateInvite,
-			entities.PermChangeNickname,
-			entities.PermSendMessage,
-			entities.PermEmbedLinks,
-			entities.PermAttachFiles,
-			entities.PermAddReactions,
-			entities.PermExternalEmote,
-			entities.PermReadMessagesHistory,
-		),
-		server.Id,
-	)
 	if err != nil {
 		return command.CreateServerCommandResult{}, err
 	}
@@ -74,15 +54,9 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save server")
 		}
 
-		slog.Info("creating everyone role")
-		role, err = repos.Role().Save(ctx, role)
-		if err != nil {
-			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save role")
-		}
-
 		slog.Info("creating membership")
 		membership := entities.NewMembership(server.Id, entities.UserId(params.UserId), params.UserNickname)
-		membership.AssignRole(role.Id)
+		membership.AssignRole(server.DefaultRole)
 		membership, err = repos.Member().Save(ctx, membership)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
@@ -131,15 +105,6 @@ func (s *ServerService) Update(ctx context.Context, params command.UpdateServerC
 		}
 		if params.Updates.AnnouncementChannel.Valid {
 			if err = server.UpdateAnnouncementChannel((*entities.ChannelId)(&params.Updates.AnnouncementChannel.UUID)); err != nil {
-				return err
-			}
-		}
-		if params.Updates.DefaultRole != nil {
-			newRole := (*uuid.UUID)(nil)
-			if params.Updates.DefaultRole.Valid {
-				newRole = (*uuid.UUID)(&params.Updates.DefaultRole.UUID)
-			}
-			if err = server.UpdateDefaultRole((*entities.RoleId)(newRole)); err != nil {
 				return err
 			}
 		}

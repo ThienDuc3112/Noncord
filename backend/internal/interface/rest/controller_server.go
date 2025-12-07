@@ -118,7 +118,6 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// TODO: replace with actual getting servers code
 	servers, err := c.serverQueries.GetServersUserIn(r.Context(), query.GetServersUserIn{
 		UserId: *userId,
 	})
@@ -204,6 +203,17 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 					ParentCategory: c.ParentCategory,
 				}, true
 			}),
+			Roles: arrutil.Map(server.Roles, func(r common.Role) (target response.Role, find bool) {
+				return response.Role{
+					Id:           r.Id,
+					Name:         r.Name,
+					Color:        r.Color,
+					Priority:     r.Priority,
+					AllowMention: r.AllowMention,
+					Permissions:  r.Permissions,
+					ServerId:     r.ServerId,
+				}, true
+			}),
 		})
 	} else {
 		render.Status(r, 404)
@@ -243,22 +253,6 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		render.Render(w, r, response.ParseErrorResponse("Invalid body", http.StatusBadRequest, err))
 		return
 	}
-	var newRole *uuid.NullUUID = nil
-	if body.DefaultRole != nil {
-		if *body.DefaultRole == "" {
-			newRole = &uuid.NullUUID{}
-		} else {
-			id, err := uuid.Parse(*body.DefaultRole)
-			if err != nil {
-				render.Render(w, r, response.ParseErrorResponse("Invalid body, default role id must be empty or a uuid", http.StatusBadRequest, err))
-				return
-			}
-			newRole = &uuid.NullUUID{
-				UUID:  id,
-				Valid: true,
-			}
-		}
-	}
 
 	userId := extractUserId(r.Context())
 	if userId == nil {
@@ -282,7 +276,6 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 			BannerUrl:           body.BannerUrl,
 			NeedApproval:        body.NeedApproval,
 			AnnouncementChannel: nullableAnnouncementChannel,
-			DefaultRole:         newRole,
 		},
 	})
 	if err != nil {

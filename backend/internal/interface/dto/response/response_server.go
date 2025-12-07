@@ -31,8 +31,9 @@ type GetServerResponse struct {
 	BannerUrl           string     `json:"bannerUrl"`
 	AnnouncementChannel *uuid.UUID `json:"announcementChannel"`
 
-	DefaultRole *uuid.UUID `json:"defaultRole"`
-	Channels    []Channel  `json:"channels"`
+	DefaultRole uuid.UUID `json:"defaultRole"`
+	Channels    []Channel `json:"channels"`
+	Roles       []Role    `json:"roles"`
 	// Members
 }
 
@@ -45,7 +46,7 @@ type UpdateServerResponse struct {
 	IconUrl             string     `json:"iconUrl"`
 	BannerUrl           string     `json:"bannerUrl"`
 	AnnouncementChannel *uuid.UUID `json:"announcementChannel"`
-	DefaultRole         *uuid.UUID `json:"defaultRole"`
+	DefaultRole         uuid.UUID  `json:"defaultRole"`
 }
 
 type GetServerInvitationsResponse struct {

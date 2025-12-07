@@ -47,6 +47,41 @@ func (q *Queries) FindRolesByServerId(ctx context.Context, serverID uuid.UUID) (
 	return items, nil
 }
 
+const findRolesByServerIds = `-- name: FindRolesByServerIds :many
+SELECT id, created_at, updated_at, deleted_at, name, color, priority, allow_mention, permissions, server_id FROM roles WHERE server_id = ANY($1::UUID[]) AND deleted_at IS NULL
+`
+
+func (q *Queries) FindRolesByServerIds(ctx context.Context, serverIds []uuid.UUID) ([]Role, error) {
+	rows, err := q.db.Query(ctx, findRolesByServerIds, serverIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Role
+	for rows.Next() {
+		var i Role
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Name,
+			&i.Color,
+			&i.Priority,
+			&i.AllowMention,
+			&i.Permissions,
+			&i.ServerID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const saveRole = `-- name: SaveRole :one
 INSERT INTO roles (
 	id,

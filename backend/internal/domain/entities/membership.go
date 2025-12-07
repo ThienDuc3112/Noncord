@@ -97,15 +97,3 @@ func NewMembership(sid ServerId, uid UserId, nickname string) *Membership {
 	m.Record(NewMembershipCreated(m))
 	return m
 }
-
-type RoleAssignment struct {
-	MembershipId MembershipId
-	RoleId       RoleId
-}
-
-func NewRoleAssignment(mid MembershipId, rid RoleId) *RoleAssignment {
-	return &RoleAssignment{
-		MembershipId: mid,
-		RoleId:       rid,
-	}
-}

@@ -35,3 +35,6 @@ RETURNING *;
 
 -- name: FindRolesByServerId :many
 SELECT * FROM roles WHERE server_id = $1 AND deleted_at IS NULL;
+
+-- name: FindRolesByServerIds :many
+SELECT * FROM roles WHERE server_id = ANY(@server_ids::UUID[]) AND deleted_at IS NULL;

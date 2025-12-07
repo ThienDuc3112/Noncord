@@ -74,6 +74,7 @@ func (s *MessageService) CreateSystemMessage(ctx context.Context, params command
 }
 
 func (s *MessageService) Update(context.Context, command.UpdateMessageCommand) (res command.UpdateMessageCommandResult, err error) {
+	// TODO: here
 	return res, entities.NewError(entities.ErrCodeForbidden, "method not implemented", nil)
 }
 

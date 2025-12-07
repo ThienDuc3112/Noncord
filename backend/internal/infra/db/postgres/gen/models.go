@@ -317,7 +317,7 @@ type Server struct {
 	IconUrl             string
 	BannerUrl           string
 	NeedApproval        bool
-	DefaultRole         *uuid.UUID
+	DefaultRole         uuid.UUID
 	AnnouncementChannel *uuid.UUID
 	Owner               uuid.UUID
 }

@@ -254,7 +254,7 @@ WITH deleted AS (
   DELETE FROM role_assignment WHERE membership_id = $1
 )
 INSERT INTO role_assignment (membership_id, role_id) 
-SELECT $1, UNNEST(COALESCE($2, '{}')::uuid[])
+SELECT $1, UNNEST(COALESCE($2::uuid[], '{}'::uuid[]))
 ON CONFLICT DO NOTHING
 RETURNING role_id
 `

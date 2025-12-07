@@ -19,6 +19,6 @@ ALTER TABLE servers ADD CONSTRAINT fk_servers_default_role FOREIGN KEY(default_r
 
 -- +goose Down
 -- +goose StatementBegin
-ALTER TABLE servers DROP CONSTRAINT servers_default_role_fkey;
+ALTER TABLE servers DROP CONSTRAINT fk_servers_default_role;
 DROP TABLE roles;
 -- +goose StatementEnd

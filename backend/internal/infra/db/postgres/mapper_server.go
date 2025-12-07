@@ -6,7 +6,7 @@ import (
 	"backend/internal/infra/db/postgres/gen"
 )
 
-func fromDbServer(s gen.Server) *e.Server {
+func fromDbServer(s gen.Server, rolesMap map[e.RoleId]*e.Role) *e.Server {
 	return &e.Server{
 		Id:                  e.ServerId(s.ID),
 		CreatedAt:           s.CreatedAt,
@@ -17,9 +17,10 @@ func fromDbServer(s gen.Server) *e.Server {
 		IconUrl:             s.IconUrl,
 		BannerUrl:           s.BannerUrl,
 		NeedApproval:        s.NeedApproval,
-		DefaultRole:         (*e.RoleId)(s.DefaultRole),
+		DefaultRole:         (e.RoleId)(s.DefaultRole),
 		AnnouncementChannel: (*e.ChannelId)(s.AnnouncementChannel),
 		Owner:               e.UserId(s.Owner),
+		Roles:               rolesMap,
 	}
 }
 

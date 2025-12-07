@@ -18,7 +18,7 @@ type Server struct {
 	NeedApproval bool
 	Owner        uuid.UUID
 
-	DefaultRole         *uuid.UUID
+	DefaultRole         uuid.UUID
 	AnnouncementChannel *uuid.UUID
 }
 

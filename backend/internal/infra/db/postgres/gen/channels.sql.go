@@ -110,6 +110,40 @@ func (q *Queries) FindChannelsByServerId(ctx context.Context, serverID uuid.UUID
 	return items, nil
 }
 
+const findChannelsByServerIds = `-- name: FindChannelsByServerIds :many
+SELECT id, created_at, updated_at, deleted_at, name, description, server_id, ordering, parent_category FROM channels WHERE server_id = ANY($1::UUID[]) AND deleted_at IS NULL
+`
+
+func (q *Queries) FindChannelsByServerIds(ctx context.Context, serverIds []uuid.UUID) ([]Channel, error) {
+	rows, err := q.db.Query(ctx, findChannelsByServerIds, serverIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Channel
+	for rows.Next() {
+		var i Channel
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Name,
+			&i.Description,
+			&i.ServerID,
+			&i.Ordering,
+			&i.ParentCategory,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getServerMaxOrdering = `-- name: GetServerMaxOrdering :one
 SELECT COALESCE(MAX(ordering), 0)::int AS max_order FROM channels WHERE server_id = $1 AND deleted_at IS NULL
 `

@@ -14,7 +14,6 @@ type RepoBundle interface {
 	Invitation() InvitationRepo
 	Member() MemberRepo
 	Message() MessageRepo
-	Role() RoleRepo
 	Server() ServerRepo
 	Session() SessionRepo
 	UserNotification() UserNotificationRepo

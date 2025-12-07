@@ -162,10 +162,14 @@ type Server struct {
 	BannerUrl    string
 	NeedApproval bool
 
+	roleDirty bool
+
 	Owner UserId
 
-	DefaultRole         *RoleId
+	DefaultRole         RoleId
 	AnnouncementChannel *ChannelId
+
+	Roles map[RoleId]*Role
 }
 
 func (s *Server) Validate() error {
@@ -179,9 +183,9 @@ func (s *Server) Validate() error {
 		return NewError(ErrCodeValidationError, "server description cannot exceed 512 characters", nil)
 	}
 	// TODO: Allow this when role exist
-	// if s.DefaultRole == nil {
-	// 	return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
-	// }
+	if r, ok := s.Roles[s.DefaultRole]; !ok || r == nil || r.DeletedAt != nil {
+		return NewError(ErrCodeValidationError, "server have no @everyone role", nil)
+	}
 	if s.IconUrl != "" && !IsValidUrl(s.IconUrl) {
 		return NewError(ErrCodeValidationError, "icon invalid url", nil)
 	}
@@ -198,8 +202,9 @@ func (s *Server) Validate() error {
 	return nil
 }
 
+func (s *Server) IsRoleDirty() bool { return s.roleDirty }
+
 // Server's mutators
-// # Owner UserId
 func (s *Server) UpdateName(newName string) error {
 	if newName == "" {
 		return NewError(ErrCodeValidationError, "server name cannot be empty", nil)
@@ -285,26 +290,6 @@ func (s *Server) UpdateAnnouncementChannel(channelId *ChannelId) error {
 	return nil
 }
 
-// func (s *Server) UpdateDefaultPermission(perm ServerPermissionBits) error {
-// 	if s.DefaultPermission != perm {
-// 		old := s.DefaultPermission
-// 		s.DefaultPermission = perm
-// 		s.UpdatedAt = time.Now()
-// 		s.Record(NewServerDefaultPermissionChanged(s, old))
-// 	}
-// 	return nil
-// }
-
-func (s *Server) UpdateDefaultRole(role *RoleId) error {
-	if (s.DefaultRole != nil && role == nil) || (s.DefaultRole == nil && role != nil) || (s.DefaultRole != nil && role != nil && *s.DefaultRole != *role) {
-		old := s.DefaultRole
-		s.DefaultRole = role
-		s.UpdatedAt = time.Now()
-		s.Record(NewServerDefaultRoleChanged(s, old))
-	}
-	return nil
-}
-
 func (s *Server) IsOwner(userId UserId) bool {
 	return userId == s.Owner
 }
@@ -330,17 +315,77 @@ func NewServer(userId UserId, name, description, iconUrl, bannerUrl string, need
 
 		Owner: userId,
 
-		// DefaultPermission:   CreatePermission(PermViewChannel, PermCreateInvite, PermChangeNickname, PermSendMessage, PermEmbedLinks, PermAttachFiles, PermAddReactions, PermExternalEmote, PermReadMessagesHistory),
-		DefaultRole:         nil,
 		AnnouncementChannel: nil,
+
+		Roles: make(map[RoleId]*Role),
+
+		roleDirty: true,
 	}
+
+	everyoneRole := &Role{
+		Id:           RoleId(uuid.New()),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		DeletedAt:    nil,
+		Name:         "everyone",
+		Color:        0x808080,
+		Priority:     0,
+		AllowMention: false,
+		Permissions:  CreatePermission(PermViewChannel, PermCreateInvite, PermChangeNickname, PermSendMessage, PermEmbedLinks, PermAttachFiles, PermAddReactions, PermExternalEmote, PermReadMessagesHistory),
+		ServerId:     s.Id,
+		dirty:        true,
+	}
+
+	s.Roles[everyoneRole.Id] = everyoneRole
+	s.DefaultRole = everyoneRole.Id
+
+	s.Record(NewServerCreated(s))
 
 	if err := s.Validate(); err != nil {
 		return nil, err
 	}
 
-	s.Record(NewServerCreated(s))
 	return s, nil
+}
+
+func (s *Server) CreateRole(name string, color uint32, priority uint16, allowMention bool, perm ServerPermissionBits) (*Role, error) {
+	r := &Role{
+		Id:           RoleId(uuid.New()),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		DeletedAt:    nil,
+		Name:         name,
+		Color:        color,
+		Priority:     priority,
+		AllowMention: allowMention,
+		Permissions:  perm,
+		ServerId:     s.Id,
+	}
+	if err := r.Validate(); err != nil {
+		return nil, err
+	}
+
+	s.roleDirty = true
+	r.dirty = true
+
+	s.Record(NewRoleCreated(r))
+	s.Roles[r.Id] = r
+	return r, nil
+}
+
+func (s *Server) DeleteRole(id RoleId) error {
+	r, ok := s.Roles[id]
+	if !ok || r == nil {
+		return nil
+	}
+
+	s.roleDirty = true
+	r.dirty = true
+
+	now := time.Now()
+	r.DeletedAt = &now
+	s.Record(NewRoleDeleted(r))
+	return nil
 }
 
 type CategoryId uuid.UUID
@@ -383,4 +428,34 @@ func NewJoinRequest(sid ServerId, uid UserId) *JoinRequest {
 		ServerId:  sid,
 		UserId:    uid,
 	}
+}
+
+type RoleId uuid.UUID
+
+type Role struct {
+	Id           RoleId
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
+	Name         string
+	Color        uint32
+	Priority     uint16
+	AllowMention bool
+	Permissions  ServerPermissionBits
+	ServerId     ServerId
+	dirty        bool
+}
+
+func (r *Role) Validate() error {
+	if r.Name == "" {
+		return NewError(ErrCodeValidationError, "name cannot be empty", nil)
+	}
+	if len(r.Name) > 64 {
+		return NewError(ErrCodeValidationError, "name cannot exceed 64 characters", nil)
+	}
+	return nil
+}
+
+func (r *Role) IsDirty() bool {
+	return r.dirty
 }

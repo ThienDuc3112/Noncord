@@ -15,6 +15,7 @@ import { theme } from "@/lib/theme";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 const cookies = new Cookies();
 
@@ -150,6 +151,12 @@ const LoginForm = () => {
       >
         {isSubmitting ? "Signing in..." : "Sign in"}
       </Button>
+      <Link
+        href={"/register"}
+        className={`${theme.colors.interactive.link} text-sm w-full text-center block`}
+      >
+        Need an account?
+      </Link>
     </form>
   );
 };

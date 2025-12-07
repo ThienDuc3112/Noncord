@@ -17,6 +17,7 @@ import (
 type ChannelRepos interface {
 	Channel() repositories.ChannelRepo
 	Member() repositories.MemberRepo
+	Server() repositories.ServerRepo
 }
 
 type ChannelService struct {
@@ -33,6 +34,11 @@ func NewChannelQueries(uow repositories.UnitOfWork[ChannelRepos]) interfaces.Cha
 
 func (s *ChannelService) Create(ctx context.Context, params command.CreateChannelCommand) (res command.CreateChannelCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos ChannelRepos) error {
+		_, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
+		if err != nil {
+			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server")
+		}
+
 		maxOrder, err := repos.Channel().GetServerMaxChannelOrder(ctx, entities.ServerId(params.ServerId))
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot get server details (max ordering)")

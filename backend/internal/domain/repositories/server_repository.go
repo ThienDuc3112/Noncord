@@ -10,5 +10,4 @@ type ServerRepo interface {
 	FindByIds(ctx context.Context, ids []e.ServerId) ([]*e.Server, error)
 	Save(ctx context.Context, server *e.Server) (*e.Server, error)
 	FindByInvitationId(context.Context, e.InvitationId) (*e.Server, error)
-	FindByUser(context.Context, e.UserId) ([]*e.Server, error)
 }
