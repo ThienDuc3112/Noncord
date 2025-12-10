@@ -48,11 +48,14 @@ func (c *client) Close() error {
 	return c.conn.Close()
 }
 
-func (c *client) Write(msg any) {
+func (c *client) Write(eventType string, msg any) {
 	if c.isClose.Load() {
 		return
 	}
-	c.writeChan <- msg
+	c.writeChan <- map[string]any{
+		"eventType": eventType,
+		"payload":   msg,
+	}
 }
 
 func (c *client) writePump() {

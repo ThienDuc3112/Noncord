@@ -4,9 +4,9 @@ import { Home, Plus } from "lucide-react";
 import type { ServerPreview } from "@/lib/types";
 import { theme } from "@/lib/theme";
 import CreateServerDialog from "./createServerDialog";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { selectedServerIdAtom } from "./state";
-import { ServersAtom } from "../context/server";
+import { useFetchServersQuery } from "./hooks";
 
 interface SidebarProps {
   onServerCreated: (server: ServerPreview) => void;
@@ -23,7 +23,7 @@ function getInitials(name: string) {
 
 export default function Sidebar({ onServerCreated }: SidebarProps) {
   const [selectedServerId, setSelectServer] = useAtom(selectedServerIdAtom);
-  const servers = useAtomValue(ServersAtom);
+  const { data: servers } = useFetchServersQuery();
 
   return (
     <aside
@@ -41,7 +41,7 @@ export default function Sidebar({ onServerCreated }: SidebarProps) {
 
       {/* Server icons */}
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
-        {servers.map((server) => {
+        {servers?.map((server) => {
           const isActive = server.id === selectedServerId;
           return (
             <button

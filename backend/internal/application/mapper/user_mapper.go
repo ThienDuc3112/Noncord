@@ -16,7 +16,6 @@ func NewUserResultFromUserEntity(user *entities.User) *common.UserResult {
 		Id:          uuid.UUID(user.Id),
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
-		DeletedAt:   user.DeletedAt,
 		Username:    user.Username,
 		DisplayName: user.DisplayName,
 		AboutMe:     user.AboutMe,

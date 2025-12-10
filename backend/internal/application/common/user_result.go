@@ -10,7 +10,6 @@ type UserResult struct {
 	Id          uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	DeletedAt   *time.Time
 	Username    string
 	DisplayName string
 	AboutMe     string

@@ -10,6 +10,10 @@ import (
 	"log/slog"
 )
 
+const (
+	incomingMessage = "incoming_message"
+)
+
 func (h *Hub) messageCreatedHandler(ctx context.Context, event ports.EventMessage) error {
 	slog.Default().Info("Incoming message", "event", slog.GroupValue(
 		slog.Attr{
@@ -86,7 +90,7 @@ func (h *Hub) messageCreatedHandler(ctx context.Context, event ports.EventMessag
 
 		for uId := range h.channelSub[*e.ChannelID] {
 			for _, c := range h.userConn[uId] {
-				c.Write(message)
+				c.Write(incomingMessage, message)
 			}
 		}
 	}

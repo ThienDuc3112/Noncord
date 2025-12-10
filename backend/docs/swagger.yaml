@@ -197,6 +197,29 @@ definitions:
           $ref: '#/definitions/response.ServerPreview'
         type: array
     type: object
+  response.GetUser:
+    properties:
+      aboutMe:
+        type: string
+      avatarUrl:
+        type: string
+      bannerUrl:
+        type: string
+      createdAt:
+        type: string
+      disabled:
+        type: boolean
+      displayName:
+        type: string
+      email:
+        type: string
+      flags:
+        type: integer
+      id:
+        type: string
+      username:
+        type: string
+    type: object
   response.Invitation:
     properties:
       bypassApproval:
@@ -1218,6 +1241,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.GetServerResponse'
+        "400":
+          description: server_id not a valid id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "401":
           description: Unknown session
           schema:
@@ -1424,4 +1451,75 @@ paths:
       summary: Create invitation
       tags:
       - Server
+  /api/v1/user/{user_id}:
+    get:
+      description: Get user detail by user id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: user id to fetch
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUser'
+        "400":
+          description: user_id not a valid id
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get user detail
+      tags:
+      - User
+  /api/v1/user/me:
+    get:
+      description: Get own user detail
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetUser'
+        "401":
+          description: Unknown session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get own user detail
+      tags:
+      - User
 swagger: "2.0"

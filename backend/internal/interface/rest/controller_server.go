@@ -148,6 +148,7 @@ func (c *ServerController) GetServersController(w http.ResponseWriter, r *http.R
 //	@Param			Authorization	header		string	true	"Bearer token"
 //	@Param			server_id		path		string	true	"server id to fetch"
 //	@Success		200				{object}	response.GetServerResponse
+//	@Failure		400				{object}	response.ErrorResponse	"server_id not a valid id"
 //	@Failure		401				{object}	response.ErrorResponse	"Unknown session"
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden"
 //	@Failure		404				{object}	response.ErrorResponse	"Server not found"

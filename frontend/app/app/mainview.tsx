@@ -6,64 +6,49 @@ import DefaultView from "./defaultView";
 import ChatList from "./chatList";
 import MemberList from "./member";
 
-import {
-  fetchServers,
-  fetchServerById,
-  fetchChannelMessages,
-  sendChannelMessage,
-} from "@/lib/request";
+import { sendChannelMessage } from "@/lib/request";
 import { theme, backgroundPattern } from "@/lib/theme";
 
 import type {
   Channel,
   GetMessagesResponse,
-  GetServerResponse,
   Member,
   Message,
   ServerPreview,
 } from "@/lib/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useSetAtom } from "jotai";
 import { selectedChannelIdAtom, selectedServerIdAtom } from "./state";
-import { ServersAtom } from "../context/server";
+import {
+  useFetchChannelMessagesQuery,
+  useFetchServerByIdQuery,
+  useFetchServersQuery,
+} from "./hooks";
 
 export default function MainView() {
   const queryClient = useQueryClient();
 
-  const [selectedServerId, setSelectedServerId] = useAtom(selectedServerIdAtom);
+  const setSelectedServerId = useSetAtom(selectedServerIdAtom);
   const [selectedChannelId, setSelectedChannelId] = useAtom(
     selectedChannelIdAtom,
   );
 
   // 1) Fetch list of servers
-  const {
-    data: serversData,
-    isLoading: isLoadingServers,
-    error: serversError,
-  } = useQuery<ServerPreview[]>({
-    queryKey: ["servers"],
-    queryFn: fetchServers,
-  });
-
-  const setServers = useSetAtom(ServersAtom);
-  useEffect(() => {
-    if (serversData) setServers(serversData);
-  }, [serversData]);
+  const { isLoading: isLoadingServers, error: serversError } =
+    useFetchServersQuery();
 
   // 2) When server changes, fetch server details & channels
   const {
     data: serverData,
     isLoading: isLoadingServer,
     error: serverError,
-  } = useQuery<GetServerResponse>({
-    queryKey: ["server", selectedServerId],
-    queryFn: () => fetchServerById(selectedServerId as string),
-    staleTime: 15_000,
-    enabled: !!selectedServerId,
-  });
+  } = useFetchServerByIdQuery();
 
   const currentServer = serverData ?? null;
-  const channels: Channel[] = currentServer?.channels ?? [];
+  const channels: Channel[] = useMemo(
+    () => currentServer?.channels ?? [],
+    [currentServer?.channels],
+  );
 
   // Ensure a channel is selected when channels change
   useEffect(() => {
@@ -85,13 +70,12 @@ export default function MainView() {
     data: messagesData,
     isLoading: isLoadingMessages,
     error: messagesError,
-  } = useQuery<GetMessagesResponse>({
-    queryKey: ["channelMessages", selectedChannelId],
-    queryFn: () => fetchChannelMessages(selectedChannelId as string, 100),
-    enabled: !!selectedChannelId,
-  });
+  } = useFetchChannelMessagesQuery();
 
-  const messages: Message[] = messagesData?.result ?? [];
+  const messages: Message[] = useMemo(
+    () => messagesData?.result ?? [],
+    [messagesData?.result],
+  );
 
   // Unified load error message similar to your previous setLoadError usage
   const loadError = useMemo(() => {
@@ -133,8 +117,8 @@ export default function MainView() {
               {
                 id: created.id,
                 authorType: "user",
-                author: "",
-                displayName: "",
+                author: currentServer?.selfMembership?.userId,
+                displayName: currentServer?.selfMembership?.nickname ?? "",
                 avatarUrl: "",
                 createdAt: created.createdAt,
                 updatedAt: created.createdAt,
