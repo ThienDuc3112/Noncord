@@ -5,27 +5,36 @@ import Sidebar from "./sidebar";
 import DefaultView from "./defaultView";
 import ChatList from "./chatList";
 import MemberList from "./member";
+import useWebsocket, { ReadyState } from "react-use-websocket";
 
 import { sendChannelMessage } from "@/lib/request";
 import { theme, backgroundPattern } from "@/lib/theme";
 
-import type {
-  Channel,
-  GetMessagesResponse,
-  Member,
-  Message,
-  ServerPreview,
+import {
+  MessageSchema,
+  WSResponseSchema,
+  type Channel,
+  type Member,
+  type Message,
+  type ServerPreview,
 } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useSetAtom } from "jotai";
-import { selectedChannelIdAtom, selectedServerIdAtom } from "./state";
+import {
+  mergeMessages,
+  selectedChannelIdAtom,
+  selectedServerIdAtom,
+} from "./state";
 import {
   useFetchChannelMessagesQuery,
   useFetchServerByIdQuery,
   useFetchServersQuery,
 } from "./hooks";
+import Cookies from "universal-cookie";
 
 export default function MainView() {
+  const cookies = new Cookies();
+
   const queryClient = useQueryClient();
 
   const setSelectedServerId = useSetAtom(selectedServerIdAtom);
@@ -72,10 +81,7 @@ export default function MainView() {
     error: messagesError,
   } = useFetchChannelMessagesQuery();
 
-  const messages: Message[] = useMemo(
-    () => messagesData?.result ?? [],
-    [messagesData?.result],
-  );
+  const messages: Message[] = useMemo(() => messagesData ?? [], [messagesData]);
 
   // Unified load error message similar to your previous setLoadError usage
   const loadError = useMemo(() => {
@@ -107,28 +113,23 @@ export default function MainView() {
 
       const created = await sendChannelMessage(selectedChannelId, content);
 
-      queryClient.setQueryData<GetMessagesResponse | undefined>(
+      queryClient.setQueryData<Message[] | undefined>(
         ["channelMessages", selectedChannelId],
         (old) => {
-          const prev = old?.result ?? [];
-          return {
-            ...(old ?? { result: [] as Message[] }),
-            result: [
-              {
-                id: created.id,
-                authorType: "user",
-                author: currentServer?.selfMembership?.userId,
-                displayName: currentServer?.selfMembership?.nickname ?? "",
-                avatarUrl: "",
-                createdAt: created.createdAt,
-                updatedAt: created.createdAt,
-                message: content,
-                channelId: selectedChannelId,
-                groupId: null,
-              },
-              ...prev,
-            ],
-          };
+          return mergeMessages(old, [
+            {
+              id: created.id,
+              authorType: "user",
+              author: currentServer?.selfMembership?.userId,
+              displayName: currentServer?.selfMembership?.nickname ?? "",
+              avatarUrl: "",
+              createdAt: new Date(created.createdAt),
+              updatedAt: new Date(created.createdAt),
+              message: content,
+              channelId: selectedChannelId,
+              groupId: null,
+            },
+          ]);
         },
       );
     },
@@ -156,6 +157,61 @@ export default function MainView() {
     () => channels.find((c) => c.id === selectedChannelId) ?? null,
     [channels, selectedChannelId],
   );
+
+  // 6) Update ws
+  const { lastJsonMessage, readyState, sendMessage } = useWebsocket(
+    process.env.NEXT_PUBLIC_WS_URL!,
+    {
+      share: true,
+    },
+  );
+
+  useEffect(() => {
+    console.log(
+      {
+        [ReadyState.OPEN]: "open",
+        [ReadyState.CLOSED]: "closed",
+        [ReadyState.CLOSING]: "closing",
+        [ReadyState.CONNECTING]: "connecting",
+        [ReadyState.UNINSTANTIATED]: "uninstantiated",
+      }[readyState],
+    );
+    if (readyState == ReadyState.OPEN) {
+      sendMessage(
+        JSON.stringify({
+          eventType: "auth",
+          payload: `${cookies.get("accessToken")}`,
+        }),
+      );
+    }
+  }, [readyState]);
+
+  useEffect(() => {
+    if (!lastJsonMessage) return;
+    const data = WSResponseSchema.safeParse(lastJsonMessage);
+    if (!data.success) {
+      console.error("ws return unknown payload", data.error);
+      return;
+    }
+    const payload = data.data;
+    if (payload.eventType == "incoming_message") {
+      const message = MessageSchema.safeParse(payload.payload);
+      if (!message.success) {
+        console.error("incoming_message with unknown payload", message.error);
+        return;
+      }
+      const c = queryClient.getQueryCache();
+      const data = c.find<Message[] | undefined>({
+        queryKey: ["channelMessages", selectedChannelId],
+      });
+      if (data?.state.data) {
+        queryClient.setQueryData<Message[]>(
+          ["channelMessages", selectedChannelId],
+          (old) => [message.data, ...(old ?? [])],
+        );
+      }
+    }
+  }, [lastJsonMessage]);
 
   // Top-level layout
   return (

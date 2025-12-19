@@ -1,6 +1,9 @@
 package ws
 
 import (
+	"backend/internal/application/interfaces"
+	"context"
+	"encoding/json"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -9,34 +12,70 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	WS_VERSION      = 1
+	WS_AUTH_TIMEOUT = time.Second * 5
+
+	AUTH_MESSAGE = "auth"
+
+	AUTH_FAILED_EVENT = "auth_failed"
+)
+
+type wsPayload struct {
+	EventType string `json:"eventType"`
+	Payload   any    `json:"payload"`
+	Version   int32  `json:"version"`
+}
+
 type client struct {
 	id     uuid.UUID
 	userId uuid.UUID
 	conn   *websocket.Conn
 
+	authService interfaces.AuthService
+
 	writeChan chan any
 	isClose   atomic.Bool
+	auth      chan uuid.UUID
+	isAuth    atomic.Bool
 
 	unsub chan<- *client
 }
 
-func newClient(userId uuid.UUID, conn *websocket.Conn, unsub chan<- *client) *client {
+func newClient(authService interfaces.AuthService, conn *websocket.Conn, unsub chan<- *client) *client {
 	c := &client{
-		id:     uuid.New(),
-		userId: userId,
-		conn:   conn,
+		id:   uuid.New(),
+		conn: conn,
+
+		authService: authService,
 
 		writeChan: make(chan any, 512),
 		isClose:   atomic.Bool{},
+		auth:      make(chan uuid.UUID),
 
 		unsub: unsub,
 	}
-	c.isClose.Store(false)
 
 	go c.writePump()
 	go c.readPump()
 
-	return c
+	c.isClose.Store(false)
+
+	ctx, cancel := context.WithTimeout(context.Background(), WS_AUTH_TIMEOUT)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		c.Close()
+		return nil
+	case id, ok := <-c.auth:
+		if !ok {
+			c.Close()
+			return nil
+		}
+		c.userId = id
+		return c
+	}
 }
 
 func (c *client) Close() error {
@@ -52,9 +91,10 @@ func (c *client) Write(eventType string, msg any) {
 	if c.isClose.Load() {
 		return
 	}
-	c.writeChan <- map[string]any{
-		"eventType": eventType,
-		"payload":   msg,
+	c.writeChan <- wsPayload{
+		EventType: eventType,
+		Payload:   msg,
+		Version:   WS_VERSION,
 	}
 }
 
@@ -110,7 +150,36 @@ func (c *client) readPump() {
 			break
 		}
 
-		slog.Info("Incoming ws message", "msg", string(msg), "client", c.toSlogVal())
+		var data wsPayload
+		if json.Unmarshal(msg, &data) == nil {
+			switch data.EventType {
+			case AUTH_MESSAGE:
+				str, ok := data.Payload.(string)
+				if !ok {
+					slog.Info("Unknown payload for auth message", "data", data, "client", c.toSlogVal())
+					continue
+				}
+
+				userId := authMiddleware(c.authService, str)
+				if userId == nil {
+					slog.Info("attempt to authenticate token failed", "str", str, "client", c.toSlogVal())
+					c.Write(AUTH_FAILED_EVENT, "Authentication failed")
+					continue
+				}
+
+				slog.Info("Successfully authenticate user", "userId", userId.String(), "client", c.toSlogVal())
+				if c.isAuth.CompareAndSwap(false, true) {
+					c.auth <- *userId
+					close(c.auth)
+				}
+
+			default:
+				slog.Info("Incoming (unknown) ws message", "msg", string(msg), "client", c.toSlogVal())
+			}
+		} else {
+			slog.Info("Unknown message received", "msg", string(msg), "client", c.toSlogVal())
+		}
+
 	}
 }
 

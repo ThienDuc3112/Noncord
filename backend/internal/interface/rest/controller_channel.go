@@ -183,7 +183,7 @@ func (c *ChannelController) UpdateChannelController(w http.ResponseWriter, r *ht
 //	@Failure		403				{object}	response.ErrorResponse	"Forbidden action"
 //	@Failure		404				{object}	response.ErrorResponse	"Channel not found"
 //	@Failure		500				{object}	response.ErrorResponse
-//	@Router			/api/v1/invitations/{channel_id} [delete]
+//	@Router			/api/v1/channels/{channel_id} [delete]
 func (c *ChannelController) DeleteChannelController(w http.ResponseWriter, r *http.Request) {
 	log.Println("[DeleteChannelController] Deleting channel")
 }

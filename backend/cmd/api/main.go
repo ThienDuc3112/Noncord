@@ -64,6 +64,7 @@ func main() {
 	inviteQueries := services.NewInvitationQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.InvitationRepos { return rb }))
 	messageQueries := postgres.NewPGMessageQueries(pgPool)
 	channelQueries := services.NewChannelQueries(postgres.NewScopedUoW(uow, func(rb repositories.RepoBundle) services.ChannelRepos { return rb }))
+	userQueries := postgres.NewPGUserQueries(pgPool)
 
 	if err = workers.NewWorker(messageService, eventSub); err != nil {
 		log.Fatalf("Cannot attach workers to event sub: %v", err)
@@ -93,6 +94,7 @@ func main() {
 		rest.NewInvitationController(serverQueries, authService, invitationService, inviteQueries, membershipService).RegisterRoute(r)
 		rest.NewMessageController(messageService, messageQueries, authService).RegisterRoute(r)
 		rest.NewChannelController(authService, channelService, channelQueries).RegisterRoute(r)
+		rest.NewUserController(authService, userQueries).RegisterRoute(r)
 	})
 
 	log.Printf("listening on port %v", port)

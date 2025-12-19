@@ -47,7 +47,7 @@ func main() {
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 	}))
 	slog.SetDefault(logger)
@@ -62,7 +62,7 @@ func main() {
 	}
 	defer eventSub.Close()
 
-	wsHub, err := ws.NewHub(ctx, visiblityQueries, eventSub, cacheStore, userResolver)
+	wsHub, err := ws.NewHub(ctx, authService, visiblityQueries, eventSub, cacheStore, userResolver)
 	if err != nil {
 		cancel()
 		log.Fatalf("Cannot connect to rabbitMQ: %v", err)

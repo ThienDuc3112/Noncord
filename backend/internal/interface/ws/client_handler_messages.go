@@ -11,7 +11,11 @@ import (
 )
 
 const (
-	incomingMessage = "incoming_message"
+	initializedEvent = "initialized"
+
+	incomingMessageEvent = "incoming_message"
+	messageUpdatedEvent  = "message_updated"
+	messageDeletedEvent  = "message_deleted"
 )
 
 func (h *Hub) messageCreatedHandler(ctx context.Context, event ports.EventMessage) error {
@@ -90,7 +94,7 @@ func (h *Hub) messageCreatedHandler(ctx context.Context, event ports.EventMessag
 
 		for uId := range h.channelSub[*e.ChannelID] {
 			for _, c := range h.userConn[uId] {
-				c.Write(incomingMessage, message)
+				c.Write(incomingMessageEvent, message)
 			}
 		}
 	}

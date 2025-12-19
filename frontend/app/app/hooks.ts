@@ -3,11 +3,7 @@ import {
   fetchServerById,
   fetchServers,
 } from "@/lib/request";
-import {
-  GetMessagesResponse,
-  GetServerResponse,
-  ServerPreview,
-} from "@/lib/types";
+import { GetServerResponse, Message, ServerPreview } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { selectedChannelIdAtom, selectedServerIdAtom } from "./state";
@@ -31,9 +27,10 @@ export const useFetchServerByIdQuery = () => {
 
 export const useFetchChannelMessagesQuery = () => {
   const selectedChannelId = useAtomValue(selectedChannelIdAtom);
-  return useQuery<GetMessagesResponse>({
+  return useQuery<Message[]>({
     queryKey: ["channelMessages", selectedChannelId],
-    queryFn: () => fetchChannelMessages(selectedChannelId as string, 100),
+    queryFn: async () =>
+      (await fetchChannelMessages(selectedChannelId as string, 100)).result,
     enabled: !!selectedChannelId,
   });
 };

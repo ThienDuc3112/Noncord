@@ -4,6 +4,8 @@ import (
 	"backend/internal/application/interfaces"
 	"backend/internal/application/ports"
 	"context"
+	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -17,6 +19,7 @@ type Hub struct {
 	channelSub map[uuid.UUID]map[uuid.UUID]bool
 
 	visibilityService interfaces.VisibilityQueries
+	authService       interfaces.AuthService
 	eventSubscriber   ports.EventSubscriber
 
 	unsubChan chan *client
@@ -30,15 +33,17 @@ type Hub struct {
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-func NewHub(ctx context.Context, visibilityQueries interfaces.VisibilityQueries, eventReader ports.EventSubscriber, cacheStore ports.CacheStore, userResolver ports.UserResolver) (*Hub, error) {
+func NewHub(ctx context.Context, authService interfaces.AuthService, visibilityQueries interfaces.VisibilityQueries, eventReader ports.EventSubscriber, cacheStore ports.CacheStore, userResolver ports.UserResolver) (*Hub, error) {
 	hub := &Hub{
 		userConn:   make(map[uuid.UUID]map[uuid.UUID]*client),
 		serverSub:  make(map[uuid.UUID]map[uuid.UUID]bool),
 		channelSub: make(map[uuid.UUID]map[uuid.UUID]bool),
 
 		visibilityService: visibilityQueries,
+		authService:       authService,
 		eventSubscriber:   eventReader,
 
 		unsubChan: make(chan *client, 1024),
@@ -55,17 +60,24 @@ func NewHub(ctx context.Context, visibilityQueries interfaces.VisibilityQueries,
 	return hub, nil
 }
 
-func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UUID) error {
+func (h *Hub) Register(ctx context.Context, conn *websocket.Conn) error {
+	c := newClient(h.authService, conn, h.unsubChan)
+	if c == nil {
+		return fmt.Errorf("Unauth")
+	}
+	userId := c.userId
+
 	chans, err := h.visibilityService.GetVisibleChannels(ctx, userId)
 	if err != nil {
+		c.Close()
 		return err
 	}
 	servers, err := h.visibilityService.GetVisibleServers(ctx, userId)
 	if err != nil {
+		c.Close()
 		return err
 	}
 
-	c := newClient(userId, conn, h.unsubChan)
 	h.m.Lock()
 
 	for _, cId := range chans {
@@ -89,7 +101,7 @@ func (h *Hub) Register(ctx context.Context, conn *websocket.Conn, userId uuid.UU
 
 	h.m.Unlock()
 
-	c.writeChan <- map[string]any{"subscribedFrom": time.Now()}
+	c.Write(initializedEvent, map[string]any{"subscribedFrom": time.Now()})
 
 	return nil
 }

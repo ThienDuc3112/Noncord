@@ -81,8 +81,8 @@ export const MessageSchema = z.object({
   channelId: z.string().nullish(),
   groupId: z.string().nullish(),
   message: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
   avatarUrl: z.string(),
   displayName: z.string(),
 });
@@ -151,3 +151,22 @@ export interface Member {
   status?: "online" | "offline";
   avatarUrl?: string | null;
 }
+
+// WS Types
+const WS_VERSION = 1;
+
+export const WSEventTypeSchema = z.enum([
+  "initialized",
+  "auth_failed",
+  "incoming_message",
+  "message_updated",
+  "message_deleted",
+]);
+
+export const WSResponseSchema = z.object({
+  eventType: WSEventTypeSchema,
+  payload: z.any(),
+  version: z.number().lte(WS_VERSION, "unsopported version"),
+});
+
+export type WSResponse = z.infer<typeof WSResponseSchema>;
