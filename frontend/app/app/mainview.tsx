@@ -22,18 +22,20 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useSetAtom } from "jotai";
 import {
   mergeMessages,
+  messagesAtom,
   selectedChannelIdAtom,
   selectedServerIdAtom,
 } from "./state";
 import {
-  useFetchChannelMessagesQuery,
+  useMessages,
   useFetchServerByIdQuery,
   useFetchServersQuery,
 } from "./hooks";
 import Cookies from "universal-cookie";
+import ChannelList from "./channelList";
 
 export default function MainView() {
-  const cookies = new Cookies();
+  const cookies = useMemo(() => new Cookies(), []);
 
   const queryClient = useQueryClient();
 
@@ -41,17 +43,13 @@ export default function MainView() {
   const [selectedChannelId, setSelectedChannelId] = useAtom(
     selectedChannelIdAtom,
   );
+  const setMessages = useSetAtom(messagesAtom);
 
   // 1) Fetch list of servers
-  const { isLoading: isLoadingServers, error: serversError } =
-    useFetchServersQuery();
+  const { error: serversError } = useFetchServersQuery();
 
   // 2) When server changes, fetch server details & channels
-  const {
-    data: serverData,
-    isLoading: isLoadingServer,
-    error: serverError,
-  } = useFetchServerByIdQuery();
+  const { data: serverData, error: serverError } = useFetchServerByIdQuery();
 
   const currentServer = serverData ?? null;
   const channels: Channel[] = useMemo(
@@ -79,7 +77,7 @@ export default function MainView() {
     data: messagesData,
     isLoading: isLoadingMessages,
     error: messagesError,
-  } = useFetchChannelMessagesQuery();
+  } = useMessages();
 
   const messages: Message[] = useMemo(() => messagesData ?? [], [messagesData]);
 
@@ -110,28 +108,7 @@ export default function MainView() {
   const handleSendMessage = useCallback(
     async (content: string) => {
       if (!selectedChannelId) return;
-
-      const created = await sendChannelMessage(selectedChannelId, content);
-
-      queryClient.setQueryData<Message[] | undefined>(
-        ["channelMessages", selectedChannelId],
-        (old) => {
-          return mergeMessages(old, [
-            {
-              id: created.id,
-              authorType: "user",
-              author: currentServer?.selfMembership?.userId,
-              displayName: currentServer?.selfMembership?.nickname ?? "",
-              avatarUrl: "",
-              createdAt: new Date(created.createdAt),
-              updatedAt: new Date(created.createdAt),
-              message: content,
-              channelId: selectedChannelId,
-              groupId: null,
-            },
-          ]);
-        },
-      );
+      await sendChannelMessage(selectedChannelId, content);
     },
     [selectedChannelId, queryClient],
   );
@@ -200,16 +177,10 @@ export default function MainView() {
         console.error("incoming_message with unknown payload", message.error);
         return;
       }
-      const c = queryClient.getQueryCache();
-      const data = c.find<Message[] | undefined>({
-        queryKey: ["channelMessages", selectedChannelId],
-      });
-      if (data?.state.data) {
-        queryClient.setQueryData<Message[]>(
-          ["channelMessages", selectedChannelId],
-          (old) => [message.data, ...(old ?? [])],
-        );
-      }
+
+      const msg = message.data;
+      const key = (msg.channelId || msg.groupId)!;
+      setMessages((prev) => ({ ...prev, [key]: [msg, ...(prev[key] ?? [])] }));
     }
   }, [lastJsonMessage]);
 
@@ -223,49 +194,7 @@ export default function MainView() {
 
       <section className="flex flex-1 max-h-screen">
         {/* Left: channels */}
-        <div className="flex w-64 flex-col border-r border-[#363a4f] bg-[#1e2030]">
-          <div className="flex h-12 items-center border-b border-[#363a4f] px-3 text-sm font-semibold">
-            {isLoadingServers || isLoadingServer
-              ? "Loading server..."
-              : (currentServer?.name ?? "Select a server")}
-          </div>
-
-          <div className="flex-1 overflow-y-auto py-2">
-            {channels.length === 0 ? (
-              <p className={`px-4 text-xs ${theme.colors.text.muted}`}>
-                No channels. Create one in your backend / admin UI.
-              </p>
-            ) : (
-              <ul className="space-y-0.5 px-2">
-                {channels
-                  .slice()
-                  .sort(
-                    (a, b) =>
-                      (a.order ?? Number.MAX_SAFE_INTEGER) -
-                      (b.order ?? Number.MAX_SAFE_INTEGER),
-                  )
-                  .map((channel) => {
-                    const isActive = channel.id === selectedChannelId;
-                    return (
-                      <li key={channel.id}>
-                        <button
-                          onClick={() => setSelectedChannelId(channel.id)}
-                          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
-                            isActive
-                              ? "bg-[#363a4f] text-[#cad3f5]"
-                              : "text-[#a5adcb] hover:bg-[#24273a] hover:text-[#cad3f5]"
-                          }`}
-                        >
-                          <span className="text-[#6e738d]">#</span>
-                          <span className="truncate">{channel.name}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-              </ul>
-            )}
-          </div>
-        </div>
+        <ChannelList />
 
         {/* Middle: chat */}
         <div className="flex flex-1 flex-col">

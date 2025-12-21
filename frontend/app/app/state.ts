@@ -5,6 +5,8 @@ export const selectedServerIdAtom = atom<string | null>(null);
 export const selectedChannelIdAtom = atom<string | null>(null);
 export const tempWsMessages = atom<Record<string, Message[]>>({});
 
+export const messagesAtom = atom<Record<string, Message[]>>({});
+
 export const mergeMessages = (
   a: Message[] | null | undefined,
   b: Message[] | null | undefined,
