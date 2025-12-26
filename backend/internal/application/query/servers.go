@@ -17,6 +17,7 @@ type Membership struct {
 	UserId    uuid.UUID
 	Nickname  string
 	CreatedAt time.Time
+	Roles     []uuid.UUID
 }
 
 type GetServerResult struct {

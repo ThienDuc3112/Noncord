@@ -2144,6 +2144,12 @@ const docTemplate = `{
         "response.Membership": {
             "type": "object",
             "properties": {
+                "assignedRoles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "createdAt": {
                     "type": "string"
                 },

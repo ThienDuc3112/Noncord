@@ -216,10 +216,11 @@ func (c *ServerController) GetServerController(w http.ResponseWriter, r *http.Re
 				}, true
 			}),
 			SelfMembership: response.Membership{
-				ServerId:  server.Membership.ServerId,
-				UserId:    server.Membership.UserId,
-				Nickname:  server.Membership.Nickname,
-				CreatedAt: server.Membership.CreatedAt,
+				ServerId:      server.Membership.ServerId,
+				UserId:        server.Membership.UserId,
+				Nickname:      server.Membership.Nickname,
+				CreatedAt:     server.Membership.CreatedAt,
+				AssignedRoles: server.Membership.Roles,
 			},
 		})
 	} else {
@@ -273,7 +274,7 @@ func (c *ServerController) UpdateServerController(w http.ResponseWriter, r *http
 		nullableAnnouncementChannel.Valid = true
 	}
 
-	server, err := c.serverService.Update(r.Context(), command.UpdateServerCommand{
+	server, err := c.serverService.UpdateMetadata(r.Context(), command.UpdateServerCommand{
 		UserId:   *userId,
 		ServerId: serverId,
 		Updates: command.UpdateServerOption{

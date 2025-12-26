@@ -246,6 +246,10 @@ definitions:
     type: object
   response.Membership:
     properties:
+      assignedRoles:
+        items:
+          type: string
+        type: array
       createdAt:
         type: string
       nickname:

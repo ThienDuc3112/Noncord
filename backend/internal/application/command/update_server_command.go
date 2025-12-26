@@ -25,3 +25,9 @@ type UpdateServerOption struct {
 type UpdateServerCommandResult struct {
 	Result *common.Server
 }
+
+type UpsertRoleCommand struct{}
+
+type UpsertRoleCommandResult struct{}
+
+type DeleteRoleCommand struct{}

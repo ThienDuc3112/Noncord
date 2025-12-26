@@ -71,7 +71,7 @@ func (s *ServerService) Create(ctx context.Context, params command.CreateServerC
 	return res, err
 }
 
-func (s *ServerService) Update(ctx context.Context, params command.UpdateServerCommand) (res command.UpdateServerCommandResult, err error) {
+func (s *ServerService) UpdateMetadata(ctx context.Context, params command.UpdateServerCommand) (res command.UpdateServerCommandResult, err error) {
 	err = s.uow.Do(ctx, func(ctx context.Context, repos ServerRepos) error {
 		server, err := repos.Server().Find(ctx, entities.ServerId(params.ServerId))
 		if err != nil {
@@ -138,4 +138,16 @@ func (s *ServerService) Delete(ctx context.Context, param command.DeleteServerCo
 		server, err = repos.Server().Save(ctx, server)
 		return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot delete server")
 	})
+}
+
+func (s *ServerService) UpsertRole(context.Context, command.UpsertRoleCommand) (command.UpsertRoleCommandResult, error) {
+	return command.UpsertRoleCommandResult{}, nil
+}
+
+func (s *ServerService) ReorderRoles(context.Context) error {
+	return nil
+}
+
+func (s *ServerService) DeleteRole(context.Context, command.DeleteRoleCommand) error {
+	return nil
 }

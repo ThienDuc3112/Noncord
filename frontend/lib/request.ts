@@ -5,13 +5,11 @@ import {
   GetServersSchema,
   GetServerSchema,
   GetMessagesSchema,
-  MessageSchema,
   NewServerSchema,
   NewServerResponseSchema,
   type ServerPreview,
   type GetServerResponse,
   type GetMessagesResponse,
-  type Message,
   CreateMessageSchema,
   CreateMessageResponse,
   TokenData,
@@ -21,6 +19,11 @@ import {
   type NewInvitationData,
   type Invitation,
   type JoinServerResponse,
+  CreateChannelBodySchema,
+  ChannelSchema,
+  type CreateChannelResponse,
+  type Channel,
+  CreateChannelBody,
 } from "./types";
 
 export const apiClient = axios.create({
@@ -232,6 +235,32 @@ export async function joinServer(
   if (!parsed.success) {
     console.error("Invalid join-server response", parsed.error);
     throw new Error("Server returned invalid join-server shape");
+  }
+
+  return parsed.data;
+}
+
+export async function createChannel(
+  serverId: string,
+  name: string,
+  opts?: {
+    description?: string;
+    parentCategory?: string;
+  },
+): Promise<Channel> {
+  const payload = CreateChannelBodySchema.parse({
+    serverId,
+    name,
+    description: opts?.description ?? "",
+    parentCategory: opts?.parentCategory,
+  } satisfies CreateChannelBody);
+
+  const res = await apiClient.post("/channels", payload);
+
+  const parsed = ChannelSchema.safeParse(res.data);
+  if (!parsed.success) {
+    console.error("Invalid create-channel response", parsed.error);
+    throw new Error("Server returned invalid create-channel shape");
   }
 
   return parsed.data;

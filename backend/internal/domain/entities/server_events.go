@@ -15,10 +15,13 @@ const (
 	EventServerBannerURLUpdated           = "server.banner_url_updated"
 	EventServerNeedApprovalChanged        = "server.need_approval_changed"
 	EventServerAnnouncementChannelChanged = "server.announcement_channel_changed"
-	EventServerDefaultRoleChanged         = "server.default_role_changed"
 	EventServerDeleted                    = "server.deleted"
-	EventRoleCreated                      = "server.role_created"
-	EventRoleDeleted                      = "server.role_deleted"
+	EventRoleCreated                      = "server.role.created"
+	EventRoleDeleted                      = "server.role.deleted"
+	EventRoleNameUpdated                  = "server.role.name_updated"
+	EventRoleColorUpdated                 = "server.role.color_updated"
+	EventRoleAllowMentionChanged          = "server.role.allow_mention_changed"
+	EventRolePermissionsUpdated           = "server.role.permissions_updated"
 
 	ServerCreatedSchemaVersion                    = 1
 	ServerNameUpdatedSchemaVersion                = 1
@@ -27,10 +30,13 @@ const (
 	ServerBannerURLUpdatedSchemaVersion           = 1
 	ServerNeedApprovalChangedSchemaVersion        = 1
 	ServerAnnouncementChannelChangedSchemaVersion = 1
-	ServerDefaultRoleChangedSchemaVersion         = 1
 	ServerDeletedSchemaVersion                    = 1
 	ServerRoleCreatedSchemaVersion                = 1
 	ServerRoleDeletedSchemaVersion                = 1
+	ServerRoleNameUpdatedSchemaVersion            = 1
+	ServerRoleColorUpdatedSchemaVersion           = 1
+	ServerRoleAllowMentionChangedSchemaVersion    = 1
+	ServerRolePermissionsUpdatedSchemaVersion     = 1
 )
 
 // ----------------- Event payloads + constructors -----------------
@@ -158,7 +164,7 @@ func NewServerAnnouncementChannelChanged(s *Server, old *ChannelId) ServerAnnoun
 
 type ServerDeleted struct {
 	events.Base
-	DeletedAt time.Time `json:"deleted_at"`
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 func NewServerDeleted(s *Server) ServerDeleted {
@@ -198,7 +204,7 @@ func NewRoleCreated(r *Role) RoleCreated {
 
 type RoleDeleted struct {
 	events.Base
-	DeletedAt time.Time `json:"deleted_at"`
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 func NewRoleDeleted(r *Role) RoleDeleted {
@@ -214,6 +220,62 @@ func NewRoleDeleted(r *Role) RoleDeleted {
 	}
 }
 
+type RoleNameUpdated struct {
+	events.Base
+	Old  string `json:"old"`
+	Name string `json:"name"`
+}
+
+func NewRoleNameUpdated(r *Role, old string) RoleNameUpdated {
+	return RoleNameUpdated{
+		Base: events.NewBase("role", uuid.UUID(r.Id), EventRoleNameUpdated, ServerRoleNameUpdatedSchemaVersion),
+		Old:  old,
+		Name: r.Name,
+	}
+}
+
+type RoleColorUpdated struct {
+	events.Base
+	Old   uint32 `json:"old"`
+	Color uint32 `json:"color"`
+}
+
+func NewRoleColorUpdated(r *Role, old uint32) RoleColorUpdated {
+	return RoleColorUpdated{
+		Base:  events.NewBase("role", uuid.UUID(r.Id), EventRoleColorUpdated, ServerRoleColorUpdatedSchemaVersion),
+		Old:   old,
+		Color: r.Color,
+	}
+}
+
+type RoleAllowMentionUpdated struct {
+	events.Base
+	Old          bool `json:"old"`
+	AllowMention bool `json:"allowMention"`
+}
+
+func NewRoleAllowMentionUpdated(r *Role, old bool) RoleAllowMentionUpdated {
+	return RoleAllowMentionUpdated{
+		Base:         events.NewBase("role", uuid.UUID(r.Id), EventRoleAllowMentionChanged, ServerRoleAllowMentionChangedSchemaVersion),
+		Old:          old,
+		AllowMention: r.AllowMention,
+	}
+}
+
+type RolePermissionsUpdated struct {
+	events.Base
+	Old         uint64 `json:"old"`
+	Permissions uint64 `json:"permissions"`
+}
+
+func NewRolePermissionsUpdated(r *Role, old ServerPermissionBits) RolePermissionsUpdated {
+	return RolePermissionsUpdated{
+		Base:        events.NewBase("role", uuid.UUID(r.Id), EventRolePermissionsUpdated, ServerRolePermissionsUpdatedSchemaVersion),
+		Old:         uint64(old),
+		Permissions: uint64(r.Permissions),
+	}
+}
+
 func init() {
 	events.Register(EventServerCreated, ServerCreatedSchemaVersion, func() events.DomainEvent { return ServerCreated{} })
 	events.Register(EventServerNameUpdated, ServerNameUpdatedSchemaVersion, func() events.DomainEvent { return ServerNameUpdated{} })
@@ -223,4 +285,10 @@ func init() {
 	events.Register(EventServerNeedApprovalChanged, ServerNeedApprovalChangedSchemaVersion, func() events.DomainEvent { return ServerNeedApprovalChanged{} })
 	events.Register(EventServerAnnouncementChannelChanged, ServerAnnouncementChannelChangedSchemaVersion, func() events.DomainEvent { return ServerAnnouncementChannelChanged{} })
 	events.Register(EventServerDeleted, ServerDeletedSchemaVersion, func() events.DomainEvent { return ServerDeleted{} })
+	events.Register(EventRoleCreated, ServerRoleCreatedSchemaVersion, func() events.DomainEvent { return RoleCreated{} })
+	events.Register(EventRoleDeleted, ServerRoleDeletedSchemaVersion, func() events.DomainEvent { return RoleDeleted{} })
+	events.Register(EventRoleNameUpdated, ServerRoleNameUpdatedSchemaVersion, func() events.DomainEvent { return RoleNameUpdated{} })
+	events.Register(EventRoleColorUpdated, ServerRoleColorUpdatedSchemaVersion, func() events.DomainEvent { return RoleColorUpdated{} })
+	events.Register(EventRoleAllowMentionChanged, ServerRoleAllowMentionChangedSchemaVersion, func() events.DomainEvent { return RoleAllowMentionUpdated{} })
+	events.Register(EventRolePermissionsUpdated, ServerRolePermissionsUpdatedSchemaVersion, func() events.DomainEvent { return RolePermissionsUpdated{} })
 }

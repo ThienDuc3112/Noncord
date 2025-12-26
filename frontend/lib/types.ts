@@ -57,6 +57,7 @@ export const MembershipSchema = z.object({
   nickname: z.string(),
   serverId: z.string(),
   userId: z.string(),
+  assignedRoles: z.array(z.string().uuid()).nullable(),
 });
 
 export const GetServerSchema = z.object({
@@ -129,6 +130,24 @@ export const JoinServerResponseSchema = z.object({
   server: ServerPreviewSchema,
 });
 
+export const CreateChannelBodySchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  parentCategory: z.string().nullable().optional(),
+  serverId: z.string(),
+});
+
+export const CreateChannelResponseSchema = z.object({
+  id: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  name: z.string(),
+  description: z.string(),
+  serverId: z.string(),
+  order: z.number().gte(0),
+  parentCategory: z.string().nullable().optional(),
+});
+
 // Types
 export type LoginData = z.infer<typeof LoginSchema>;
 export type TokenData = z.infer<typeof TokenSchema>;
@@ -144,6 +163,8 @@ export type NewInvitationData = z.infer<typeof NewInvitationSchema>;
 export type Invitation = z.infer<typeof InvitationSchema>;
 export type Membership = z.infer<typeof MembershipSchema>;
 export type JoinServerResponse = z.infer<typeof JoinServerResponseSchema>;
+export type CreateChannelBody = z.infer<typeof CreateChannelBodySchema>;
+export type CreateChannelResponse = z.infer<typeof CreateChannelResponseSchema>;
 
 export interface Member {
   id: string;

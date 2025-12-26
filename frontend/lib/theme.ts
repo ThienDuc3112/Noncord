@@ -51,6 +51,11 @@ export const theme = {
         "bg-[#c6a0f6] hover:bg-[#b7bdf8] text-[#181926] font-medium py-3 rounded-sm",
       secondary:
         "bg-[#cad3f5] hover:bg-[#b8c0e0] text-[#181926] border-none font-medium py-3",
+      ghostCta:
+        "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors " +
+        "text-[#a5adcb] bg-[#24273a]/40 border border-dashed border-[#363a4f] " +
+        "hover:border-[#c6a0f6] hover:bg-[#24273a] hover:text-[#cad3f5] " +
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#c6a0f6]",
     },
 
     label: "text-[#a5adcb] text-xs font-bold uppercase tracking-wide",

@@ -21,7 +21,6 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useSetAtom } from "jotai";
 import {
-  mergeMessages,
   messagesAtom,
   selectedChannelIdAtom,
   selectedServerIdAtom,

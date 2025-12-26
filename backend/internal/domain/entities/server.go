@@ -459,3 +459,77 @@ func (r *Role) Validate() error {
 func (r *Role) IsDirty() bool {
 	return r.dirty
 }
+
+func (s *Server) UpdateRoleName(rid RoleId, name string) error {
+	role, ok := s.Roles[rid]
+	if !ok {
+		return NewError(ErrCodeValidationError, "role don't exist", nil)
+	}
+	if name == role.Name {
+		return nil
+	}
+	s.roleDirty = true
+	role.dirty = true
+	role.UpdatedAt = time.Now()
+
+	role.Name, name = name, role.Name
+	s.Record(NewRoleNameUpdated(role, name))
+
+	return role.Validate()
+}
+
+func (s *Server) UpdateRoleColor(rid RoleId, color uint32) error {
+	role, ok := s.Roles[rid]
+	if !ok {
+		return NewError(ErrCodeValidationError, "role don't exist", nil)
+	}
+
+	if color == role.Color {
+		return nil
+	}
+	s.roleDirty = true
+	role.dirty = true
+	role.UpdatedAt = time.Now()
+
+	role.Color, color = color, role.Color
+	s.Record(NewRoleColorUpdated(role, color))
+
+	return role.Validate()
+}
+
+func (s *Server) UpdateRoleAllowMention(rid RoleId, allow bool) error {
+	role, ok := s.Roles[rid]
+	if !ok {
+		return NewError(ErrCodeValidationError, "role don't exist", nil)
+	}
+
+	if allow == role.AllowMention {
+		return nil
+	}
+	s.roleDirty = true
+	role.dirty = true
+	role.UpdatedAt = time.Now()
+
+	role.AllowMention, allow = allow, role.AllowMention
+	s.Record(NewRoleAllowMentionUpdated(role, allow))
+
+	return role.Validate()
+}
+
+func (s *Server) UpdateRolePermissions(rid RoleId, perms ServerPermissionBits) error {
+	role, ok := s.Roles[rid]
+	if !ok {
+		return NewError(ErrCodeValidationError, "role don't exist", nil)
+	}
+
+	s.roleDirty = true
+	role.dirty = true
+	role.UpdatedAt = time.Now()
+
+	role.Permissions, perms = perms, role.Permissions
+	s.Record(NewRolePermissionsUpdated(role, perms))
+
+	return role.Validate()
+}
+
+func (s *Server) ReordereRole() {}

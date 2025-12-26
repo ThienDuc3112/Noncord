@@ -48,13 +48,19 @@ func (q *PGServerQueries) Get(ctx context.Context, p query.GetServer) (query.Get
 			ServerID: s.ID,
 			UserID:   *p.UserId,
 		})
-		if err == nil {
-			member = query.Membership{
-				ServerId:  mb.ServerID,
-				UserId:    mb.UserID,
-				Nickname:  mb.Nickname,
-				CreatedAt: mb.CreatedAt,
-			}
+		if err != nil {
+			return query.GetServerResult{}, entities.NewError(entities.ErrCodeDepFail, "failed to fetch user membership status", err)
+		}
+		roleIds, err := q.q.FindRoleAssignmentsByMembershipId(ctx, mb.ID)
+		if err != nil {
+			return query.GetServerResult{}, entities.NewError(entities.ErrCodeDepFail, "failed to fetch user membership status", err)
+		}
+		member = query.Membership{
+			ServerId:  mb.ServerID,
+			UserId:    mb.UserID,
+			Nickname:  mb.Nickname,
+			CreatedAt: mb.CreatedAt,
+			Roles:     roleIds,
 		}
 	}
 

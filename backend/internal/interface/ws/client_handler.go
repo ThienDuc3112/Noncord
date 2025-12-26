@@ -58,9 +58,6 @@ func (h *Hub) registerHandlers() error {
 	if err := h.eventSubscriber.Subscribe(entities.EventServerIconURLUpdated, h.serverIconURLUpdatedHandler); err != nil {
 		return err
 	}
-	if err := h.eventSubscriber.Subscribe(entities.EventServerDefaultRoleChanged, h.serverDefaultPermissionChangedHandler); err != nil {
-		return err
-	}
 
 	return nil
 }

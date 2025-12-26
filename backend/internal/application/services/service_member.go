@@ -54,6 +54,9 @@ func (s *MemberService) JoinServer(ctx context.Context, params command.JoinServe
 
 		inv.JoinCount++
 		membership := entities.NewMembership(server.Id, user.Id, user.DisplayName)
+		if err = membership.AssignRole(server.DefaultRole); err != nil {
+			return err
+		}
 		membership, err = repos.Member().Save(ctx, membership)
 		if err != nil {
 			return entities.GetErrOrDefault(err, entities.ErrCodeDepFail, "cannot save membership")
